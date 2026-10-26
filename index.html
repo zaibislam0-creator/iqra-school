@@ -1263,7 +1263,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
         '<button id="langb" class="chip">' + esc(t("lang")) + '</button></div></header><main>';
     }
     if (kid && (view === "learn" || view === "home") && sess.breakDue && !openLesson) h += breakView();
-    else if (kid && (view === "learn" || view === "home") && !sess.mood && !openLesson) h += moodView();
+    else if (kid && (view === "learn" || view === "home") && !sess.mood && state.moodDay !== today() && !openLesson) h += moodView();
     else if (view === "setup") h += setupView();
     else if (view === "home") h += homeView();
     else if (view === "learn") h += learnView();
@@ -1523,7 +1523,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
   var curSubject = null; var afterGate = null;
   function uploadCard() { return ""; }
   function learnView() {
-    if (kidUI()) return kidHome();
+    if (kidUI() || !openLesson) return kidHome();
     if (openLesson) return lessonView(openLesson);
     var h = (curSubject ? "" : homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + missionCard() + '<h3 class="subhd" id="subjects">' + esc(t("subjectsHd")) + "</h3>") + '<p class="note">' + esc(t("sample")) + "</p>";
     if (curSubject) {
@@ -2068,7 +2068,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     if (openLesson) return kidLessonView(curLesson());
     var name = state.name ? " " + state.name : "";
     var greet = sess.moodMsg || (t("greetA") + name + "! " + t("greetB"));
-    var subs = subjectsFor(state.grade).filter(function (x) { return lessonsFor(x.id, state.grade).length || resFor(x.id, state.grade).length || canRes(); });
+    var subs = subjectsFor(state.grade).filter(function (x) { return !kidUI() || lessonsFor(x.id, state.grade).length || resFor(x.id, state.grade).length || canRes(); });
     if (!subs.length) {
       return homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + uploadCard() + '<div class="card pager"><p class="bigtext">' + esc(t("soon")) + '</p><button class="bigbtn" data-act="go" data-arg="character">' + svg("heart", 30) + " " + esc(t("stories")) + "</button></div>";
     }
@@ -2081,9 +2081,10 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     }
     var s = D.subjects.filter(function (x) { return x.id === cur; })[0];
     h += kidSubjBanner(s) + resHub(cur, state.grade);
+    if (!kidUI()) { h += syllabusCard(cur); if (!lessonsFor(cur, state.grade).length) h += '<p class="card">' + esc(t("nolesson")) + "</p>"; }
     lessonsFor(cur, state.grade).forEach(function (l) {
       if (l.type === "game") h += gameCard(l);
-      else h += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span></button>";
+      else h += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span>" + (kidUI() ? "" : " " + badge(l)) + "</button>";
     });
     if (!curSubject) h += missionCard() + launcherHTML();
     return h + uploadCard();
@@ -2573,7 +2574,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
       case "countAgain": startCount(); render(); break;
       case "countAlong": countAlong(); break;
       case "mood":
-        sess.mood = arg;
+        sess.mood = arg; state.moodDay = today(); save();
         sess.moodMsg = { happy: t("moodRH"), ok: t("moodRO"), tired: t("moodRT"), sad: t("moodRS") }[arg] || "";
         render(); if (sess.moodMsg) speak(sess.moodMsg); break;
       case "endBreak": sess.breakDue = false; render(); break;
