@@ -1309,7 +1309,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
         '<button id="langb" class="chip">' + esc(t("lang")) + '</button></div></header><main>';
     }
     if (kid && (view === "learn" || view === "home") && sess.breakDue && !openLesson) h += breakView();
-    else if (kid && (view === "learn" || view === "home") && !sess.mood && state.moodDay !== today() && !openLesson) h += moodView();
+    else if (false) h += moodView();
     else if (view === "setup") h += setupView();
     else if (view === "home") h += homeView();
     else if (view === "learn") h += learnView();
@@ -2102,7 +2102,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     var kid = kidUI(), nm = state.name ? " " + state.name : "";
     var st = streakInfo(), ms = missionList(), done = missionDoneIds();
     var next = ms.filter(function (l) { return done.indexOf(l.id) < 0; })[0];
-    var line = kid && sess.moodMsg ? sess.moodMsg : t("greetA") + nm + (kid ? "! " + t("greetB") : "");
+    var line = kid && sess.moodMsg ? sess.moodMsg : (kid && LANG() === "ur") ? t("moodRH") : t("greetA") + nm + (kid ? "! " + t("greetB") : "");
     var h = '<section class="hero3"><div class="hero3-main"><div class="wordmark">IQRA<span lang="ur" dir="rtl">اقرا</span></div><h2>' + esc(t("heroH")) + "</h2><p>" + esc(line) + '</p><div class="hero3-cta">';
     if (next) h += '<button class="bigbtn" data-act="openLesson" data-arg="' + next.id + '">' + svg("star", 28) + " " + esc(t("heroGo")) + "</button>";
     else if (ms.length) h += '<span class="hero3-done">' + svg("check", 26) + " " + esc(t("missionDone")) + "</span>";
