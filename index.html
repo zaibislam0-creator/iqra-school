@@ -1240,6 +1240,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
 
   var root = document.getElementById("app");
 
+  var renderKey = "";
   function render() {
     if (view === "home") view = "learn";
     if (ADMIN && ["addbook", "voice", "admin", "pack"].indexOf(view) < 0) view = "addbook";
@@ -1308,6 +1309,8 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
         var hi = h.indexOf("</header><main>");
     if (hi > -1) h = h.slice(0, hi) + "</header>" + navH + "</div><main>" + h.slice(hi + 15);
     root.innerHTML = h;
+    var rk = view + "|" + (openLesson || "") + "|" + (curSubject || "") + "|" + (sess.mood ? 1 : 0) + "|" + (state.setup ? 1 : 0);
+    if (rk !== renderKey) { renderKey = rk; try { window.scrollTo(0, 0); } catch (e) {} }
     bind();
   }
 
