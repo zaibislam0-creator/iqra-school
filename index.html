@@ -2353,7 +2353,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
   function moodView() {
     var h = '<section class="mood3"><div class="mood3-stage">' + bubbleHero("happy", t("moodQ"), 140) + "</div>";
     h += '<div class="faces mood3-faces">';
-    ["happy", "ok", "tired", "sad"].forEach(function (k) {
+    ["happy", "ok", "tired"].forEach(function (k) {
       h += '<button class="facebtn m-' + k + '" data-act="mood" data-arg="' + k + '"><span class="faceorb">' + face(k, 96) + "</span><span class=\"facelbl\">" + esc(t("mood" + k.charAt(0).toUpperCase() + k.slice(1))) + "</span></button>";
     });
     return h + '</div><p class="center"><button class="skipbtn" data-act="mood" data-arg="skip">' + esc(t("skip")) + "</button></p></section>";
