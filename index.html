@@ -757,6 +757,25 @@ html[lang="ur"] p,html[lang="ur"] label,html[lang="ur"] .small,html[lang="ur"] .
 html[lang="ur"] button,html[lang="ur"] .chip,html[lang="ur"] .gchip,html[lang="ur"] input,html[lang="ur"] select,html[lang="ur"] summary{font-family:"Noto Nastaliq Urdu","Amiri",system-ui,sans-serif!important;line-height:1.9}
 html[lang="ur"] .gchip,html[lang="ur"] .chip,html[lang="ur"] .bigbtn,html[lang="ur"] .hubtile,html[lang="ur"] .ktile{padding-block:.5em}
 html[lang="ur"] .welcome3-tiles div{line-height:1.9}
+
+/* ===== minimal setup (v2): flat class chips, tiny brand row, no scrolling ===== */
+#app .setupgrid,#app .setupone{display:block;max-width:560px;margin:0 auto}
+#app .setupgrid>.welcome3{display:flex;align-items:center;justify-content:center;gap:12px;background:none;box-shadow:none;border:0;padding:6px 0 10px;margin:0;color:inherit}
+#app .setupgrid .welcome3-orb{width:44px;height:44px;margin:0;animation:none;flex:none}
+#app .setupgrid .welcome3 h2,#app .setupgrid .welcome3 p,#app .setupgrid .welcome3-tiles{display:none}
+#app .setupgrid .welcome3 .wordmark{margin:0;font-size:1.5rem}
+#app .setup3{padding:18px 18px 16px}
+#app .setup3 .step{margin:14px 0 8px}
+#app .setup3 .step:first-of-type{margin-top:0}
+#app .setup3 .gpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:8px}
+#app .setup3 .gcat,#app .setup3 .gchips{display:contents}
+#app .setup3 .gcat-h{display:none}
+#app .setup3 .gchip{min-height:46px;padding:4px 6px;font-size:1rem;border-radius:12px}
+#app .setup3 .gobtn{position:sticky;bottom:10px;margin-top:14px;min-height:54px;box-shadow:0 8px 22px rgba(2,33,27,.3)}
+#app .setup3 .more{margin-top:12px}
+#app .setup3 .gpick{grid-template-columns:repeat(auto-fill,minmax(56px,1fr))}
+#app .setup3 .gchip{min-height:44px;font-size:1.05rem;font-weight:700;white-space:nowrap}
+@media (max-height:640px){#app .setupgrid>.welcome3{display:none}}
 </style>
 <style>
 #iqgate{position:fixed;inset:0;z-index:99999;display:none;place-items:center;padding:16px;background:radial-gradient(90% 120% at 20% 10%,#0d6a4a,#063225 60%,#02211b);font-family:Inter,system-ui,sans-serif}
@@ -1330,6 +1349,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     [["book", "heroT1"], ["owl", "heroT2"], ["star", "heroT3"]].forEach(function (x) { h += "<div>" + svg(x[0], 34) + "<span>" + esc(t(x[1])) + "</span></div>"; });
     return h + '</div><p class="homeclass"><button class="link" data-act="go" data-arg="setup">' + esc(t("edit")) + "</button></p>";
   }
+  function shortGrade(g){ var n=gnum(g); if(n>=11) return "F.A "+(n-10); if(String(g)==="KG"||n<=0) return LANG()==="ur"?"کے جی":"KG"; return String(n); }
   function setupView() {
     var h = (state.setup ? '<div class="setupone">' : '<div class="setupgrid">' + welcomeHero()) + '<section class="card setup3"><h2 class="setup3-h">' + esc(state.setup ? t("welcome") : st3("setupTitle")) + "</h2>";
     h += '<div class="step"><span class="stepno" aria-hidden="true">1</span><label for="sname">' + esc(st3("yourName")) + '</label></div>';
@@ -1338,7 +1358,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     h += '<div class="gpick" role="group" aria-labelledby="gradelbl">';
     D.levels.forEach(function (lv, li) {
       h += '<div class="gcat c' + "ABC".charAt(li) + '"><div class="gcat-h"><b aria-hidden="true">' + "ABC".charAt(li) + "</b><span>" + esc(L(lv)) + '</span></div><div class="gchips">';
-      D.grades.forEach(function (g) { var n = gnum(g); if (n >= lv.min && n <= lv.max) { var on = String(state.grade) === String(g); h += '<button type="button" class="gchip' + (on ? " on" : "") + '" data-sgrade="' + g + '" aria-pressed="' + on + '">' + esc(gradeLabel(g)) + "</button>"; } });
+      D.grades.forEach(function (g) { var n = gnum(g); if (n >= lv.min && n <= lv.max) { var on = String(state.grade) === String(g); h += '<button type="button" class="gchip' + (on ? " on" : "") + '" data-sgrade="' + g + '" aria-pressed="' + on + '">' + esc(shortGrade(g)) + "</button>"; } });
       h += "</div></div>";
     });
     h += "</div>";
@@ -3842,14 +3862,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     if (el && !el.disabled) act(el.getAttribute("data-act"), el.getAttribute("data-arg"));
   });
   render();
-  new Promise(function (res) { (function w() { if (window.__claudeReady) window.__claudeReady.then(res); else setTimeout(w, 40); })(); }).then(function () {
-    var pf = window.__iqProfile;
-    if (pf && pf.name && !ADMIN) {
-      var c = String(pf.cls || "KG"), g = c === "F.A" ? 11 : (/^\d+$/.test(c) ? Number(c) : "KG");
-      if (!state.setup || state.name !== pf.name || String(state.grade) !== String(g)) { state.name = pf.name; state.grade = g; state.setup = true; save(); view = "learn"; render(); }
-    }
-    initCloud();
-  });
+  (function go(n){ if(window.__claudeReady||n>100){ var p=window.__iqProfile; if(p){ state.name=p.name||state.name; var g=String(p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); } else setTimeout(function(){go(n+1)},100); })(0);
   (function entryScreen() {
     if (ADMIN || !window.IQRA_LOGO || !document.body) return;
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
