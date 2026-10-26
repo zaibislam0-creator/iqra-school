@@ -837,7 +837,7 @@ const db={collection:col};
 const staff=()=>role==='admin';
 const user={isOwner:async()=>staff(),canEdit:async()=>staff(),can:async()=>(role==='admin'||role==='teacher')?true:null,id:async()=>uid};
 window.claude={use:async n=>n==='db'?db:n==='user'?user:null};
-function begin(u){G.style.display='none';document.getElementById('iqout').style.display='block';if(!started){started=true;ready()}}
+function begin(u){G.style.display='none';document.getElementById('iqout').style.display='block';if(!started){started=true;window.__iqReady=true;ready()}}
 document.getElementById('iqout').onclick=()=>Au.signOut(auth).then(()=>location.reload());
 Au.onAuthStateChanged(auth,async u=>{if(!u){if(started)return location.reload();return loginView()}
  uid=u.uid;role=(u.email===OWNER&&u.emailVerified)?'admin':'student';
@@ -3884,7 +3884,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     if (el && !el.disabled) act(el.getAttribute("data-act"), el.getAttribute("data-arg"));
   });
   render();
-  (function go(n){ if(window.__claudeReady||n>100){ var p=window.__iqProfile; if(p){ state.name=p.name||state.name; var g=String(p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); setTimeout(function(){window.scrollTo(0,0)},600); } else setTimeout(function(){go(n+1)},100); })(0);
+  (function go(n){ if(window.__iqReady||n>6000){ var p=window.__iqProfile; if(p){ if(p.name) state.name=p.name; var g=String(p.cls||p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); } else setTimeout(function(){go(n+1)},100); })(0);
   (function entryScreen() {
     if (ADMIN || !window.IQRA_LOGO || !document.body) return;
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
