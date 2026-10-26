@@ -792,6 +792,11 @@ html[lang="ur"] .welcome3-tiles div{line-height:1.9}
 #app .setup3{padding:18px 16px 16px}
 }
 @media (max-height:640px) and (min-width:861px){#app .setupgrid .welcome3-tiles{display:none}#app .setupgrid .welcome3 p{margin-bottom:0}}
+/* ===== top: header scrolls away, page always starts at the hero ===== */
+.topbar,.topbar header,header,header.kid{position:static!important;top:auto!important}
+.topbar{margin:10px auto 0}
+header,header.kid{margin:10px auto 0}
+.topbar header{margin:0}
 </style>
 <style>
 #iqgate{position:fixed;inset:0;z-index:99999;display:none;place-items:center;padding:16px;background:radial-gradient(90% 120% at 20% 10%,#0d6a4a,#063225 60%,#02211b);font-family:Inter,system-ui,sans-serif}
@@ -1279,6 +1284,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
 
   var root = document.getElementById("app");
 
+  try { if (history.scrollRestoration) history.scrollRestoration = "manual"; } catch (e) {}
   var renderKey = "";
   function render() {
     if (view === "home") view = "learn";
@@ -3878,7 +3884,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     if (el && !el.disabled) act(el.getAttribute("data-act"), el.getAttribute("data-arg"));
   });
   render();
-  (function go(n){ if(window.__claudeReady||n>100){ var p=window.__iqProfile; if(p){ state.name=p.name||state.name; var g=String(p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); } else setTimeout(function(){go(n+1)},100); })(0);
+  (function go(n){ if(window.__claudeReady||n>100){ var p=window.__iqProfile; if(p){ state.name=p.name||state.name; var g=String(p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); setTimeout(function(){window.scrollTo(0,0)},600); } else setTimeout(function(){go(n+1)},100); })(0);
   (function entryScreen() {
     if (ADMIN || !window.IQRA_LOGO || !document.body) return;
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
