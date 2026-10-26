@@ -581,9 +581,12 @@ body{padding-bottom:24px}
 #app .setup3 .setup3-h{display:none}
 #app .setup3 .step:first-of-type{margin-top:0}
 #app .setup3 .gpick{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-#app .setup3 .gchips{grid-template-columns:repeat(auto-fill,minmax(98px,1fr))}
+#app .setup3 .gchips{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+#app .setupone{max-width:820px}
+#app .setup3 .gcat{padding:10px}
+#app .setup3 .gcat-h{margin-bottom:8px;font-size:.92rem}
 #app .setup3 .gchip{min-height:44px;padding:6px 8px;font-size:.95rem}
-#app .setup3 .gobtn{margin-top:14px;min-height:52px}
+#app .setup3 .gobtn{margin-top:14px;min-height:52px;position:sticky;bottom:12px;z-index:5;box-shadow:0 10px 26px rgba(2,33,27,.35)}
 }
 @media (max-width:760px){
 #app .setupgrid>.welcome3{padding:14px 14px 12px;margin:0 0 10px}
@@ -595,6 +598,7 @@ body{padding-bottom:24px}
 #app .setupgrid .welcome3-tiles div{flex-direction:column;padding:8px 4px;font-size:.72rem;gap:3px}
 #app .setup3 .setup3-h{display:none}
 #app .setup3{padding:14px 14px 16px}
+#app .setup3 .gobtn{position:sticky;bottom:10px;z-index:5;box-shadow:0 10px 26px rgba(2,33,27,.35)}
 }
 </style>
 <style id="reshub-css">
