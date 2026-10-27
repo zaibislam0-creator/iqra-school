@@ -1732,7 +1732,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
   function lessonsFor(sid, g) { var n = gnum(g); return D.lessons.filter(function (l) { return l.subject === sid && n >= l.min && n <= l.max && !(l.hidden && !isStaff()); }); }
 
   function syllabusCard(sid, gr) {
-    var G = gr === undefined ? G : gr;
+    if (gr === undefined) gr = state.grade; var G = gr;
     var h = "";
     D.syllabus.filter(function (x) { return x.subject === sid && x.grade === gnum(G); }).forEach(function (sx) {
       var doc = D.sources.filter(function (d) { return d.id === sx.docId; })[0];
@@ -3166,6 +3166,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     D.grades.forEach(function (x) { h += '<option value="' + x + '"' + (String(x) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(x)) + "</option>"; });
     h += '</select><button class="chip lightchip" data-nav="library">' + esc(st3("toLib")) + "</button></div>";
     var subs = subjectsFor(g);
+    if (!sylSubj || !subs.some(function (x) { return x.id === sylSubj; })) { var fs = subs.filter(function (x) { return D.syllabus.some(function (sx) { return sx.subject === x.id && sx.grade === n; }); })[0]; if (fs) sylSubj = fs.id; }
     h += "<h3>" + esc(st3("sylPick")) + '</h3><div class="sylgrid">';
     subs.forEach(function (x) {
       var has = D.syllabus.some(function (sx) { return sx.subject === x.id && sx.grade === n; });
