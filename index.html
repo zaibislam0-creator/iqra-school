@@ -2882,7 +2882,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     else {
       var rd = studiedOK(cu.id), te = testOfStudy(cu.id), ttl = L(cu.title).replace(/^(Read first: |پہلے پڑھیں: )/, "");
       h += '<p class="pathnow">' + esc((ur ? "سبق " : "Lesson ") + (us.indexOf(cu) + 1)) + '</p><h3 class="pathttl">' + esc(ttl) + "</h3>";
-      h += '<button type="button" class="pstep' + (rd ? " ok" : " go") + '" data-act="openLesson" data-arg="' + esc(cu.id) + '"><i>1</i><span>' + esc(ur ? "📖 سبق پڑھیں" : "📖 Read the lesson") + "</span><em>" + svg(rd ? "check" : "next", 24) + "</em></button>";
+      h += '<button type="button" class="pstep' + (rd ? " ok" : " go") + '" data-act="openLesson" data-arg="' + esc(cu.id) + '"><i>1</i><span>' + esc(ur ? "📖 سبق پڑھیں" : "📖 Read the lesson") + (partsOf(cu).length > 1 && !rd ? ' <small>' + esc(partLabel(cu)) + "</small>" : "") + "</span><em>" + svg(rd ? "check" : "next", 24) + "</em></button>";
       var gl = gu[cu.id] || [];
       if (gl.length) h += '<button type="button" class="pstep' + (rd ? " go" : " lock") + '"' + (rd ? ' data-act="openLesson" data-arg="' + esc(gl[0].id) + '"' : " disabled") + "><i>2</i><span>" + esc(ur ? "🎮 کھیل کر مشق کریں" : "🎮 Practise with games") + " (" + gl.length + ")</span><em>" + (rd ? svg("next", 24) : "🔒") + "</em></button>";
       else h += '<div class="pstep ok"><i>2</i><span>' + esc(ur ? "🎮 اس سبق کے کھیل جلد آئیں گے — ٹیسٹ دیں" : "🎮 Games coming soon — go to the test") + "</span></div>";
@@ -2915,6 +2915,14 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     D.lessons.filter(function (x) { return x.study && x.book === u && x.bpage; }).sort(function (a, b) { return a.bpage - b.bpage; }).forEach(function (x) { arr.push({ t: L(x.title).replace(/^(Read first: |پہلے پڑھیں: )/, ""), p: x.bpage }); });
     return arr;
   }
+  function partsOf(l) {
+    if (!l || !l.bpage || !l.bend) return [];
+    var len = l.bend - l.bpage + 1, n = len > 12 ? Math.ceil(len / 10) : 1, sz = Math.ceil(len / n), r = [], i, a;
+    for (i = 0; i < n; i++) { a = l.bpage + i * sz; r.push({ a: a, b: Math.min(l.bend, a + sz - 1) }); }
+    return r;
+  }
+  function partNow(l) { var ps = partsOf(l), k = Math.min((state.partsDone || {})[l.id] || 0, Math.max(0, ps.length - 1)); return { ps: ps, k: k, p: ps[k] }; }
+  function partLabel(l) { var q = partNow(l), ur = LANG() === "ur"; if (!q.p) return ""; return (q.ps.length > 1 ? (ur ? "حصہ " : "Part ") + (q.k + 1) + "/" + q.ps.length + " · " : "") + (ur ? "صفحہ " : "Pages ") + q.p.a + "–" + q.p.b; }
   function markStudied(id) { state.studied = state.studied || {}; state.studied[id] = true; save(); }
   function readBookAct(arg) {
     var kind = arg.split(":")[0], id = arg.slice(kind.length + 1), ur = LANG() === "ur", o, l, x, u;
@@ -2923,9 +2931,14 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       l = lessonById(id); if (!l) return; u = kind === "notes" ? l.notes : l.book;
       o = { url: u, title: L(l.title).replace(/^(Read first: |پہلے پڑھیں: )/, ""), rtl: bookRtl(u), toc: kind === "notes" ? [] : bookToc(u), lang: LANG() };
       if (kind === "study") {
-        o.page = l.bpage; o.end = l.bend; o.resume = false;
-        o.onProgress = function (mx) { if (l.bend && mx >= l.bend && !(state.bookSeen && state.bookSeen[id])) { state.bookSeen = state.bookSeen || {}; state.bookSeen[id] = true; save(); } };
-        o.onDone = function () { markStudied(id); finishActivity(); openLesson = null; render(); window.scrollTo(0, 0); if (autoVoice()) speak(t("great")); };
+        var q = partNow(l), last = q.k >= q.ps.length - 1;
+        o.page = q.p.a; o.end = q.p.b; o.resume = false;
+        if (!last) o.doneLabel = ur ? "اگلا حصہ ›" : "Next part ›";
+        o.onProgress = function (mx) { if (last && l.bend && mx >= l.bend && !(state.bookSeen && state.bookSeen[id])) { state.bookSeen = state.bookSeen || {}; state.bookSeen[id] = true; save(); } };
+        o.onDone = function () {
+          if (!last) { state.partsDone = state.partsDone || {}; state.partsDone[id] = q.k + 1; save(); render(); setTimeout(function () { readBookAct(arg); }, 30); return; }
+          markStudied(id); finishActivity(); openLesson = null; render(); window.scrollTo(0, 0); if (autoVoice()) speak(t("great"));
+        };
       }
     }
     withReader(function () { window.IQReader.open(o); });
@@ -2935,7 +2948,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var h = '<div class="card chapter"><div class="center">' + picon(l.subject, true) + '</div><h2 class="bigtext title center">' + esc(L(l.title)) + '</h2><p class="small center">' + esc(ur ? "پہلے یہ باتیں سنیں اور پڑھیں۔ پھر کھیل اور ٹیسٹ کھلیں گے۔" : "First listen to and read these ideas. Then the games and the test will open.") + "</p>" + bodyBlocks(L(l.body), true);
     h += '<div class="actions"><button class="bigbtn alt" data-act="speak" data-arg="' + esc(L(l.body)) + '">' + svg("speaker", 30) + " " + esc(t("listen")) + "</button>";
     var needBook = !!(l.book && l.bpage && !done && !(state.bookSeen && state.bookSeen[l.id]) && !(ADMIN || isStaff()));
-    if (l.book) h += '<button class="bigbtn' + (needBook ? "" : " alt") + '" data-act="readBook" data-arg="study:' + esc(l.id) + '">' + esc(ur ? "📖 کتاب میں پڑھیں" : "📖 Read in the book") + "</button>";
+    if (l.book) h += '<button class="bigbtn' + (needBook ? "" : " alt") + '" data-act="readBook" data-arg="study:' + esc(l.id) + '">' + esc((ur ? "📖 کتاب میں پڑھیں" : "📖 Read in the book") + (partLabel(l) ? " (" + partLabel(l) + ")" : "")) + "</button>";
     if (l.notes) h += '<button class="bigbtn alt" data-act="readBook" data-arg="notes:' + esc(l.id) + '">' + esc(ur ? "📝 نوٹس" : "📝 Notes") + "</button>";
     h += '<button class="bigbtn"' + (needBook ? " disabled" : "") + ' data-act="studyDone" data-arg="' + esc(l.id) + '">' + svg("check", 30) + " " + esc(done ? (ur ? "دوبارہ پڑھ لیا" : "Read again") : (ur ? "میں نے پڑھ لیا" : "I have read it")) + "</button></div>";
     if (needBook) h += '<p class="small center">' + esc(ur ? "پہلے اوپر دیے گئے بٹن سے کتاب کے صفحے آخر تک پڑھیں۔ پھر یہ بٹن کھلے گا۔" : "First read the book pages with the button above, up to the end of the lesson. Then this button will open.") + "</p>";
