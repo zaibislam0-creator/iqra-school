@@ -3524,7 +3524,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "readBook": readBookAct(arg); break;
       case "pathTest": pathTest = arg; resRun = null; render(); window.scrollTo(0, 0); break;
       case "pathBack": pathTest = null; resRun = null; render(); window.scrollTo(0, 0); break;
-      case "closeLesson": openLesson = null; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; render(); break;
+      case "closeLesson": openLesson = null; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; render(); setTimeout(function () { var m = document.querySelector(".mission .mstep:not(.ok)") || document.querySelector(".mission"); if (m && m.scrollIntoView) m.scrollIntoView({ block: "center", behavior: "smooth" }); }, 60); break;
       case "next": l = curLesson(); if (l) { lessonStep = Math.min(lessonStep + 1, lessonCards(l).length); render(); var cs = lessonCards(l); if (autoVoice() && cs[lessonStep]) speak(cs[lessonStep].text); } break;
       case "prev": l = curLesson(); lessonStep = Math.max(0, lessonStep - 1); render(); if (l && autoVoice()) speak(lessonCards(l)[lessonStep].text); break;
       case "startQuiz":
