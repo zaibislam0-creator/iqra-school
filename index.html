@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <meta name="google" content="notranslate">
-<title>IQRA</title>
+<title>IQRA Digital School | KG to F.A | Pakistan</title><meta name="description" content="IQRA Digital School: free Urdu and English learning for Pakistani children from KG to F.A. Games, notes, tests and books based on the national curriculum."><meta name="theme-color" content="#063225"><meta property="og:type" content="website"><meta property="og:title" content="IQRA Digital School"><meta property="og:description" content="Learn Urdu, English and Maths with games, notes and tests. KG to F.A, Pakistan."><meta property="og:image" content="https://iqradigitalschool.com/og.png"><meta property="og:url" content="https://iqradigitalschool.com/"><link rel="icon" href="/favicon.png" type="image/png"><link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png"><link rel="apple-touch-icon" href="/icon-192.png"><link rel="manifest" href="/manifest.webmanifest">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600&family=Amiri:wght@400;700&display=swap">
@@ -828,6 +828,22 @@ header,header.kid{margin:10px auto 0}
 #iqgate label{display:flex;flex-direction:column;gap:4px;font-weight:600;font-size:.9rem}
 #iqgate .er{color:#a33;min-height:1.2em}
 #iqout{position:fixed;right:10px;bottom:10px;z-index:9000;min-height:36px;border-radius:999px;border:1px solid #d9b865;background:#063225;color:#e9c97a;font:600 .8rem Inter,system-ui,sans-serif;padding:0 14px;cursor:pointer;display:none}
+#iqout{display:none!important}
+.ksubpills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;padding:2px 2px 8px;margin-inline:-2px;-webkit-overflow-scrolling:touch}
+.ksubpills::-webkit-scrollbar{display:none}
+.ksp{flex:none;scroll-snap-align:start}
+@media (min-width:760px){.ksubpills{flex-wrap:wrap;overflow:visible}}
+.topbar header .hb .chip{min-height:44px}
+.topbar header .hb .chip svg{display:block}
+.tgroup{margin:0 0 12px;border:1px solid var(--line);border-radius:20px;background:var(--card);padding:4px 12px;box-shadow:var(--sh)}
+.tgroup summary{display:flex;align-items:center;gap:10px;min-height:58px;cursor:pointer;font-weight:800;list-style:none}
+.tgroup summary::-webkit-details-marker{display:none}
+.tgroup summary::after{content:"\25BE";margin-inline-start:auto;transition:transform .2s}
+.tgroup[open] summary::after{transform:rotate(180deg)}
+.tgroup .ktiles{padding-bottom:10px}
+@media (max-width:640px){.staffbar{padding:10px 12px;gap:8px;margin:0 0 10px}.staffbar-t span{display:none}.staffbar-b{width:100%;display:flex;gap:8px}.staffbar-b .bigbtn{flex:1;min-height:46px;padding:8px 10px;font-size:1rem}.kbanner{margin:4px 0 10px}}
+@media (max-width:480px){.gw{display:none}.topbar header.kid .hb .chip{min-height:44px}.topbar header.kid{gap:4px}}
+@media (max-width:420px){.topbar .brand{display:none}.topbar header.kid .hb{justify-content:space-between}}
 </style>
 <div id="iqgate" role="dialog" aria-modal="true" aria-label="IQRA sign in"></div>
 <button id="iqout" type="button">Sign out</button>
@@ -1747,11 +1763,11 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     document.body.classList.toggle("inlesson", !!openLesson);
     var h;
     if (kid) {
-      h = '<div class="topbar"><header class="kid"><span class="brand">' + brandMark(44) + '<span class="brand-t"><h1>' + esc(t("app")) + '</h1><small class="brand-tag">' + esc(LANG() === "ur" ? "زیادہ سیکھیں، زیادہ بنیں" : "Learn more, be more") + '</small></span></span><div class="hb">' + roleChip() + '<button class="chip" data-act="voice" aria-label="' + esc(t("autoVoice")) + '">' + svg(state.voice ? "speaker" : "mute", 24) + '</button>' + (state.setup ? '<button class="chip" data-act="go" data-arg="setup" aria-label="' + esc(t("switchc")) + '"><b>' + "ABC".charAt(D.levels.indexOf(levelOf(state.grade))) + "</b> · " + esc(gnum(state.grade) >= 11 ? "F.A" : (LANG() === "ur" ? "جماعت " : "Class ") + state.grade) + "</button>" : "") + '<button id="langb" class="chip">' + esc(t("lang")) + "</button></div></header><main>";
+      h = '<div class="topbar"><header class="kid"><span class="brand">' + brandMark(44) + '<span class="brand-t"><h1>' + esc(t("app")) + '</h1><small class="brand-tag">' + esc(LANG() === "ur" ? "زیادہ سیکھیں، زیادہ بنیں" : "Learn more, be more") + '</small></span></span><div class="hb">' + roleChip() + '<button class="chip" data-act="voice" aria-label="' + esc(t("autoVoice")) + '">' + svg(state.voice ? "speaker" : "mute", 24) + '</button>' + (state.setup ? '<button class="chip" data-act="go" data-arg="setup" aria-label="' + esc(t("switchc")) + '">' + (gnum(state.grade) >= 11 ? "F.A" : '<span class="gw">' + (LANG() === "ur" ? "جماعت " : "Class ") + "</span>" + esc(state.grade)) + "</button>" : "") + '<button id="langb" class="chip">' + esc(t("lang")) + "</button>" + '<button class="chip" data-act="signout" aria-label="' + esc(LANG() === "ur" ? "لاگ آؤٹ" : "Sign out") + '">' + svg("signout", 22) + '</button></div></header><main>';
     } else {
       h = '<div class="topbar"><header><h1>' + esc(ADMIN ? t("adminApp") : t("app")) + '</h1><div class="hb">' + roleChip() + (state.setup ? '<button class="chip" data-act="go" data-arg="setup" aria-label="' + esc(t("switchc")) + '"><b>' + "ABC".charAt(D.levels.indexOf(levelOf(state.grade))) + "</b> · " + esc(gnum(state.grade) >= 11 ? "F.A" : (LANG() === "ur" ? "جماعت " : "Class ") + state.grade) + "</button>" : "") + 
         '<button id="lowb" class="chip' + (state.low ? " on" : "") + '">' + esc(t("lowband")) + '</button>' +
-        '<button id="langb" class="chip">' + esc(t("lang")) + '</button></div></header><main>';
+        '<button id="langb" class="chip">' + esc(t("lang")) + '</button><button class="chip" data-act="signout" aria-label="' + esc(LANG() === "ur" ? "لاگ آؤٹ" : "Sign out") + '">' + svg("signout", 22) + '</button></div></header><main>';
     }
     if (kid && (view === "learn" || view === "home") && sess.breakDue && !openLesson) h += breakView();
     else if (false) h += moodView();
@@ -1785,9 +1801,9 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     } else if (state.setup && kid) {
       navH += '<nav class="kidnav">';
       [["learn", "home"], ["library", "lib"], ["tutor", "owl"], ["stars", "star"]].forEach(function (v) {
-        navH += '<button data-nav="' + v[0] + '" class="' + (view === v[0] ? "act" : "") + '">' + svg(v[1], 34) + "<span>" + esc(t(v[0] === "stars" ? "starsTab" : v[0] === "learn" ? "home" : v[0])) + "</span></button>";
+        navH += '<button data-nav="' + v[0] + '" aria-label="' + esc(t(v[0] === "stars" ? "starsTab" : v[0] === "learn" ? "home" : v[0])) + '" class="' + (view === v[0] ? "act" : "") + '">' + svg(v[1], 34) + "<span>" + esc(t(v[0] === "stars" ? "starsTab" : v[0] === "learn" ? "home" : v[0])) + "</span></button>";
       });
-      if (!isPlainStudent()) navH += '<button data-act="adult" class="' + (ADULT_VIEWS.indexOf(view) > -1 || view === "gate" ? "act" : "") + '">' + svg("lock", 34) + "<span>" + esc(t("grownups")) + "</span></button>";
+      if (!isPlainStudent()) navH += '<button data-act="adult" aria-label="' + esc(t("grownups")) + '" class="' + (ADULT_VIEWS.indexOf(view) > -1 || view === "gate" ? "act" : "") + '">' + svg("lock", 34) + "<span>" + esc(t("grownups")) + "</span></button>";
       navH += "</nav>";
     } else if (state.setup) {
       navH += '<nav>';
@@ -2128,7 +2144,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     chat.forEach(function (m) { h += '<div class="msg ' + m.who + (m.safe ? " warn" : "") + '">' + esc(m.text) + "</div>"; });
     h += "</div>";
     if (tutorCtx.lesson) h += '<form id="chatf" class="send"><input id="chatq" placeholder="' + esc(t("ask")) + '" autocomplete="off"><button class="btn">' + esc(t("send")) + "</button></form>";
-    h += '<p class="note">Demo mode: rule-based Socratic helper that stays inside the chosen chapter. Connect an LLM backend for full tutoring (see README).</p>';
+    h += '<p class="note">' + esc(LANG() === "ur" ? "یہ مددگار ابھی تجرباتی ہے اور صرف منتخب باب کے اندر رہ کر جواب دیتا ہے۔" : "This helper is experimental and answers only from the chapter you chose.") + "</p>";
     return h;
   }
 
@@ -2466,6 +2482,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     star: '<path d="M24 6l5.500 11.500 12.500 1.800-9 8.800 2.200 12.400L24 34.700l-11.200 5.800 2.200-12.400-9-8.800 12.500-1.800z"/>',
     lock: '<rect x="10" y="21" width="28" height="20" rx="4"/><path d="M16 21v-6a8 8 0 0 1 16 0v6"/>',
     speaker: '<path d="M8 20h8l10-8v24l-10-8H8z"/><path d="M32 18c3 3 3 9 0 12M37 13c6 6 6 16 0 22"/>',
+    signout: '<path d="M20 8H10v32h10"/><path d="M18 24h22M32 15l9 9-9 9"/>',
     mute: '<path d="M8 20h8l10-8v24l-10-8H8z"/><path d="M32 19l10 10M42 19l-10 10"/>',
     next: '<path d="M10 24h26M26 12l12 12-12 12"/>',
     prev: '<path d="M38 24H12M22 12L10 24l12 12"/>'
@@ -2560,7 +2577,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
   function kidHome() {
     if (openLesson && !curLesson()) openLesson = null;
     if (openLesson) return kidLessonView(curLesson());
-    var name = state.name ? " " + state.name : "";
+    var name = state.name ? " \u2068" + state.name + "\u2069" : "";
     var greet = sess.moodMsg || (t("greetA") + name + "! " + t("greetB"));
     var subs = subjectsFor(state.grade).filter(function (x) { return !kidUI() || lessonsFor(x.id, state.grade).length || resFor(x.id, state.grade).length || canRes(); });
     if (!subs.length) {
@@ -2917,12 +2934,15 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
   function kidTutor() {
     var l = lessonById(tutorCtx.lesson);
     if (!l) {
-      var h = kidBanner(t("pick1")) + '<div class="ktiles">';
-      D.lessons.forEach(function (x) {
-        var n = gnum(state.grade);
-        if (n >= x.min && n <= x.max) h += '<button class="ktile" data-act="askHelper" data-arg="' + x.id + '">' + picon(x.subject) + "<span>" + esc(L(x.title)) + "</span></button>";
+      var h = kidBanner(t("pick1")), n = gnum(state.grade);
+      D.subjects.forEach(function (sb) {
+        var tl = "";
+        D.lessons.forEach(function (x) {
+          if (x.subject === sb.id && n >= x.min && n <= x.max) tl += '<button class="ktile" data-act="askHelper" data-arg="' + x.id + '">' + picon(x.subject) + "<span>" + esc(L(x.title)) + "</span></button>";
+        });
+        if (tl) h += '<details class="tgroup"><summary>' + picon(sb.id) + "<b>" + esc(L(sb)) + '</b></summary><div class="ktiles">' + tl + "</div></details>";
       });
-      return h + "</div>";
+      return h;
     }
     var out = kidBanner(t("tutorHi")) + '<div class="chat" aria-live="polite">';
     chat.forEach(function (m) { out += '<div class="msg ' + m.who + (m.safe ? " warn" : "") + '">' + esc(m.text) + "</div>"; });
@@ -2985,6 +3005,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
         openLesson = null; quizRun = null; gameRun = null; countGame = null;
         bookStore = bookStore.filter(function (b) { if (b.id !== arg) return true; b.lessons.forEach(function (l) { D.lessons = D.lessons.filter(function (x) { return x.id !== l.id; }); delete state.progress[l.id]; delete state.meta[l.id]; }); return false; });
         saveBooks(); save(); cloudDelBook(arg); render(); break;
+      case "signout": var so = document.getElementById("iqout"); if (so) so.click(); break;
       case "voice": state.voice = !state.voice; save(); render(); break;
       case "upload": afterGate = "addbook"; gateQ = newGate(); view = adultOK ? "addbook" : "gate"; render(); break;
       case "adult": afterGate = null; gateQ = newGate(); view = adultOK ? "adult" : "gate"; render(); break;
@@ -3470,12 +3491,13 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
       return true;
     });
     var shown = base.filter(function (x) { return libCat === "all" || x.cat === libCat; });
-    var h = '<section class="page3">' + (kidUI() ? kidBanner(st3("libT") + ". " + st3("libIntro")) : '<h2>' + esc(st3("libT")) + '</h2><p class="lead3">' + esc(st3("libIntro")) + "</p>");
+    var h = '<section class="page3">' + (kidUI() ? kidBanner(st3("libT")) : '<h2>' + esc(st3("libT")) + '</h2><p class="lead3">' + esc(st3("libIntro")) + "</p>");
     h += '<form id="libf" class="libbar"><label class="sr" for="libq">' + esc(st3("libSearch")) + '</label><input id="libq" type="search" dir="auto" placeholder="' + esc(st3("libSearch")) + '" value="' + esc(libQ) + '"><button class="btn" type="submit">' + esc(st3("libGo")) + "</button></form>";
     h += '<div class="pagebar"><label for="libgrade">' + esc(st3("sylClass")) + '</label><select id="libgrade"><option value="mine"' + (libGrade === "mine" ? " selected" : "") + ">" + esc(st3("libMine")) + " (" + esc(gradeLabel(state.grade)) + ')</option><option value="all"' + (libGrade === "all" ? " selected" : "") + ">" + esc(st3("libAllC")) + '</option></select><button class="chip lightchip" data-nav="syllabus">' + esc(st3("toSyl")) + "</button></div>";
     h += "<h3>" + esc(st3("libCatT")) + '</h3><div class="libcats"><button class="libcat' + (libCat === "all" ? " on" : "") + '" data-act="libCat" data-arg="all"><b>' + esc(st3("libAll")) + "</b><span>" + base.length + "</span></button>";
     LIB_CATS.forEach(function (c) {
       var cnt = base.filter(function (x) { return x.cat === c; }).length;
+      if (!cnt && libCat !== c) return;
       h += '<button class="libcat' + (libCat === c ? " on" : "") + (cnt ? "" : " zero") + '" data-act="libCat" data-arg="' + c + '"><b>' + esc(st3("cat_" + c)) + "</b><span>" + cnt + "</span></button>";
     });
     h += "</div>";
@@ -3750,7 +3772,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
       if (complete(m)) m.status = "inreview";
       state.meta[$("#mid").value] = m; save(); cloudMeta($("#mid").value); render();
     });
-    on("#rst", function () { if (confirm("?")) { localStorage.removeItem(KEY); state = defaults(); adminMaps = []; chat = []; sess = { done: 0, breakDue: false, mood: "", moodMsg: "" }; adultOK = false; view = "setup"; render(); } });
+    on("#rst", function () { if (confirm(LANG() === "ur" ? "کیا آپ اس ڈیوائس کا سارا ڈیٹا مٹانا چاہتے ہیں؟" : "Reset all progress on this device?")) { localStorage.removeItem(KEY); state = defaults(); adminMaps = []; chat = []; sess = { done: 0, breakDue: false, mood: "", moodMsg: "" }; adultOK = false; view = "setup"; render(); } });
   }
 
 
