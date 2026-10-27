@@ -2883,8 +2883,10 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       var rd = studiedOK(cu.id), te = testOfStudy(cu.id), ttl = L(cu.title).replace(/^(Read first: |پہلے پڑھیں: )/, "");
       h += '<p class="pathnow">' + esc((ur ? "سبق " : "Lesson ") + (us.indexOf(cu) + 1)) + '</p><h3 class="pathttl">' + esc(ttl) + "</h3>";
       h += '<button type="button" class="pstep' + (rd ? " ok" : " go") + '" data-act="openLesson" data-arg="' + esc(cu.id) + '"><i>1</i><span>' + esc(ur ? "📖 سبق پڑھیں" : "📖 Read the lesson") + "</span><em>" + svg(rd ? "check" : "next", 24) + "</em></button>";
-      h += '<div class="pstep' + (rd ? " go" : " lock") + '"><i>2</i><span>' + esc(ur ? "🎮 کھیل کر مشق کریں" : "🎮 Practise with games") + "</span><em>" + (rd ? "" : "🔒") + "</em></div>";
-      if (rd) (gu[cu.id] || []).forEach(function (g) { h += gameCard(g); });
+      var gl = gu[cu.id] || [];
+      if (gl.length) h += '<button type="button" class="pstep' + (rd ? " go" : " lock") + '"' + (rd ? ' data-act="openLesson" data-arg="' + esc(gl[0].id) + '"' : " disabled") + "><i>2</i><span>" + esc(ur ? "🎮 کھیل کر مشق کریں" : "🎮 Practise with games") + " (" + gl.length + ")</span><em>" + (rd ? svg("next", 24) : "🔒") + "</em></button>";
+      else h += '<div class="pstep ok"><i>2</i><span>' + esc(ur ? "🎮 اس سبق کے کھیل جلد آئیں گے — ٹیسٹ دیں" : "🎮 Games coming soon — go to the test") + "</span></div>";
+      if (rd && gl.length > 1) gl.slice(1).forEach(function (g) { h += gameCard(g); });
       if (te) {
         var sc = (state.resScore || {})[te.id];
         h += '<button type="button" class="pstep' + (rd ? " go" : " lock") + '"' + (rd ? ' data-act="pathTest" data-arg="' + esc(te.id) + '"' : " disabled") + "><i>3</i><span>" + esc(ur ? "📝 سبق کا ٹیسٹ" : "📝 Lesson test") + (sc ? " · " + sc.best + "/" + sc.t : "") + "</span><em>" + (rd ? svg("next", 24) : "🔒") + "</em></button>";
@@ -3090,7 +3092,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var lsAll = lessonsFor(cur, state.grade), gm = "", ot = "", gu = {}, path = unitsFor(cur);
     lsAll.forEach(function (l) {
       if (l.type === "study") return;
-      if (l.type === "game") { var nd = needsOf(l.id)[0]; if (nd && path.length) (gu[nd] = gu[nd] || []).push(l); else gm += gameCard(l); }
+      if (l.type === "game") { var nds = needsOf(l.id); if (nds.length && path.length) nds.forEach(function (nd) { (gu[nd] = gu[nd] || []).push(l); }); else gm += gameCard(l); }
       else ot += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span>" + (kidUI() ? "" : " " + badge(l)) + "</button>";
     });
     h += path.length ? pathCard(path, gu) : "";
@@ -4673,16 +4675,21 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     }
     return h;
   }
+  var AUTH = { "t-c1-math": "Sadia Jabeen", "t-c1-eng": "Maryam Zafar", "t-c1-gk": "طاہر محمود", "t-c1-ethics": "ڈاکٹر جمیل الرحمان، مہر صفدر ولید، شمس الرحمان", "t-c1-isl": "معظم ادریس", "t-c1-taj": "ڈاکٹر ابوالحسن محمد شاہ الازہری، علامہ زاہد نبی سیفی، علامہ غلام علی", "t-c1-urdu": "تاج محمد، محمد عثمان طفیل" };
+  function authorLine(x) {
+    var k, a = ""; for (k in AUTH) if (x.id.indexOf(k) === 0) a = AUTH[k];
+    return '<p class="small authorl">✍️ ' + esc(LANG() === "ur" ? "مصنف" : "Writer") + ": <span dir=\"auto\">" + esc(a || "PCTB") + "</span> · PCTB</p>";
+  }
   function resTestCard(x) {
     var qs = x.d.qs || [], sc = (state.resScore || {})[x.id];
     if (resRun && resRun.id === x.id) return resTestRun(x);
-    var h = '<p class="small">' + qs.length + " " + esc(rt("qcount")) + (sc ? " · " + esc(rt("last")) + ": " + sc.s + "/" + sc.t + " · " + esc(rt("best")) + ": " + sc.best + "/" + sc.t : "") + "</p>";
+    var h = authorLine(x) + '<p class="small">' + qs.length + " " + esc(rt("qcount")) + (sc ? " · " + esc(rt("last")) + ": " + sc.s + "/" + sc.t + " · " + esc(rt("best")) + ": " + sc.best + "/" + sc.t : "") + "</p>";
     var mt = missingStudy(x.id);
     if (mt) return h + '<button type="button" class="bigbtn lockd" data-act="openLesson" data-arg="' + esc(mt) + '">🔒 ' + esc(lockText()) + "</button>";
     return h + '<button type="button" class="bigbtn" data-act="resStart" data-arg="' + x.id + '">' + esc(rt("start")) + "</button>";
   }
   function resTestRun(x) {
-    var qs = x.d.qs || [], r = resRun, h = '<div class="restest">';
+    var qs = x.d.qs || [], r = resRun, h = '<div class="restest">' + authorLine(x);
     qs.forEach(function (q, i) {
       var qp = String(q.q).split("||"); h += '<fieldset class="resq"><legend>' + (i + 1) + ". " + (qp.length === 2 ? '<span dir="rtl" lang="ur">' + esc(qp[0]) + '</span><br><span dir="ltr" lang="en">' + esc(qp[1]) + "</span>" : esc(q.q)) + "</legend>";
       q.o.forEach(function (o, j) {
