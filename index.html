@@ -184,6 +184,17 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--g);outline-offse
 .dots i{width:10px;height:10px}.dots i.on{background:var(--gold)}
 .bigtext.title{font-family:var(--serif)}
 .bigletter{color:var(--g)}
+.gv{padding-block:clamp(8px,1.6vh,18px)}
+.gv .center svg,.gv .center img{height:clamp(52px,10vh,96px);width:auto;max-width:100%}
+.gv .bigletter{font-size:clamp(2.4rem,9.5vh,5.5rem);line-height:1.15;margin:0}
+.gv .bigtext{font-size:clamp(1rem,3vh,1.55rem);margin:clamp(4px,1vh,10px) 0;line-height:1.45}
+.gv .bigtext.small{font-size:clamp(.95rem,2.6vh,1.2rem)}
+.gv>.bigbtn{padding-block:clamp(6px,1.1vh,12px);min-height:0;font-size:clamp(.95rem,2.6vh,1.2rem)}
+.gv .actions{margin:clamp(4px,1vh,10px) 0 0}.gv .actions .bigbtn{padding-block:clamp(6px,1.1vh,12px);min-height:0}
+.gv .dots{margin:clamp(6px,1.2vh,12px) 0}
+.gv .picchoices{margin:clamp(6px,1.2vh,12px) 0 0;gap:clamp(6px,1.4vh,12px)}
+.gv .picbtn{min-height:0;padding:clamp(6px,1.3vh,12px) 4px}.gv .picbtn .emo{font-size:clamp(2rem,8vh,3.4rem)}
+@media (max-height:640px){.gv .center{display:none}}
 nav{background:color-mix(in srgb,var(--bg) 88%,transparent);border-top:1px solid var(--line)}
 nav button{position:relative;color:var(--ink);opacity:.62}
 nav button.act,.kidnav button.act{border-top:0;color:var(--g);opacity:1}
@@ -2661,7 +2672,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     }
     var r = g.rounds[g.i], mood = g.status === "right" ? "cheer" : g.status === "wrong" ? "think" : "happy";
     var say = L(r.say);
-    var h = '<div class="card pager"><div class="center">' + mascot(mood, 96) + "</div>";
+    var h = '<div class="card pager gv"><div class="center">' + mascot(mood, 96) + "</div>";
     if (r.show) h += '<div class="bigletter" dir="auto">' + esc(r.show) + "</div>";
     h += '<p class="bigtext">' + esc(say) + '</p><button class="bigbtn alt" data-act="speak" data-arg="' + esc(say) + '">' + svg("speaker", 30) + " " + esc(t("listen")) + "</button>";
     h += '<div class="dots">' + g.rounds.map(function (x, i) { return '<i class="' + (i <= g.i ? "on" : "") + '"></i>'; }).join("") + '</div><div class="picchoices">';
