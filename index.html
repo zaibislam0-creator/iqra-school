@@ -2563,8 +2563,9 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
       if (l.type === "game") gm += gameCard(l);
       else ot += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span>" + (kidUI() ? "" : " " + badge(l)) + "</button>";
     });
+    h += missionCard();
     if (gm) h += '<h3 class="subhd">' + esc(LANG() === "ur" ? "کھیلیں اور سیکھیں" : "Play and learn") + "</h3>" + gm;
-    h += ot + missionCard() + resHub(cur, state.grade);
+    h += ot + resHub(cur, state.grade);
     if (!kidUI()) { h += syllabusCard(cur); if (!lsAll.length) h += '<p class="card">' + esc(t("nolesson")) + "</p>"; }
     h += launcherHTML();
     return h + uploadCard();
