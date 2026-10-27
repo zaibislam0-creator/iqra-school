@@ -1,0 +1,9 @@
+// PROPOSED ONLY. Not deployed. Merge these two blocks into your existing rules after reviewing them.
+// Translations are written ONLY by Cloud Functions (Admin SDK bypasses rules), so clients may only read them.
+match /translations/{id} {
+  allow read: if request.auth != null;
+  allow write: if false;
+}
+match /translationUsage/{id} {
+  allow read, write: if false;
+}
