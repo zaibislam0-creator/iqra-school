@@ -327,6 +327,9 @@ nav button:not(.act):active,.kidnav button:not(.act):active{background:rgba(255,
 .entry-go{min-width:min(78vw,260px);min-height:56px;padding:12px 36px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--gold-hi),var(--gold-soft));color:var(--deep);font:inherit;font-size:1.15rem;font-weight:800;letter-spacing:.06em;cursor:pointer;box-shadow:0 12px 34px rgba(205,181,110,.32)}
 .entry-go:focus-visible,.entry-lang:focus-visible{outline:3px solid var(--gold-hi);outline-offset:3px}
 .entry-sub{margin:0;font-size:.9rem;letter-spacing:.14em;opacity:.7}
+.entry-google{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-width:min(88vw,340px);background:#fff;color:#222;border:2px solid var(--gold-hi);cursor:pointer}
+.entry-google[disabled]{opacity:.55;cursor:wait}
+.entry-err{margin:-6px 0 0;min-height:1.2em;color:#ffb4a8;font-size:.9rem;text-align:center}
 .entry-lang{position:absolute;top:max(16px,env(safe-area-inset-top,0px));inset-inline-end:max(16px,env(safe-area-inset-right,0px));padding:6px 14px;border:1px solid rgba(205,181,110,.5);border-radius:99px;background:transparent;color:var(--cream);font:inherit;cursor:pointer}
 @media (prefers-reduced-motion:no-preference){#entry img{animation:entryIn .9s ease both}@keyframes entryIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}}
 
@@ -819,14 +822,16 @@ let ready;window.__claudeReady=new Promise(r=>ready=r);
 const G=document.getElementById('iqgate'),$=s=>G.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const show=h=>{G.innerHTML='<div class="gc">'+h+'</div>';G.style.display='grid'};
-show('<h1>IQRA</h1><p>Loading...</p>');
+const SP=()=>window.__iqEntry&&window.__iqEntry.active;
+if(!SP())show('<h1>IQRA</h1><p>Loading...</p>');
 try{
 const B='https://cdn.jsdelivr.net/npm/firebase@10.12.5/';
 const [A,Au,F]=await Promise.all([import(B+'app/+esm'),import(B+'auth/+esm'),import(B+'firestore/+esm')]);
 const app=A.initializeApp(cfg),auth=Au.getAuth(app),fs=F.getFirestore(app);
 let role='student',uid=null,started=false;
-function loginView(msg){show('<div class="lg">ا</div><h1>IQRA</h1><p class="tag">Learn more, be more · سیکھیں، آگے بڑھیں</p><ul><li>Pakistan syllabus, KG to F.A</li><li>Videos, books, games and tests</li><li>Urdu and English, parents can follow along</li></ul><button class="gb" id="gb"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 6.7-9.9 6.7-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.9 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</button><p class="er" id="er" aria-live="polite">'+esc(msg||'')+'</p>');
+function loginView(msg){if(SP()){G.style.display='none';window.__iqEntry.ready(msg);return}show('<div class="lg">ا</div><h1>IQRA</h1><p class="tag">Learn more, be more · سیکھیں، آگے بڑھیں</p><ul><li>Pakistan syllabus, KG to F.A</li><li>Videos, books, games and tests</li><li>Urdu and English, parents can follow along</li></ul><button class="gb" id="gb"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 6.7-9.9 6.7-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.9 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</button><p class="er" id="er" aria-live="polite">'+esc(msg||'')+'</p>');
  $('#gb').onclick=async()=>{try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider())}catch(e){$('#er').textContent=e.code==='auth/popup-closed-by-user'?'':(e.code||e.message)}}}
+window.__iqSignIn=async()=>{try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider());return ''}catch(e){return e.code==='auth/popup-closed-by-user'?'':(e.code||e.message)}};
 function profileView(u,d){const cl=['Play Group','Nursery','KG','1','2','3','4','5','6','7','8','9','10','F.A'];
  show('<h1>IQRA</h1><p>Welcome. Tell us about the student.</p><label>Student name<input id="pn" value="'+esc(d?.name||u.displayName||'')+'"></label><label>Class<select id="pc">'+cl.map(x=>'<option'+(d?.cls===x?' selected':'')+'>'+x+'</option>').join('')+'</select></label><label>City<input id="pt" value="'+esc(d?.city||'')+'"></label><label>Parent phone<input id="pp" inputmode="tel" value="'+esc(d?.phone||'')+'"></label><button class="pb" id="ps">Start learning</button><button class="gb" id="po">Sign out</button><p class="er" id="er" aria-live="polite"></p>');
  $('#po').onclick=()=>Au.signOut(auth);
@@ -837,7 +842,7 @@ const db={collection:col};
 const staff=()=>role==='admin';
 const user={isOwner:async()=>staff(),canEdit:async()=>staff(),can:async()=>(role==='admin'||role==='teacher')?true:null,id:async()=>uid};
 window.claude={use:async n=>n==='db'?db:n==='user'?user:null};
-function begin(u){G.style.display='none';document.getElementById('iqout').style.display='block';if(!started){started=true;window.__iqReady=true;ready()}}
+function begin(u){G.style.display='none';if(window.__iqEntry)window.__iqEntry.remove();document.getElementById('iqout').style.display='block';if(!started){started=true;window.__iqReady=true;ready()}}
 document.getElementById('iqout').onclick=()=>Au.signOut(auth).then(()=>location.reload());
 Au.onAuthStateChanged(auth,async u=>{if(!u){if(started)return location.reload();return loginView()}
  uid=u.uid;role=(u.email===OWNER&&u.emailVerified)?'admin':'student';
@@ -3888,17 +3893,25 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
   (function entryScreen() {
     if (ADMIN || !window.IQRA_LOGO || !document.body) return;
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
-    var seen = false; try { seen = sessionStorage.getItem("iqra-entered") === "1"; } catch (e) {}
-    if (seen) return;
     var el = document.createElement("div"); el.id = "entry";
+    var GSVG = '<svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 6.7-9.9 6.7-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.9 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>';
+    var isReady = false, errMsg = "";
     function paint() {
       el.setAttribute("dir", LANG() === "ur" ? "rtl" : "ltr");
-      el.innerHTML = '<button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><img src="' + window.IQRA_LOGO + '" alt="IQRA - اقرا - Read - پڑھو"><button class="entry-go" data-enter type="button">' + esc(t("enter")) + '</button><p class="entry-sub">' + esc(t("heroT1")) + " · " + esc(t("heroT2")) + "</p>";
-      el.querySelector("[data-enter]").onclick = function () { try { sessionStorage.setItem("iqra-entered", "1"); } catch (e) {} el.classList.add("out"); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500); };
+      var label = LANG() === "ur" ? "گوگل کے ساتھ داخل ہوں" : "Continue with Google";
+      el.innerHTML = '<button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><img src="' + window.IQRA_LOGO + '" alt="IQRA - اقرا - Read - پڑھو"><button class="entry-go entry-google" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + GSVG + "<span>" + esc(label) + '</span></button><p class="entry-err" aria-live="polite">' + esc(errMsg) + '</p><p class="entry-sub">' + esc(t("heroT1")) + " · " + esc(t("heroT2")) + "</p>";
+      el.querySelector("[data-enter]").onclick = async function () {
+        if (!window.__iqSignIn) return;
+        errMsg = ""; var m = await window.__iqSignIn(); if (m) { errMsg = m; paint(); }
+      };
       el.querySelector("[data-elang]").onclick = function () { state.lang = state.lang === "ur" ? "en" : "ur"; save(); paint(); render(); };
     }
+    window.__iqEntry = {
+      active: true,
+      ready: function (msg) { isReady = true; errMsg = msg || ""; paint(); var b = el.querySelector("[data-enter]"); if (b && b.focus) b.focus(); },
+      remove: function () { window.__iqEntry.active = false; el.classList.add("out"); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500); }
+    };
     paint(); document.body.appendChild(el);
-    var b = el.querySelector("[data-enter]"); if (b && b.focus) b.focus();
   })();
 })();
 
