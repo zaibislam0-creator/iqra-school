@@ -858,6 +858,11 @@ body{background:radial-gradient(120% 50% at 50% -8%,rgba(166,233,219,.35),transp
 @media (max-width:480px){html,body{overflow-x:clip;max-width:100%}.topbar header .hb{flex:1 1 0;min-width:0;overflow:hidden}.topbar header .hb .chip{flex:none}.topbar header .hb .rolechip{flex:1 1 0;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 @media (max-width:640px){.kbanner{min-height:120px;padding-block:12px;overflow:hidden;gap:8px}.kbanner .kb-art.kb-photo{display:flex;align-self:flex-end;margin:-12px 0 -12px 0}.kb-photo::before{display:none}.kb-photo img{height:104px;max-height:none;width:auto;max-width:84px;object-fit:contain;object-position:bottom;display:block}}
 .gc-play.lockd,.bigbtn.lockd{background:linear-gradient(135deg,var(--coral),#ff9d93);color:var(--ink-on-coral)}.studytile em{margin-inline-start:auto;display:inline-flex}.studytile.done{border-color:var(--mintline)}.studytile.done em{color:#076c6e}.chapter a.bigbtn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+.pathcard{padding:16px 16px 14px}.pathtop{display:flex;justify-content:space-between;align-items:center;font-weight:800;color:var(--deep)}.pbar{height:10px;border-radius:99px;background:var(--mintbg);margin:8px 0 12px;overflow:hidden;border:1px solid var(--mintline)}.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--deep),#0a9a9d);border-radius:99px}
+.pathnow{margin:2px 0 0;color:var(--coral-d);font-weight:800}.pathttl{margin:2px 0 12px;font-size:1.35rem;color:var(--deep)}
+.pstep{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 12px;margin:0 0 8px;border-radius:16px;border:1px solid var(--mintline);background:var(--mintbg);font:inherit;color:inherit;text-align:start}.pstep i{flex:none;width:32px;height:32px;border-radius:50%;background:var(--deep);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-weight:800}.pstep span{flex:1;font-weight:800}.pstep em{flex:none;display:inline-flex}
+button.pstep.go{background:var(--coral);border-color:var(--coral);color:var(--ink-on-coral);cursor:pointer}button.pstep.go i{background:var(--ink-on-coral)}.pstep.ok{background:#e1f6ee}.pstep.ok i{background:#2a9d6f}.pstep.lock{opacity:.55}div.pstep.go{background:var(--mintbg)}
+.morebox{margin:12px 0}.morebox>summary,.roadmap>summary{cursor:pointer;font-weight:800;padding:12px 14px;border-radius:14px;background:var(--mintbg);border:1px solid var(--mintline);color:var(--deep);list-style:none}.roadmap{margin-top:8px}.roadmap .ktile{margin-top:6px}.ktile.lockedt{opacity:.55}.ktile.studytile em{margin-inline-start:auto}
 #iqout{display:none!important}
 .ksubpills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;padding:2px 2px 8px;margin-inline:-2px;-webkit-overflow-scrolling:touch}
 .ksubpills::-webkit-scrollbar{display:none}
@@ -2853,12 +2858,51 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   function sentences(s) { return (String(s).match(/[^.۔?!]+[.۔?!]*/g) || [String(s)]).map(function (x) { return x.trim(); }).filter(Boolean); }
   function curLesson() { return D.lessons.filter(function (x) { return x.id === openLesson; })[0]; }
   // ================= study first: games and tests unlock after the unit's lesson is read =================
+  var pathTest = null;
   var GATE = {"pp-m-colours": ["s-kg-math-u1"], "pp-m-size": ["s-kg-math-u2"], "pp-m-find15": ["s-kg-math-u3"], "pp-m-count15": ["s-kg-math-u3"], "pp-m-back5": ["s-kg-math-u3"], "pp-m-shapes": ["s-kg-math-u3", "s-kg-math-u4"], "pp-m-hardsoft": ["s-kg-math-u4"], "pp-m-find610": ["s-kg-math-u4"], "pp-m-count610": ["s-kg-math-u4"], "pp-m-days": ["s-kg-math-u8"], "pp-m-ten": ["s-kg-math-u4"], "pp-m-oddeven": ["s-kg-math-u6"], "pp-m-between": ["s-kg-math-u7"], "pp-m-morelss": ["s-kg-math-u7", "s-kg-math-u8"], "pp-m-add": ["s-kg-math-u8"], "pp-m-sub": ["s-kg-math-u8"], "pp-m-money": ["s-kg-math-u8"], "pp-m-position": ["s-kg-math-u8"], "pp-m-ordinal": ["s-kg-math-u8"], "pp-m-daynight": ["s-kg-math-u8"], "pp-m-time": ["s-kg-math-u8"], "pp-u-pics1": ["s-kg-q1"], "pp-u-pics2": ["s-kg-q1"], "pp-u-pics3": ["s-kg-q1"], "pp-u-pics4": ["s-kg-q1"], "pp-u-pics5": ["s-kg-q1"], "pp-u-order": ["s-kg-q1"], "pp-u-feel": ["s-kg-u4"], "pp-u-plural": ["s-kg-u4"], "pp-e-pics1": ["s-kg-e2"], "pp-e-pics2": ["s-kg-e3", "s-kg-e4"], "pp-e-case": ["s-kg-e2", "s-kg-e3", "s-kg-e4"], "pp-e-order": ["s-kg-e2", "s-kg-e3", "s-kg-e4", "s-kg-e5"], "pp-e-vowel": ["s-kg-e6"], "pp-e-hotcold": ["s-kg-e1"], "pp-e-seasons": ["s-kg-e1"], "pp-e-polite": ["s-kg-e1"], "pp-e-pics3": ["s-kg-e2", "s-kg-e3"], "pp-e-pics4": ["s-kg-e3", "s-kg-e4"], "pp-e-pics5": ["s-kg-e4", "s-kg-e5"], "pp-e-pics6": ["s-kg-e5"], "pp-e-body": ["s-kg-e2"], "pp-e-days": ["s-kg-e2"], "pp-e-prof": ["s-kg-e4"], "pp-e-living": ["s-kg-e3"], "pp-e-food": ["s-kg-e3"], "pp-e-natural": ["s-kg-e4"], "pp-e-citizen": ["s-kg-e4"], "pp-u-manners": ["s-kg-u2"], "pp-u-numbers": ["s-kg-q6"], "pp-u-join": ["s-kg-q2"], "pp-u-marks": ["s-kg-q3"], "c1-m-count": ["s-c1-math-u1"], "c1-m-order": ["s-c1-math-u1"], "c1-m-add": ["s-c1-math-u2"], "c1-m-sub": ["s-c1-math-u2"], "c1-m-money": ["s-c1-math-u4"], "c1-m-time": ["s-c1-math-u5"], "c1-m-days": ["s-c1-math-u5"], "c1-m-shapes": ["s-c1-math-u6"], "c1-m-measure": ["s-c1-math-u3"], "c1-e-letters": ["s-c1-eng-u1"], "c1-e-family": ["s-c1-eng-u2"], "c1-e-jobs": ["s-c1-eng-u3"], "c1-e-plurals": ["s-c1-eng-u10"], "c1-e-seasons": ["s-c1-eng-u8"], "c1-e-animals": ["s-c1-eng-u11"], "c1-e-food": ["s-c1-eng-u6"], "c1-i-quran": ["s-c1-isl-u1"], "c1-i-prayer": ["s-c1-isl-u2"], "c1-i-manners": ["s-c1-isl-u3", "s-c1-isl-u4"], "c1-g-senses": ["s-c1-gk-u2"], "c1-g-clean": ["s-c1-gk-u3"], "c1-g-traffic": ["s-c1-gk-u11"], "c1-g-transport": ["s-c1-gk-u10"], "c1-g-pakistan": ["s-c1-gk-u8"], "c1-g-worship": ["s-c1-gk-u7"], "c1-g-nature": ["s-c1-gk-u13", "s-c1-gk-u14"], "c1-et-books": ["s-c1-ethics-u1"], "c1-et-places": ["s-c1-ethics-u1"], "c1-et-values": ["s-c1-ethics-u2"], "c1-q-harakat": ["s-c1-taj-u2"], "c1-q-signs": ["s-c1-taj-u4", "s-c1-taj-u5"], "c1-u-letters": ["s-c1-urdu-u1"], "c1-u-grammar": ["s-c1-urdu-u4", "s-c1-urdu-u5"], "c1-u-lessons": ["s-c1-urdu-u2", "s-c1-urdu-u3", "s-c1-urdu-u7", "s-c1-urdu-u8"]};
-  function notStudy(l) { return l.type !== "study"; }
+  function notStudy(l) { return l.type !== "study" && !missingStudy(l.id); }
   function studiedOK(id) { return !!(state.studied && state.studied[id]); }
   function needsOf(id) { if (GATE[id]) return GATE[id]; if (/^t-(kg|c1)-/.test(id)) { var sid = "s" + id.slice(1); return lessonById(sid) ? [sid] : []; } return []; }
-  function missingStudy(id) { if (ADMIN || isStaff()) return null; var n = needsOf(id), i; for (i = 0; i < n.length; i++) if (!studiedOK(n[i]) && lessonById(n[i])) return n[i]; return null; }
+  function unitsFor(sid) { var n = gnum(state.grade); return D.lessons.filter(function (l) { return l.study && l.subject === sid && n >= l.min && n <= l.max; }); }
+  function testOfStudy(sid) { return resById("t" + sid.slice(1)); }
+  function testPassed(sid) { var x = testOfStudy(sid); if (!x) return true; var sc = (state.resScore || {})[x.id]; return !!(sc && sc.t && sc.best / sc.t >= 0.6); }
+  function unitDone(l) { return studiedOK(l.id) && testPassed(l.id); }
+  function currentUnit(sid) { var us = unitsFor(sid), i; for (i = 0; i < us.length; i++) if (!unitDone(us[i])) return us[i]; return null; }
+  function unitLocked(l) { if (ADMIN || isStaff()) return false; var us = unitsFor(l.subject), c = currentUnit(l.subject); return !!c && us.indexOf(l) > us.indexOf(c); }
+  function missingStudy(id) {
+    if (ADMIN || isStaff()) return null;
+    var n = needsOf(id), i, l, c;
+    for (i = 0; i < n.length; i++) { l = lessonById(n[i]); if (!l) continue; if (unitLocked(l)) { c = currentUnit(l.subject); return c ? c.id : n[i]; } if (!studiedOK(n[i])) return n[i]; }
+    return null;
+  }
   function lockText() { return LANG() === "ur" ? "پہلے سبق پڑھیں" : "Read the lesson first"; }
+  function pathCard(us, gu) {
+    var ur = LANG() === "ur", dn = us.filter(unitDone).length, cu = currentUnit(us[0].subject), h = '<section class="card pathcard"><div class="pathtop"><b>' + esc(ur ? "میرا سفر" : "My journey") + "</b><span>" + dn + " / " + us.length + '</span></div><div class="pbar"><i style="width:' + Math.round(100 * dn / us.length) + '%"></i></div>';
+    if (!cu) h += '<p class="bigtext small center">' + esc(ur ? "شاباش! آپ نے سارے سبق مکمل کر لیے۔" : "Well done! You finished every lesson.") + "</p>";
+    else {
+      var rd = studiedOK(cu.id), te = testOfStudy(cu.id), ttl = L(cu.title).replace(/^(Read first: |پہلے پڑھیں: )/, "");
+      h += '<p class="pathnow">' + esc((ur ? "سبق " : "Lesson ") + (us.indexOf(cu) + 1)) + '</p><h3 class="pathttl">' + esc(ttl) + "</h3>";
+      h += '<button type="button" class="pstep' + (rd ? " ok" : " go") + '" data-act="openLesson" data-arg="' + esc(cu.id) + '"><i>1</i><span>' + esc(ur ? "📖 سبق پڑھیں" : "📖 Read the lesson") + "</span><em>" + svg(rd ? "check" : "next", 24) + "</em></button>";
+      h += '<div class="pstep' + (rd ? " go" : " lock") + '"><i>2</i><span>' + esc(ur ? "🎮 کھیل کر مشق کریں" : "🎮 Practise with games") + "</span><em>" + (rd ? "" : "🔒") + "</em></div>";
+      if (rd) (gu[cu.id] || []).forEach(function (g) { h += gameCard(g); });
+      if (te) {
+        var sc = (state.resScore || {})[te.id];
+        h += '<button type="button" class="pstep' + (rd ? " go" : " lock") + '"' + (rd ? ' data-act="pathTest" data-arg="' + esc(te.id) + '"' : " disabled") + "><i>3</i><span>" + esc(ur ? "📝 سبق کا ٹیسٹ" : "📝 Lesson test") + (sc ? " · " + sc.best + "/" + sc.t : "") + "</span><em>" + (rd ? svg("next", 24) : "🔒") + "</em></button>";
+        h += '<p class="small center">' + esc(ur ? "اگلا سبق تب کھلے گا جب ٹیسٹ میں کم از کم 60٪ نمبر آئیں۔" : "The next lesson opens when you score at least 60% in the test.") + "</p>";
+      }
+    }
+    h += '<details class="roadmap"><summary>' + esc(ur ? "تمام اسباق" : "All lessons") + "</summary>";
+    us.forEach(function (u, i) {
+      var d = unitDone(u), isCur = cu && u === cu;
+      h += '<button type="button" class="ktile wide studytile' + (d ? " done" : "") + (!d && !isCur ? " lockedt" : "") + '"' + (d || isCur ? ' data-act="openLesson" data-arg="' + esc(u.id) + '"' : " disabled") + ">" + "<span>" + (i + 1) + ". " + esc(L(u.title).replace(/^(Read first: |پہلے پڑھیں: )/, "")) + "</span><em>" + (d ? svg("check", 24) : isCur ? svg("next", 24) : "🔒") + "</em></button>";
+    });
+    return h + "</details></section>";
+  }
+  function pathTestPage() {
+    var x = resById(pathTest);
+    if (!x) { pathTest = null; return ""; }
+    return '<button class="link" data-act="pathBack">‹ ' + esc(t("back")) + '</button><section class="card pathcard"><h3 class="pathttl">' + esc(x.d.title) + "</h3>" + resTestCard(x) + "</section>";
+  }
   function withReader(cb) {
     if (window.IQReader) return cb();
     var sc = document.createElement("script"); sc.src = "lib/reader.js"; sc.onload = cb; sc.onerror = function () { window.open(sc.dataset.fallback || "#", "_blank"); }; document.head.appendChild(sc);
@@ -3027,6 +3071,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   function kidHome() {
     if (openLesson && !curLesson()) openLesson = null;
     if (openLesson) return kidLessonView(curLesson());
+    if (pathTest) return pathTestPage();
     var name = state.name ? " \u2068" + state.name + "\u2069" : "";
     var greet = sess.moodMsg || (t("greetA") + name + "! " + t("greetB"));
     var subs = subjectsFor(state.grade).filter(function (x) { return !kidUI() || lessonsFor(x.id, state.grade).length || resFor(x.id, state.grade).length || canRes(); });
@@ -3042,16 +3087,17 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     }
     var s = D.subjects.filter(function (x) { return x.id === cur; })[0];
     h += kidSubjBanner(s);
-    var lsAll = lessonsFor(cur, state.grade), gm = "", ot = "", st = "";
+    var lsAll = lessonsFor(cur, state.grade), gm = "", ot = "", gu = {}, path = unitsFor(cur);
     lsAll.forEach(function (l) {
-      if (l.type === "study") st += '<button class="ktile wide studytile' + (studiedOK(l.id) ? " done" : "") + '" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span><em>" + svg(studiedOK(l.id) ? "check" : "next", 26) + "</em></button>";
-      else if (l.type === "game") gm += gameCard(l);
+      if (l.type === "study") return;
+      if (l.type === "game") { var nd = needsOf(l.id)[0]; if (nd && path.length) (gu[nd] = gu[nd] || []).push(l); else gm += gameCard(l); }
       else ot += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span>" + (kidUI() ? "" : " " + badge(l)) + "</button>";
     });
-    if (st) h += '<h3 class="subhd">' + esc(LANG() === "ur" ? "📖 پہلے سبق پڑھیں" : "📖 Read first") + "</h3>" + st;
+    h += path.length ? pathCard(path, gu) : "";
     h += missionCard();
-    if (gm) h += '<h3 class="subhd">' + esc(LANG() === "ur" ? "کھیلیں اور سیکھیں" : "Play and learn") + "</h3>" + gm;
-    h += ot + resHub(cur, state.grade);
+    var more = (gm ? '<h3 class="subhd">' + esc(LANG() === "ur" ? "کھیلیں اور سیکھیں" : "Play and learn") + "</h3>" + gm : "") + ot;
+    if (more) h += '<details class="morebox"><summary>' + esc(LANG() === "ur" ? "🎮 مزید کھیل اور سرگرمیاں" : "🎮 More games and activities") + "</summary>" + more + "</details>";
+    h += path.length ? '<details class="morebox"><summary>' + esc(LANG() === "ur" ? "📚 کتابیں، نوٹس اور ٹیسٹ" : "📚 Books, notes and tests") + "</summary>" + resHub(cur, state.grade) + "</details>" : resHub(cur, state.grade);
     if (!kidUI()) { h += syllabusCard(cur); if (!lsAll.length) h += '<p class="card">' + esc(t("nolesson")) + "</p>"; }
     h += launcherHTML();
     return h + uploadCard();
@@ -3468,12 +3514,14 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "home": curSubject = null; openLesson = null; render(); break;
       case "sub": curSubject = arg; render(); if (autoVoice()) speak(L(D.subjects.filter(function (x) { return x.id === arg; })[0])); break;
       case "openLesson":
-        var _ms = lessonById(arg) && lessonById(arg).type === "game" ? missingStudy(arg) : null; if (_ms) arg = _ms;
+        var _ll = lessonById(arg), _ms = _ll && _ll.type === "game" ? missingStudy(arg) : (_ll && _ll.study && unitLocked(_ll) ? (currentUnit(_ll.subject) || {}).id : null); if (_ms) arg = _ms;
         view = "learn"; openLesson = arg; lessonStep = 0; quizRun = null; countGame = null; cgToken++;
         l = curLesson(); if (l && l.type === "count") startCount(); if (l && l.type === "trace") startTrace(l); if (l && l.type === "game") { startGame(l); if (autoVoice()) { render(); speak(L(gameRun.rounds[0].say)); break; } }
         render(); if (autoVoice() && l) speak(L(l.title)); break;
       case "studyDone": state.studied = state.studied || {}; state.studied[arg] = true; save(); finishActivity(); openLesson = null; render(); window.scrollTo(0, 0); if (autoVoice()) speak(t("great")); break;
       case "readBook": readBookAct(arg); break;
+      case "pathTest": pathTest = arg; resRun = null; render(); window.scrollTo(0, 0); break;
+      case "pathBack": pathTest = null; resRun = null; render(); window.scrollTo(0, 0); break;
       case "closeLesson": openLesson = null; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; render(); break;
       case "next": l = curLesson(); if (l) { lessonStep = Math.min(lessonStep + 1, lessonCards(l).length); render(); var cs = lessonCards(l); if (autoVoice() && cs[lessonStep]) speak(cs[lessonStep].text); } break;
       case "prev": l = curLesson(); lessonStep = Math.max(0, lessonStep - 1); render(); if (l && autoVoice()) speak(lessonCards(l)[lessonStep].text); break;
@@ -4644,7 +4692,8 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       h += "</fieldset>";
     });
     if (!r.done) return h + '<button type="button" class="bigbtn" data-act="resSubmit">' + esc(rt("submit")) + "</button></div>";
-    return h + '<p class="bigtext center">' + esc(rt("score")) + ": " + r.s + "/" + qs.length + '</p><div class="actions"><button type="button" class="bigbtn" data-act="resAgain" data-arg="' + x.id + '">' + esc(rt("again")) + "</button></div></div>";
+    var pass = qs.length && r.s / qs.length >= 0.6, ur2 = LANG() === "ur";
+    return h + '<p class="bigtext center">' + esc(rt("score")) + ": " + r.s + "/" + qs.length + "</p>" + (pathTest === x.id ? '<p class="bigtext small center">' + esc(pass ? (ur2 ? "✅ شاباش! یہ سبق مکمل ہوا۔ اگلا سبق کھل گیا۔" : "✅ Well done! Lesson complete. The next lesson is open.") : (ur2 ? "کم از کم 60٪ نمبر چاہییں۔ سبق دوبارہ دیکھیں اور پھر کوشش کریں۔" : "You need at least 60%. Look at the lesson again and try once more.")) + "</p>" : "") + '<div class="actions">' + (pathTest === x.id && pass ? '<button type="button" class="bigbtn" data-act="pathBack">' + esc(ur2 ? "اگلا سبق ‹" : "Next lesson ›") + "</button>" : "") + '<button type="button" class="bigbtn' + (pathTest === x.id && pass ? " alt" : "") + '" data-act="resAgain" data-arg="' + x.id + '">' + esc(rt("again")) + "</button></div></div>";
   }
   function resGuideHTML(x) {
     var d = x.d, h = '<details class="resguide"' + (resOpenId === x.id ? " open" : "") + ' lang="ur" dir="rtl"><summary><b>🗣️ ' + esc(rt("guide")) + "</b> " + (d.ai ? '<span class="badge inreview">' + esc(rt("aiNote")) + "</span>" : "") + "</summary>";
