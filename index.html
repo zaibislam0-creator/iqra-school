@@ -197,6 +197,7 @@ html[lang="ur"] .gv .bigtext{line-height:2;padding-block:.1em}
 .gv .picchoices{margin:clamp(6px,1.2vh,12px) 0 0;gap:clamp(6px,1.4vh,12px)}
 .gv .picbtn{min-height:0;padding:clamp(6px,1.3vh,12px) 4px}.gv .picbtn .emo{font-size:clamp(2rem,8vh,3.4rem)}
 @media (max-height:640px){.gv .center{display:none}}
+@media (max-width:640px){body.inlesson nav.kidnav{display:none}body.inlesson header.kid{position:static}}
 @media (max-height:720px){.gv .bigtext.small{margin:0}.gv .dots{margin:4px 0}.gv .picchoices{margin-top:4px}.gv .actions{margin-top:2px}.gv{padding-block:6px}}
 nav{background:color-mix(in srgb,var(--bg) 88%,transparent);border-top:1px solid var(--line)}
 nav button{position:relative;color:var(--ink);opacity:.62}
@@ -1742,6 +1743,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
     document.documentElement.dir = LANG() === "ur" ? "rtl" : "ltr";
     document.documentElement.setAttribute("data-band", band());
     document.body.classList.toggle("low", !!state.low);
+    document.body.classList.toggle("inlesson", !!openLesson);
     var h;
     if (kid) {
       h = '<div class="topbar"><header class="kid"><span class="brand">' + brandMark(44) + '<span class="brand-t"><h1>' + esc(t("app")) + '</h1><small class="brand-tag">' + esc(LANG() === "ur" ? "زیادہ سیکھیں، زیادہ بنیں" : "Learn more, be more") + '</small></span></span><div class="hb">' + roleChip() + '<button class="chip" data-act="voice" aria-label="' + esc(t("autoVoice")) + '">' + svg(state.voice ? "speaker" : "mute", 24) + '</button>' + (state.setup ? '<button class="chip" data-act="go" data-arg="setup" aria-label="' + esc(t("switchc")) + '"><b>' + "ABC".charAt(D.levels.indexOf(levelOf(state.grade))) + "</b> · " + esc(gnum(state.grade) >= 11 ? "F.A" : (LANG() === "ur" ? "جماعت " : "Class ") + state.grade) + "</button>" : "") + '<button id="langb" class="chip">' + esc(t("lang")) + "</button></div></header><main>";
