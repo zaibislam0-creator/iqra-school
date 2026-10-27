@@ -2309,13 +2309,16 @@ window.IQRA_ORB="data:image/webp;base64,UklGRt4tAABXRUJQVlA4INItAABQzACdASpAAUAB
       h += "</div>";
     }
     var s = D.subjects.filter(function (x) { return x.id === cur; })[0];
-    h += kidSubjBanner(s) + resHub(cur, state.grade);
-    if (!kidUI()) { h += syllabusCard(cur); if (!lessonsFor(cur, state.grade).length) h += '<p class="card">' + esc(t("nolesson")) + "</p>"; }
-    lessonsFor(cur, state.grade).forEach(function (l) {
-      if (l.type === "game") h += gameCard(l);
-      else h += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span>" + (kidUI() ? "" : " " + badge(l)) + "</button>";
+    h += kidSubjBanner(s);
+    var lsAll = lessonsFor(cur, state.grade), gm = "", ot = "";
+    lsAll.forEach(function (l) {
+      if (l.type === "game") gm += gameCard(l);
+      else ot += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span>" + (kidUI() ? "" : " " + badge(l)) + "</button>";
     });
-    if (!curSubject) h += missionCard() + launcherHTML();
+    if (gm) h += '<h3 class="subhd">' + esc(LANG() === "ur" ? "کھیلیں اور سیکھیں" : "Play and learn") + "</h3>" + gm;
+    h += ot + missionCard() + resHub(cur, state.grade);
+    if (!kidUI()) { h += syllabusCard(cur); if (!lsAll.length) h += '<p class="card">' + esc(t("nolesson")) + "</p>"; }
+    h += launcherHTML();
     return h + uploadCard();
   }
 
