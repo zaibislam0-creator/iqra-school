@@ -863,6 +863,43 @@ body{background:radial-gradient(120% 50% at 50% -8%,rgba(166,233,219,.35),transp
 .pstep{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 12px;margin:0 0 8px;border-radius:16px;border:1px solid var(--mintline);background:var(--mintbg);font:inherit;color:inherit;text-align:start}.pstep i{flex:none;width:32px;height:32px;border-radius:50%;background:var(--deep);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-style:normal;font-weight:800}.pstep span{flex:1;font-weight:800}.pstep em{flex:none;display:inline-flex}
 button.pstep.go{background:var(--coral);border-color:var(--coral);color:var(--ink-on-coral);cursor:pointer}button.pstep.go i{background:var(--ink-on-coral)}.pstep.ok{background:#e1f6ee}.pstep.ok i{background:#2a9d6f}.pstep.lock{opacity:.55}div.pstep.go{background:var(--mintbg)}
 .morebox{margin:12px 0}.morebox>summary,.roadmap>summary{cursor:pointer;font-weight:800;padding:12px 14px;border-radius:14px;background:var(--mintbg);border:1px solid var(--mintline);color:var(--deep);list-style:none}.roadmap{margin-top:8px}.roadmap .ktile{margin-top:6px}.ktile.lockedt{opacity:.55}.ktile.studytile em{margin-inline-start:auto}
+
+/* ===== Reading lesson (editorial layout) ===== */
+.rd2{--lv:#f6f3fc;--lv2:#ece6f8;--lvline:#d9d0ee;--lvink:#2a2250;--lvmut:#6a6190;max-width:760px;margin:0 auto;padding:0 2px 24px;color:var(--ink)}
+.rd2-prog{position:fixed;top:0;left:0;right:0;height:4px;background:var(--lv2);z-index:60}.rd2-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--deep),#8f7bd6);transition:width .12s linear}
+.rd2-hero{background:linear-gradient(180deg,#fff,var(--lv));border:1px solid var(--lvline);border-radius:26px;padding:22px 20px 18px;text-align:center;margin:6px 0 14px;box-shadow:0 6px 24px rgba(80,60,140,.08)}
+.rd2-cat{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 8px;border-radius:99px;background:var(--lv2);color:var(--lvink);font-weight:800;font-size:.9rem}
+.rd2-cat .picon{width:30px;height:30px;min-width:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;overflow:hidden}.rd2-cat .picon svg{width:20px;height:20px}
+.rd2-title{margin:12px 0 6px;font-size:clamp(1.55rem,5vw,2.2rem);line-height:1.35;color:var(--lvink);font-weight:800;text-wrap:balance}
+.rd2-sub{margin:0 auto 12px;max-width:34em;color:var(--lvmut);font-size:1.02rem}
+.rd2-meta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0 12px}
+.rd2-meta span{padding:4px 12px;border-radius:99px;background:#fff;border:1px solid var(--lvline);color:var(--lvink);font-size:.86rem;font-weight:700}
+.rd2-listen{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:0 18px;border-radius:99px;border:1px solid var(--lvline);background:#fff;color:var(--lvink);font:inherit;font-weight:800;cursor:pointer}
+.rd2-toc{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0 0 16px;padding:0}
+.rd2-toc button{min-height:40px;padding:0 14px;border-radius:99px;border:1px solid var(--lvline);background:#fff;color:var(--lvink);font:inherit;font-size:.9rem;font-weight:700;cursor:pointer}.rd2-toc button:hover,.rd2-toc button:focus-visible{background:var(--lv2)}
+.rd2-sec{background:#fff;border:1px solid var(--lvline);border-radius:22px;padding:18px 18px 16px;margin:0 0 14px;scroll-margin-top:16px}
+.rd2-sec>h2{margin:0 0 10px;font-size:1.15rem;color:var(--lvink);display:flex;align-items:center;gap:10px}
+.rd2-sec>h2:after{content:"";flex:1;height:1px;background:var(--lvline)}
+.rd2 .lessonbody{max-width:42em;margin:6px auto;gap:14px}
+.rd2 .blk{background:transparent;padding:0 4px;font-size:calc(var(--fs)*1.18);line-height:2.05;color:var(--lvink)}
+.rd2 .blkrow .blk{padding-top:2px}
+.rd2 .blk.ayah{background:linear-gradient(180deg,#fff,var(--lv));border:1px solid var(--lvline);border-radius:18px;padding:18px 14px;font-size:calc(var(--fs)*1.7);line-height:2.5}
+.rd2 .blk.cap{color:var(--lvmut)}
+.rd2 .lightchip{background:var(--lv2);color:var(--lvink)}
+.rd2-key{background:linear-gradient(180deg,#fff,var(--lv));border-inline-start:5px solid #8f7bd6}
+.rd2-key ul{margin:6px 0 0;padding-inline-start:1.2em}.rd2-key li{margin:4px 0;line-height:1.9}
+.rd2-q{list-style:none;margin:0;padding:0;counter-reset:q}.rd2-q li{counter-increment:q;position:relative;padding:10px 12px;padding-inline-start:46px;margin:0 0 8px;border-radius:14px;background:var(--lv);line-height:1.9}
+.rd2-q li:before{content:counter(q);position:absolute;inset-inline-start:10px;top:10px;width:28px;height:28px;border-radius:50%;background:#8f7bd6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem}
+.rd2-acts{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 0}
+.rd2-acts .bigbtn{flex:1 1 220px;min-height:52px}
+.rd2-done{text-align:center}
+.rd2-done .okmsg{color:var(--deep);font-weight:800;margin:6px 0 10px}
+.rd2-pn{display:flex;gap:10px;justify-content:space-between;margin:6px 0 0}
+.rd2-pn button{flex:1;min-height:56px;padding:8px 14px;border-radius:16px;border:1px solid var(--lvline);background:#fff;color:var(--lvink);font:inherit;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:start}
+.rd2-pn button small{font-weight:600;color:var(--lvmut);font-size:.78rem}.rd2-pn button.nx{align-items:flex-end;text-align:end}.rd2-pn button:disabled{opacity:.45;cursor:not-allowed}
+@media (max-width:520px){.rd2-hero{padding:18px 14px 14px;border-radius:22px}.rd2-sec{padding:14px 12px;border-radius:18px}.rd2 .blk{font-size:calc(var(--fs)*1.1)}}
+@media (prefers-reduced-motion:reduce){.rd2-prog i{transition:none}}
+@media print{.rd2-prog,.rd2-toc,.rd2-pn,.rd2-acts{display:none}}
 #iqout{display:none!important}
 .ksubpills{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;padding:2px 2px 8px;margin-inline:-2px;-webkit-overflow-scrolling:touch}
 .ksubpills::-webkit-scrollbar{display:none}
@@ -2944,17 +2981,58 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     o.speak = function (tx) { speak(tx, true); };
     withReader(function () { window.IQReader.open(o); });
   }
+
+  // ================= editorial reading layout (shared by chapter and study lessons) =================
+  var RD_TXT = {
+    min: ["دقیقہ", "min read"], pts: ["نکات", "points"], pages: ["کتاب کے صفحے", "Book pages"], lesson: ["سبق", "Lesson"], inbook: ["کتاب میں", "In your book"], think: ["سوچیں اور بتائیں", "Think and tell"], finish: ["مکمل کریں", "Finish"], key: ["اہم باتیں", "Key points"], toc: ["اس سبق میں", "In this lesson"], prev: ["پچھلا سبق", "Previous lesson"], next: ["اگلا سبق", "Next lesson"], listen: ["سنیں", "Listen"], donemsg: ["شاباش! یہ سبق مکمل ہو گیا۔", "Well done! This lesson is complete."], locked: ["پہلے موجودہ سبق مکمل کریں", "Finish the current lesson first"]
+  };
+  function rdt(k) { return RD_TXT[k][LANG() === "ur" ? 0 : 1]; }
+  function readMin(txt) { var w = String(txt).trim().split(/\s+/).length, m = Math.max(1, Math.round(w / 70)); return m; }
+  function reflectQs() {
+    return LANG() === "ur"
+      ? ["اس سبق کی کون سی بات آپ کو سب سے اچھی لگی؟", "اس سبق کی ایک بات اپنے گھر والوں کو سنائیں۔", "کیا آپ کو اپنے ارد گرد اس سبق کی کوئی مثال نظر آتی ہے؟"]
+      : ["Which idea in this lesson did you like the most?", "Tell someone at home one thing you learned.", "Can you find an example of this lesson around you?"];
+  }
+  function lessonOrder(l) {
+    if (l.study) return unitsFor(l.subject);
+    var n = gnum(state.grade);
+    return D.lessons.filter(function (x) { return !x.study && !x.type && x.subject === l.subject && n >= x.min && n <= x.max; });
+  }
+  function rdSec(id, title, inner, cls) { return '<section class="rd2-sec ' + (cls || "") + '" id="rd2-' + id + '" aria-labelledby="rd2h-' + id + '"><h2 id="rd2h-' + id + '">' + esc(title) + "</h2>" + inner + "</section>"; }
+  function readShell(l, o) {
+    var ur = LANG() === "ur", sj = D.subjects.filter(function (x) { return x.id === l.subject; })[0], title = L(l.title).replace(/^(Read first: |پہلے پڑھیں: )/, ""), body = L(l.body), m = l.meta || {};
+    var sub = m.textbook || m.chapter || "", pts = sentences(body).length;
+    var h = '<article class="rd2" id="rd2root" lang="' + (ur ? "ur" : "en") + '" dir="' + (ur ? "rtl" : "ltr") + '"><div class="rd2-prog" aria-hidden="true"><i></i></div>';
+    h += '<div class="rd2-hero"><span class="rd2-cat">' + picon(l.subject) + "<span>" + esc(sj ? L(sj) : "") + '</span></span><h1 class="rd2-title">' + esc(title) + "</h1>" + (sub ? '<p class="rd2-sub">' + esc(String(sub).split(" · ")[ur ? 1 : 0] || sub) + "</p>" : "");
+    h += '<div class="rd2-meta"><span>⏱ ' + readMin(body) + " " + esc(rdt("min")) + "</span><span>" + pts + " " + esc(rdt("pts")) + "</span>" + (l.bpage ? "<span>📖 " + esc(rdt("pages")) + " " + l.bpage + "–" + l.bend + "</span>" : "") + "</span></div>";
+    h += '<button type="button" class="rd2-listen" data-act="speak" data-arg="' + esc(body) + '">' + svg("speaker", 24) + " " + esc(rdt("listen")) + "</button></div>";
+    var toc = [["read", rdt("lesson")]]; if (o.book) toc.push(["book", rdt("inbook")]); toc.push(["think", rdt("think")], ["finish", rdt("finish")]);
+    h += '<div class="rd2-toc" role="navigation" aria-label="' + esc(rdt("toc")) + '">' + toc.map(function (x) { return '<button type="button" data-act="rdJump" data-arg="rd2-' + x[0] + '">' + esc(x[1]) + "</button>"; }).join("") + "</div>";
+    h += rdSec("read", rdt("lesson"), bodyBlocks(body, true));
+    if (l.takeaways && l.takeaways.length) h += rdSec("key", rdt("key"), "<ul>" + l.takeaways.map(function (x) { return "<li>" + esc(L(x)) + "</li>"; }).join("") + "</ul>", "rd2-key");
+    if (o.book) h += rdSec("book", rdt("inbook"), o.book);
+    h += rdSec("think", rdt("think"), '<ol class="rd2-q">' + reflectQs().map(function (q) { return "<li>" + esc(q) + "</li>"; }).join("") + "</ol>");
+    h += rdSec("finish", rdt("finish"), o.finish, "rd2-done");
+    var ord = lessonOrder(l), i = ord.indexOf(l), pv = i > 0 ? ord[i - 1] : null, nx = i > -1 && i < ord.length - 1 ? ord[i + 1] : null;
+    function nb(x, cls, lab) { var lk = x && l.study && unitLocked(x); return '<button type="button" class="' + cls + '"' + (x && !lk ? ' data-act="openLesson" data-arg="' + esc(x.id) + '"' : " disabled") + "><small>" + esc(lk ? rdt("locked") : lab) + "</small><span>" + (x ? esc(L(x.title).replace(/^(Read first: |پہلے پڑھیں: )/, "")) : "—") + "</span></button>"; }
+    h += '<div class="rd2-pn" role="navigation" aria-label="' + esc(rdt("lesson")) + '">' + nb(pv, "pv", "‹ " + rdt("prev")) + nb(nx, "nx", rdt("next") + " ›") + "</div></article>";
+    return h;
+  }
+  function rdProgress() {
+    var r = document.getElementById("rd2root"); if (!r) return; var b = r.querySelector(".rd2-prog i"); if (!b) return;
+    var d = document.documentElement, mx = Math.max(1, d.scrollHeight - window.innerHeight); b.style.width = Math.min(100, Math.round(100 * (window.pageYOffset || d.scrollTop) / mx)) + "%";
+  }
+  window.addEventListener("scroll", rdProgress, { passive: true }); window.addEventListener("resize", rdProgress);
   function studyView(l) {
     var ur = LANG() === "ur", done = studiedOK(l.id);
-    var h = '<div class="card chapter"><div class="center">' + picon(l.subject, true) + '</div><h2 class="bigtext title center">' + esc(L(l.title)) + '</h2><p class="small center">' + esc(ur ? "پہلے یہ باتیں سنیں اور پڑھیں۔ پھر کھیل اور ٹیسٹ کھلیں گے۔" : "First listen to and read these ideas. Then the games and the test will open.") + "</p>" + bodyBlocks(L(l.body), true);
-    h += '<div class="actions"><button class="bigbtn alt" data-act="speak" data-arg="' + esc(L(l.body)) + '">' + svg("speaker", 30) + " " + esc(t("listen")) + "</button>";
     var needBook = !!(l.book && l.bpage && !done && !(state.bookSeen && state.bookSeen[l.id]) && !(ADMIN || isStaff()));
-    if (l.book) h += '<button class="bigbtn' + (needBook ? "" : " alt") + '" data-act="readBook" data-arg="study:' + esc(l.id) + '">' + esc((ur ? "📖 کتاب میں پڑھیں" : "📖 Read in the book") + (partLabel(l) ? " (" + partLabel(l) + ")" : "")) + "</button>";
-    if (l.notes) h += '<button class="bigbtn alt" data-act="readBook" data-arg="notes:' + esc(l.id) + '">' + esc(ur ? "📝 نوٹس" : "📝 Notes") + "</button>";
-    h += '<button class="bigbtn"' + (needBook ? " disabled" : "") + ' data-act="studyDone" data-arg="' + esc(l.id) + '">' + svg("check", 30) + " " + esc(done ? (ur ? "دوبارہ پڑھ لیا" : "Read again") : (ur ? "میں نے پڑھ لیا" : "I have read it")) + "</button></div>";
-    if (needBook) h += '<p class="small center">' + esc(ur ? "پہلے اوپر دیے گئے بٹن سے کتاب کے صفحے آخر تک پڑھیں۔ پھر یہ بٹن کھلے گا۔" : "First read the book pages with the button above, up to the end of the lesson. Then this button will open.") + "</p>";
-    h += "</div>";
-    return h;
+    var bk = "";
+    if (l.book) bk += '<p class="small">' + esc(ur ? "پہلے اپنی کتاب میں یہ صفحے پڑھیں۔ پھر کھیل اور ٹیسٹ کھلیں گے۔" : "Read these pages in your book first. Then the games and the test will open.") + '</p><div class="rd2-acts"><button type="button" class="bigbtn' + (needBook ? "" : " alt") + '" data-act="readBook" data-arg="study:' + esc(l.id) + '">' + esc((ur ? "📖 کتاب میں پڑھیں" : "📖 Read in the book") + (partLabel(l) ? " (" + partLabel(l) + ")" : "")) + "</button>" +
+      (l.notes ? '<button type="button" class="bigbtn alt" data-act="readBook" data-arg="notes:' + esc(l.id) + '">' + esc(ur ? "📝 نوٹس" : "📝 Notes") + "</button>" : "") + "</div>";
+    var fin = (done ? '<p class="okmsg">✓ ' + esc(rdt("donemsg")) + "</p>" : "") +
+      '<div class="rd2-acts"><button type="button" class="bigbtn"' + (needBook ? " disabled" : "") + ' data-act="studyDone" data-arg="' + esc(l.id) + '">' + svg("check", 30) + " " + esc(done ? (ur ? "دوبارہ پڑھ لیا" : "Read again") : (ur ? "میں نے پڑھ لیا" : "I have read it")) + "</button></div>" +
+      (needBook ? '<p class="small">' + esc(ur ? "پہلے کتاب کے صفحے آخر تک پڑھیں۔ پھر یہ بٹن کھلے گا۔" : "First read the book pages up to the end. Then this button will open.") + "</p>" : "");
+    return readShell(l, { book: bk, finish: fin });
   }
   function lessonById(id) { return D.lessons.filter(function (x) { return x.id === id; })[0]; }
 
@@ -3145,11 +3223,11 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     if (l.type === "game") return back + gameView(l);
     if (l.type === "trace") return back + traceView(l);
     if (quizRun) return back + quizRunView(l);
-    // Chapter reading page: the whole chapter, point by point, instead of one card at a time
-    var ch = '<div class="card chapter"><div class="center">' + picon(l.subject, true) + '</div><h2 class="bigtext title center">' + esc(L(l.title)) + "</h2>" + bodyBlocks(L(l.body), true);
-    ch += '<div class="center">' + mascot("cheer", 100) + '</div><p class="bigtext small center">' + esc(t("readyQuiz")) + '</p><div class="actions"><button class="bigbtn alt" data-act="speak" data-arg="' + esc(L(l.body)) + '">' + svg("speaker", 30) + " " + esc(t("listen")) + "</button>" +
-      (l.quiz.length ? '<button class="bigbtn" data-act="startQuiz">' + svg("star", 30) + " " + esc(t("startQuiz")) + "</button>" : "") +
-      '<button class="bigbtn alt" data-act="askHelper" data-arg="' + l.id + '">' + svg("owl", 30) + " " + esc(t("askHelper")) + "</button></div></div>";
+    // Chapter reading page: editorial layout
+    var ur0 = LANG() === "ur", fin = '<p class="bigtext small center">' + esc(t("readyQuiz")) + '</p><div class="rd2-acts">' +
+      (l.quiz.length ? '<button type="button" class="bigbtn" data-act="startQuiz">' + svg("star", 30) + " " + esc(t("startQuiz")) + "</button>" : '<button type="button" class="bigbtn" data-act="rdComplete" data-arg="' + esc(l.id) + '">' + svg("check", 30) + " " + esc(ur0 ? "سبق مکمل کریں" : "Mark as completed") + "</button>") +
+      '<button type="button" class="bigbtn alt" data-act="askHelper" data-arg="' + l.id + '">' + svg("owl", 30) + " " + esc(t("askHelper")) + "</button></div>";
+    var ch = readShell(l, { finish: fin });
     return back + ch;
   }
 
@@ -3538,6 +3616,8 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "readBook": readBookAct(arg); break;
       case "pathTest": pathTest = arg; resRun = null; render(); window.scrollTo(0, 0); break;
       case "pathBack": pathTest = null; resRun = null; render(); window.scrollTo(0, 0); break;
+      case "rdJump": var _je = document.getElementById(arg); if (_je) _je.scrollIntoView({ behavior: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); break;
+      case "rdComplete": finishActivity(); openLesson = null; render(); window.scrollTo(0, 0); if (autoVoice()) speak(t("great")); break;
       case "closeLesson": openLesson = null; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; render(); setTimeout(function () { var m = document.querySelector(".mission .mstep:not(.ok)") || document.querySelector(".mission"); if (m && m.scrollIntoView) m.scrollIntoView({ block: "center", behavior: "smooth" }); }, 60); break;
       case "next": l = curLesson(); if (l) { lessonStep = Math.min(lessonStep + 1, lessonCards(l).length); render(); var cs = lessonCards(l); if (autoVoice() && cs[lessonStep]) speak(cs[lessonStep].text); } break;
       case "prev": l = curLesson(); lessonStep = Math.max(0, lessonStep - 1); render(); if (l && autoVoice()) speak(lessonCards(l)[lessonStep].text); break;
