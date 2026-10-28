@@ -3011,7 +3011,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   function markStudied(id) { state.studied = state.studied || {}; state.studied[id] = true; save(); }
   function readBookAct(arg) {
     var kind = arg.split(":")[0], id = arg.slice(kind.length + 1), ur = LANG() === "ur", o, l, x, u;
-    if (kind === "res") { x = resById(id); if (!x) return; u = safeUrl((x.d.src || {}).url); if (!u) return; o = { url: u, title: x.d.title, rtl: bookRtl(u), toc: bookToc(u), lang: LANG() }; }
+    if (kind === "res") { x = resById(id); if (!x) return; u = safeUrl((x.d.src || {}).url); if (!u) return; o = { url: u, title: x.d.title, rtl: bookRtl(u), toc: bookToc(u), lang: LANG(), textMode: true }; }
     else {
       l = lessonById(id); if (!l) return; u = kind === "notes" ? l.notes : l.book;
       o = { url: u, title: L(l.title).replace(/^(Read first: |پہلے پڑھیں: )/, ""), rtl: bookRtl(u), toc: kind === "notes" ? [] : bookToc(u), lang: LANG() };
