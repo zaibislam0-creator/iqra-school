@@ -951,7 +951,7 @@ function col(n){const c=F.collection(fs,n);return{onSnapshot:(a,b)=>F.onSnapshot
 const db={collection:col};
 const staff=()=>role==='admin';
 const user={isOwner:async()=>staff(),canEdit:async()=>staff(),can:async()=>(role==='admin'||role==='teacher')?true:null,id:async()=>uid};
-const FILES_API="";/* address of the Cloudflare worker in cloudflare-worker/iqra-files; empty = file upload stays hidden */
+const FILES_API="https://iqra-files.zaibislam0.workers.dev";/* address of the Cloudflare worker in cloudflare-worker/iqra-files; empty = file upload stays hidden */
 window.IQRA_FILES_API=FILES_API;
 const assets=FILES_API?{upload:async f=>{const tok=await auth.currentUser.getIdToken();
  const r=await fetch(FILES_API+'/upload?name='+encodeURIComponent(f.name||'file'),{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':f.type||'application/octet-stream'},body:f});
