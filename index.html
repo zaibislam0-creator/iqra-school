@@ -2192,6 +2192,35 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
 
   try { if (history.scrollRestoration) history.scrollRestoration = "manual"; } catch (e) {}
   var renderKey = "";
+  // ---- Browser Back button support ----
+  // Each screen change (home, subject, lesson, library, ...) adds a history entry, so the
+  // phone/browser Back button steps back inside the site instead of leaving it.
+  var navKey = null, navRestoring = false;
+  function navSnap() { return { iq: 1, view: view, sub: curSubject || null, lesson: openLesson || null, pt: pathTest || null, story: openStory || null }; }
+  function navSync() {
+    var su = state.setup ? "1" : "0";
+    var nk = view + "|" + (openLesson || "") + "|" + (curSubject || "") + "|" + (pathTest || "") + "|" + (openStory || "") + "|" + su;
+    if (nk === navKey) return;
+    var first = navKey === null, setupChanged = !first && navKey.slice(-1) !== su;
+    navKey = nk;
+    if (navRestoring) return;
+    try {
+      if (first || setupChanged || (history.state && history.state.iqReader)) history.replaceState(navSnap(), "");
+      else history.pushState(navSnap(), "");
+    } catch (e) {}
+  }
+  window.addEventListener("popstate", function (e) {
+    if (window.__iqIgnorePop > 0) { window.__iqIgnorePop--; return; }
+    if (window.IQReader && window.IQReader.isOpen && window.IQReader.isOpen()) window.IQReader.close();
+    var s = e.state;
+    if (!s || !s.iq) return;
+    navRestoring = true;
+    try {
+      quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; resRun = null;
+      pathTest = s.pt || null; openStory = s.story || null; curSubject = s.sub || null; openLesson = null; view = s.view || "learn";
+      if (s.lesson) act("openLesson", s.lesson); else render();
+    } finally { navRestoring = false; }
+  });
   function render() {
     if (view === "home") view = "learn";
     if (ADMIN && ["addbook", "voice", "admin", "pack"].indexOf(view) < 0) view = "addbook";
@@ -2263,6 +2292,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     root.innerHTML = h;
     var rk = view + "|" + (openLesson || "") + "|" + (curSubject || "") + "|" + (sess.mood ? 1 : 0) + "|" + (state.setup ? 1 : 0);
     if (rk !== renderKey) { renderKey = rk; try { window.scrollTo(0, 0); } catch (e) {} }
+    navSync();
     bind();
   }
 
@@ -2699,7 +2729,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     return n <= 1 ? "none" : n === 2 ? "little" : "full";
   }
   function kidUI() { return band() === "early" || band() === "primary" || readLevel() !== "full"; }
-  function autoVoice() { return !!state.voice && !!state.setup && kidUI() && (readLevel() !== "full" || band() === "early"); }
+  function autoVoice() { return !navRestoring && !!state.voice && !!state.setup && kidUI() && (readLevel() !== "full" || band() === "early"); }
 
   var sess = { done: 0, breakDue: false, mood: "", moodMsg: "" };
   var gameRun = null, adultOK = false, gateQ = null, lessonStep = 0, quizRun = null, countGame = null, cgToken = 0, tutorIdx = 0;
