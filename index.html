@@ -282,6 +282,8 @@ details.more{margin:10px 0;border:1px solid var(--line);border-radius:var(--rad)
 .rolechip.on,.roleswitch .chip.on,.subtabs .chip.on{background:var(--g);color:#fff;border-color:var(--g)}
 .roleswitch{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px}.roleswitch span{font-size:.85em;opacity:.7}
 .subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+.formwhere{margin:0 0 10px;padding:8px 12px;border-radius:var(--rad);background:var(--g2)}
+.subpick{display:flex;gap:8px;flex-wrap:wrap}.subpick .chip{min-height:46px;padding:8px 16px;font-size:1.02em}.subpick .chip.on{background:var(--g);color:#fff;border-color:var(--g)}
 .cloudnote{margin:0 0 10px}
 .qblock{border:1px solid var(--line);border-radius:var(--rad);padding:10px;margin:0 0 10px;background:var(--bg)}
 .optl{display:flex;align-items:center;gap:8px}.optl input{flex:1}
@@ -2473,7 +2475,16 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     libBoards: {"en": "Official board websites still to add", "ur": "وہ سرکاری بورڈ جن کی ویب سائٹ ابھی شامل کرنی ہے"},
     libBoardsHint: {"en": "Open the board's official site, copy its address, then add it here as a verified source.", "ur": "بورڈ کی سرکاری ویب سائٹ کھولیں، اس کا پتہ نقل کریں، پھر یہاں تصدیق شدہ ماخذ کے طور پر شامل کریں۔"},
     libFromApp: {"en": "Textbook in this app", "ur": "اس ایپ میں موجود کتاب"},
-    orPdf: { en: "Or upload a PDF book", ur: "یا پی ڈی ایف کتاب اپ لوڈ کریں" }
+    orPdf: { en: "Or upload a PDF book", ur: "یا پی ڈی ایف کتاب اپ لوڈ کریں" },
+    pickClass: { en: "Choose a class", ur: "کلاس چنیں" },
+    pickClassHint: { en: "Step 1: choose the class. Step 2: choose the subject. Step 3: add the book, notes or video.", ur: "پہلے کلاس چنیں، پھر مضمون، پھر کتاب، نوٹس یا ویڈیو شامل کریں۔" },
+    pickSub: { en: "Choose the subject", ur: "مضمون چنیں" },
+    pickSubHint: { en: "Tap a subject above. The buttons to add a book, notes or video will appear.", ur: "اوپر سے مضمون دبائیں۔ پھر کتاب، نوٹس یا ویڈیو شامل کرنے کے بٹن نظر آئیں گے۔" },
+    addHere: { en: "Add a book, notes, video or test", ur: "کتاب، نوٹس، ویڈیو یا ٹیسٹ شامل کریں" },
+    moreWays: { en: "Other ways to add content", ur: "مواد شامل کرنے کے دوسرے طریقے" },
+    wayType: { en: "Type lessons", ur: "ٹائپ کر کے اسباق" },
+    wayPdf: { en: "PDF into chapters", ur: "پی ڈی ایف سے ابواب" },
+    wayNote: { en: "Class note", ur: "کلاس نوٹ" }
   };
   function st3(k) { var o = ST3[k]; return o ? (o[LANG()] || o.en) : k; }
   function welcomeHero() {
@@ -3627,9 +3638,10 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "chDel": if (armedDel === arg) { armedDel = ""; chDelete(arg); } else armedDel = arg; render(); break;
       case "delbookArm": if (armedDel === "book:" + arg) { armedDel = ""; act("delbook", arg); return; } armedDel = "book:" + arg; render(); break;
       case "bookMove": armedDel = ""; var mvSel = root.querySelector("#mv-" + arg); if (mvSel) bookMoveTo(arg, mvSel.value); render(); break;
-      case "upClass": ef = null; efMsg = ""; upGrade = arg; upSubj = ""; bookMsg = ""; render(); break;
+      case "upClass": ef = null; efMsg = ""; upGrade = arg; upSubj = ""; advTab = ""; bookMsg = ""; render(); break;
       case "upBack": ef = null; upGrade = null; bookMsg = ""; render(); break;
-      case "upSubj": upSubj = arg; render(); var uf = root.querySelector("#upform"); if (uf && uf.scrollIntoView) uf.scrollIntoView({ block: "start" }); break;
+      case "advTab": advTab = advTab === arg ? "" : arg; render(); break;
+      case "upSubj": upSubj = arg; render(); var uf = root.querySelector("#subhub"); if (uf && uf.scrollIntoView) uf.scrollIntoView({ block: "start" }); break;
       case "bcancel": draft = null; bookMsg = ""; render(); break;
       case "delbook":
         openLesson = null; quizRun = null; gameRun = null; countGame = null;
@@ -3860,7 +3872,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       return { title: c.title.slice(0, 80), page: c.page, sents: s, quiz: makeQuiz(s, grade), keep: s.length >= 2 };
     }).filter(function (c) { return c.sents.length > 0; });
   }
-  var upGrade = null, upSubj = "";
+  var upGrade = null, upSubj = "", advTab = "";
   function gradeLabel(g) { var n = gnum(g); return n === 0 ? (LANG() === "ur" ? "کے جی" : "KG") : n >= 11 ? (LANG() === "ur" ? "ایف اے سال " : "F.A Year ") + (n - 10) : (LANG() === "ur" ? "جماعت " : "Class ") + g; }
   function gradeCounts(g) {
     var n = gnum(g), up = 0, nb = 0;
@@ -4194,10 +4206,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   function addBookView() {
     if (draft) return draftView();
     if (upGrade === null) {
-      var cs = classStats();
-      var h = "<h2>" + esc(st3("classesT")) + '</h2><div class="admstats">';
-      [["statClasses", cs.classes], ["statChapters", cs.chapters], ["statReview", cs.pending], ["statHidden", cs.hidden]].forEach(function (x) { h += '<div class="admstat"><b>' + x[1] + "</b><span>" + esc(st3(x[0])) + "</span></div>"; });
-      h += '</div><ol class="steps3"><li>' + esc(t("step1")) + "</li><li>" + esc(t("step2")) + "</li><li>" + esc(t("step3")) + "</li></ol>";
+      var h = "<h2>" + esc(st3("pickClass")) + '</h2><p class="small">' + esc(st3("pickClassHint")) + "</p>";
       D.levels.forEach(function (lv, li) {
         h += '<section class="card"><h3><span class="catdot c' + "ABC".charAt(li) + '">' + "ABC".charAt(li) + "</span> " + esc(L(lv)) + '</h3><div class="classgrid">';
         D.grades.forEach(function (g) {
@@ -4211,18 +4220,21 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       });
       return h;
     }
-    var g = upGrade, subs = classSubjects(g), cnt = gradeCounts(g);
-    var h = '<button class="link" data-act="upBack">‹ ' + esc(t("allClasses")) + "</button><h2>" + esc(gradeLabel(g)) + " · " + esc(t("addbook")) + "</h2>";
-    h += entryFormHTML(g, subs);
-    h += '<div class="card notecard"><h3>' + esc(st3("noteT")) + '</h3><label class="sr" for="cnote">' + esc(st3("noteT")) + '</label><textarea id="cnote" rows="3" maxlength="400" placeholder="' + esc(st3("notePh")) + '">' + esc((state.classNotes || {})[String(g)] || "") + '</textarea><p class="small">' + esc(st3("noteHint")) + '</p><button class="btn" data-act="noteSave" data-arg="' + g + '">' + esc(st3("noteSave")) + '</button> <span class="small" aria-live="polite">' + esc(noteMsg) + "</span></div>";
-    noteMsg = "";
-    h += '<div class="card"><h3>' + esc(t("subjectsHere")) + "</h3>";
-    subs.forEach(function (sj) {
-      var own = D.lessons.filter(function (l) { return !l.uploaded && l.subject === sj.id && gnum(g) >= l.min && gnum(g) <= l.max; }).length;
-      var up = 0; bookStore.forEach(function (b) { if (String(b.grade) === String(g) && b.subject === sj.id) up += b.lessons.length; });
-      h += '<div class="subrow"><span>' + esc(L(sj)) + '</span><small>' + (up ? up + " " + esc(t("chapters")) + " " + esc(t("uploaded")) : own ? own + " " + esc(t("builtin")) : esc(t("noContent"))) + '</small><button class="btn alt sm" data-act="upSubj" data-arg="' + sj.id + '">' + esc(t("upHere")) + "</button></div>";
-    });
+    var g = upGrade, subs = classSubjects(g);
+    var h = '<button class="link" data-act="upBack">‹ ' + esc(t("allClasses")) + "</button><h2>" + esc(gradeLabel(g)) + "</h2>";
+    h += '<section class="card"><h3>' + esc(st3("pickSub")) + '</h3><div class="subpick">';
+    subs.forEach(function (sj) { h += '<button type="button" class="chip' + (upSubj === sj.id ? " on" : "") + '" data-act="upSubj" data-arg="' + sj.id + '">' + esc(L(sj)) + "</button>"; });
+    h += "</div>" + (upSubj ? "" : '<p class="small">' + esc(st3("pickSubHint")) + "</p>") + "</section>";
+    if (upSubj) h += '<div id="subhub"><h3>' + esc(st3("addHere")) + "</h3>" + resHub(upSubj, g) + "</div>";
+    h += "<h3>" + esc(st3("moreWays")) + '</h3><div class="subtabs">';
+    [["type", "wayType"], ["pdf", "wayPdf"], ["note", "wayNote"]].forEach(function (x) { h += '<button type="button" class="chip' + (advTab === x[0] ? " on" : "") + '" data-act="advTab" data-arg="' + x[0] + '">' + esc(st3(x[1])) + "</button>"; });
     h += "</div>";
+    if (advTab === "type") h += entryFormHTML(g, subs);
+    if (advTab === "note") {
+    h += '<div class="card notecard"><h3>' + esc(st3("noteT")) + '</h3><label class="sr" for="cnote">' + esc(st3("noteT")) + '</label><textarea id="cnote" rows="3" maxlength="400" placeholder="' + esc(st3("notePh")) + '">' + esc((state.classNotes || {})[String(g)] || "") + '</textarea><p class="small">' + esc(st3("noteHint")) + '</p><button class="btn" data-act="noteSave" data-arg="' + g + '">' + esc(st3("noteSave")) + '</button> <span class="small" aria-live="polite">' + esc(noteMsg) + "</span></div>";
+    }
+    noteMsg = advTab === "note" ? "" : noteMsg;
+    if (advTab === "pdf") {
     h += '<div class="card" id="upform"><h3>' + esc(st3("orPdf")) + "</h3><p>" + esc(t("bookIntro")) + "</p>";
     h += "<label>" + esc(t("pdfFile")) + '<input id="bfile" type="file" accept="application/pdf,.pdf"></label>';
     h += "<label>" + esc(t("subject")) + '<select id="bsubj">';
@@ -4232,6 +4244,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     h += '</select></label><label>' + esc(t("board")) + '<input id="bboard" value="' + esc(state.board || "") + '"></label>';
     h += "<label>" + esc(t("textbook")) + '<input id="btb"></label><label>' + esc(t("year")) + '<input id="byr" placeholder="2026-27"></label>';
     h += '<button class="btn" id="bgo">' + esc(t("readPdf")) + '</button><p id="bmsg" class="small" aria-live="polite">' + esc(bookMsg) + '</p><p class="note">' + esc(t("bookNote")) + "</p></div>";
+    }
     h += "<h3>" + esc(t("mybooks")) + " · " + esc(gradeLabel(g)) + "</h3>";
     var mine = bookStore.filter(function (b) { return String(b.grade) === String(g); });
     if (!mine.length) h += '<p class="small">' + esc(t("nobooks")) + "</p>";
@@ -4866,13 +4879,19 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   function resFormHTML() {
     var f = resForm, subs = classSubjects(f.grade);
     if (!subs.some(function (x) { return x.id === f.subject; })) f.subject = subs[0] ? subs[0].id : "";
-    var h = '<div class="resform"><label>' + esc(rt("ftype")) + '<select id="rftype">';
-    RES_TYPES.forEach(function (k) { h += '<option value="' + k + '"' + (f.type === k ? " selected" : "") + ">" + esc(rt(k)) + "</option>"; });
-    h += "</select></label><label>" + esc(rt("fgrade")) + '<select id="rfgrade">';
-    D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(f.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
-    h += "</select></label><label>" + esc(rt("fsubj")) + '<select id="rfsubj">';
-    subs.forEach(function (x) { h += '<option value="' + x.id + '"' + (f.subject === x.id ? " selected" : "") + ">" + esc(L(x)) + "</option>"; });
-    h += "</select></label><label>" + esc(rt("ftitle")) + '<input id="rftitle" value="' + esc(f.title) + '"></label>';
+    var h = '<div class="resform">';
+    if (f.id) {
+      h += "<label>" + esc(rt("ftype")) + '<select id="rftype">';
+      RES_TYPES.forEach(function (k) { h += '<option value="' + k + '"' + (f.type === k ? " selected" : "") + ">" + esc(rt(k)) + "</option>"; });
+      h += "</select></label><label>" + esc(rt("fgrade")) + '<select id="rfgrade">';
+      D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(f.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
+      h += "</select></label><label>" + esc(rt("fsubj")) + '<select id="rfsubj">';
+      subs.forEach(function (x) { h += '<option value="' + x.id + '"' + (f.subject === x.id ? " selected" : "") + ">" + esc(L(x)) + "</option>"; });
+    } else {
+      var sj = subs.filter(function (x) { return x.id === f.subject; })[0];
+      h += '<p class="formwhere"><b>' + esc(rt(f.type)) + "</b> \u00b7 " + esc(gradeLabel(f.grade)) + " \u00b7 " + esc(sj ? L(sj) : "") + '</p><div hidden><select id="rftype"><option value="' + esc(f.type) + '" selected></option></select><select id="rfgrade"><option value="' + esc(f.grade) + '" selected></option></select><select id="rfsubj"><option value="' + esc(f.subject) + '" selected></option></select></div>';
+    }
+    h += (f.id ? "</select></label>" : "") + "<label>" + esc(rt("ftitle")) + '<input id="rftitle" value="' + esc(f.title) + '"></label>';
     if (f.type !== "guide") h += "<label>" + esc(rt("fdesc")) + '<input id="rfdesc" value="' + esc(f.desc) + '"></label>';
     if (f.type === "video" || f.type === "note" || f.type === "book") {
       h += "<label>" + esc(rt("flink")) + '<input id="rflink" type="url" inputmode="url" dir="ltr" placeholder="https://" value="' + esc(f.link) + '"></label>';
