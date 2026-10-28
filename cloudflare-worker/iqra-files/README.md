@@ -24,4 +24,4 @@ Limits and notes
 
 ## Auto study material (`POST /generate`)
 
-Admin only. Takes `{text,title,grade,subject,lang,guide}` for one chapter and returns notes, 5 multiple-choice questions and (English books) an Urdu guide, made by Cloudflare Workers AI (`@cf/openai/gpt-oss-120b`). It needs the `[ai] binding = "AI"` entry in wrangler.toml (or an AI binding named `AI` in the dashboard). The free tier gives 10,000 neurons per day; a book of 20 chapters uses roughly 200-300. The site saves everything as drafts until an admin presses Publish.
+Admin only. Takes `{text,title,grade,subject,lang,guide}` for one chapter and returns notes, 5 multiple-choice questions and (English books) an Urdu guide, made by Cloudflare Workers AI (`@cf/openai/gpt-oss-120b`). For English books it also returns Urdu notes and Urdu questions (shown Urdu first, then English). It needs the `[ai] binding = "AI"` entry in wrangler.toml (or an AI binding named `AI` in the dashboard). The free tier gives 10,000 neurons per day; a book of 20 chapters uses roughly 200-300. The site saves everything as drafts until an admin presses Publish.

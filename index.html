@@ -5009,7 +5009,11 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
           if (i >= secs.length) return Promise.resolve();
           var k = i++, sc = secs[k];
           return resAssets.generate({ text: sc.text, title: sc.title, grade: b.d.grade, subject: b.d.subject, lang: lang, guide: wantGuide }).then(function (r) {
-            if (r.notes && r.notes.length) notes[k] = { t: sc.title, pts: r.notes };
+            if (r.notes && r.notes.length) {
+              var pts = r.notes;
+              if (r.notesUr && r.notesUr.length === r.notes.length) { pts = []; r.notes.forEach(function (n1, ni) { pts.push(n1); pts.push(r.notesUr[ni]); }); }
+              notes[k] = { t: sc.title, pts: pts };
+            }
             if (r.questions && r.questions.length) tests[k] = { t: sc.title, qs: r.questions };
             if (r.guide) {
               if (r.guide.summary && r.guide.summary.length) { guide.summary.push(sc.title); r.guide.summary.forEach(function (x) { guide.summary.push(x); }); }
@@ -5030,6 +5034,10 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
           tests.forEach(function (t, k) {
             if (!t) return;
             var qtext = t.qs.map(function (q) { return [q.q].concat(q.o, ["ABCD".charAt(q.c)]).join(" | "); }).join("\n"), qs = parseTest(qtext);
+            if (qs.length === t.qs.length) qs = qs.map(function (q, qi) {   // English books: Urdu question on top, options as "English / اردو"
+              var u = t.qs[qi]; if (!u.qu || !u.ou) return q;
+              return { q: u.qu.replace(/\|/g, " ") + "||" + q.q, o: q.o.map(function (o1, oi) { var o2 = String(u.ou[oi] || "").replace(/\|/g, " ").trim(); return !o2 || o2 === o1 || /^[\d\s.,+\-−×÷=%<>()]+$/.test(o1) ? o1 : o1 + " / " + o2; }), c: q.c };
+            });
             if (qs.length) jobs.push(autoPut("auto-" + bookId + "-t" + k, Object.assign({ type: "test", title: (LANG() === "ur" ? "ٹیسٹ: " : "Test: ") + t.t, desc: "", qs: qs, qtext: qtext }, base)));
           });
           if (wantGuide && guide.summary.length) {

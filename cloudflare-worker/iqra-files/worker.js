@@ -126,14 +126,19 @@ function textOf(res) {
   }
   return "";
 }
-function clean(r, wantGuide) {
+function clean(r, wantGuide, bi) {
   const out = { notes: list(r.notes, 8, 240), questions: [] };
+  if (bi) { const nu = list(r.notes_ur, 8, 300); out.notesUr = nu.length === out.notes.length ? nu : []; }
   (Array.isArray(r.questions) ? r.questions : []).forEach(function (q) {
     const opts = list(q && q.options, 4, 90), ans = Number(q && q.answer);
     if (!q || !str(q.q, 240) || opts.length !== 4 || new Set(opts).size !== 4 || !(ans >= 0 && ans <= 3) || Math.floor(ans) !== ans) return;
     if (opts.some(function (o) { return /all of the above|none of the above/i.test(o); })) return;
-    const right = opts[ans], mixed = shuffle(opts.slice());
-    out.questions.push({ q: str(q.q, 240), o: mixed, c: mixed.indexOf(right) });
+    const order = shuffle([0, 1, 2, 3]), item = { q: str(q.q, 240), o: order.map(function (i) { return opts[i]; }), c: order.indexOf(ans) };
+    if (bi) {
+      const ou = list(q.options_ur, 4, 90), qu = str(q.q_ur, 300);
+      if (qu && ou.length === 4) { item.qu = qu; item.ou = order.map(function (i) { return ou[i]; }); }
+    }
+    out.questions.push(item);
   });
   out.questions = out.questions.slice(0, 6);
   if (wantGuide) {
@@ -151,9 +156,10 @@ function promptFor(b) {
   let p = "Class level: " + b.grade + (b.subject ? ", subject: " + b.subject : "") + ". Chapter: " + b.title + ".\n" +
     "Using ONLY the chapter text below, prepare study material. Do not add facts that are not in the text.\n" +
     "Return JSON only, with exactly this shape:\n" +
-    '{"notes":["..."],"questions":[{"q":"...","options":["...","...","...","..."],"answer":0}]' + (b.guide ? ',"guide":{"summary":["..."],"words":[{"en":"...","ur":"..."}],"tips":["..."]}' : "") + "}\n" +
+    '{"notes":["..."]' + (b.bi ? ',"notes_ur":["..."]' : "") + ',"questions":[{"q":"...","options":["...","...","...","..."],"answer":0' + (b.bi ? ',"q_ur":"...","options_ur":["...","...","...","..."]' : "") + "}]" + (b.guide ? ',"guide":{"summary":["..."],"words":[{"en":"...","ur":"..."}],"tips":["..."]}' : "") + "}\n" +
     "- notes: 5 to 8 short revision points in " + lang + ", easy for the class level.\n" +
     "- questions: 5 multiple-choice questions in " + lang + ". Each has exactly 4 different options and exactly one correct option; answer is the 0-based index of the correct option. Questions must be answerable from the text. Never use 'all of the above' or 'none of the above'.\n";
+  if (b.bi) p += "- notes_ur: the same notes translated into simple Urdu (Urdu script), same number and same order as notes.\n- q_ur: each question translated into simple Urdu. options_ur: each option translated into Urdu, in the same order as options (keep numbers and symbols as they are).\n";
   if (b.guide) p += "- guide.summary: 5 to 8 short, simple points in Urdu script explaining the chapter.\n- guide.words: 8 to 12 important English words from the text, each with its Urdu meaning in Urdu script.\n- guide.tips: 3 to 5 short Urdu tips on how to study this chapter.\n";
   return p + "\nChapter text:\n" + b.text;
 }
@@ -166,11 +172,11 @@ async function generate(req, env, h) {
   try { b = await req.json(); } catch (e) { return json({ error: "json" }, 400, h); }
   const text = str(b && b.text, MAX_TEXT + 100).slice(0, MAX_TEXT);
   if (text.length < 200) return json({ error: "text too short" }, 422, h);
-  const body = { text: text, title: str(b.title, 120) || "Chapter", grade: str(b.grade, 12) || "school", subject: str(b.subject, 40), lang: b.lang === "ur" ? "ur" : "en", guide: !!b.guide && b.lang !== "ur" };
+  const body = { text: text, title: str(b.title, 120) || "Chapter", grade: str(b.grade, 12) || "school", subject: str(b.subject, 40), lang: b.lang === "ur" ? "ur" : "en", guide: !!b.guide && b.lang !== "ur", bi: b.lang !== "ur" && b.bilingual !== false };
   let res, out;
   try {
-    res = await env.AI.run(MODEL, { messages: [{ role: "system", content: "You prepare study material for Pakistani school students. You write correct, simple, class-appropriate content and answer with JSON only." }, { role: "user", content: promptFor(body) }], max_tokens: 3500, temperature: 0.2 });
-    out = clean(parseJson(textOf(res)), body.guide);
+    res = await env.AI.run(MODEL, { messages: [{ role: "system", content: "You prepare study material for Pakistani school students. You write correct, simple, class-appropriate content and answer with JSON only." }, { role: "user", content: promptFor(body) }], max_tokens: body.bi ? 7000 : 3500, temperature: 0.2 });
+    out = clean(parseJson(textOf(res)), body.guide, body.bi);
   } catch (e) { return json({ error: "ai failed" }, 502, h); }
   if (!out.notes.length && !out.questions.length) return json({ error: "empty" }, 502, h);
   return json(out, 200, h);
