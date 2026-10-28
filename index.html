@@ -4667,7 +4667,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   }
 
   // ================= Class resources hub: video, PDF notes, books, tests, Urdu guide =================
-  var resDocs = [], resTab = "video", resForm = null, resMsg = "", resOpenId = "", resRun = null, resArm = "", resAssets = null, autoMsg = "", autoBusy = false;
+  var resDocs = [], resTab = "video", resForm = null, resMsg = "", resOpenId = "", resRun = null, resArm = "", resAssets = null, autoMsg = "", autoBusy = false, autoBook = "";
   var RT = {
     en: {
       hub: "Class resources", sub_video: "Watch and learn", sub_note: "Read and revise", sub_book: "Explore books", sub_test: "Take tests", sub_guide: "Learn in Urdu", play_now: "Play Now", video: "Video lectures", note: "PDF notes", book: "Books", test: "Tests", guide: "Urdu guide",
@@ -4782,7 +4782,6 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     });
     h += "</div>";
     if (resMsg) h += '<p class="note" aria-live="polite">' + esc(resMsg) + "</p>";
-    if (autoMsg) h += '<p class="note" id="automsg" aria-live="polite">' + esc(autoMsg) + "</p>";
     if (resForm) return h + resFormHTML() + "</section>";
     var items = resFor(sid, g, resTab);
     if (!items.length) h += '<div class="resempty"><span class="resstar">' + STAR_FACE + "</span><span>" + esc(rt("none")) + "</span></div>";
@@ -4827,7 +4826,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       });
     }
     if (d.type === "book" && u && /\.pdf($|[?#])/i.test(u) && isAdminRes() && resAssets && resAssets.generate && !d.builtin)
-      h += '<button type="button" class="btn alt" data-act="autoMake" data-arg="' + x.id + '"' + (autoBusy ? " disabled" : "") + ">" + esc(rt("autoBtn")) + "</button>";
+      h += '<button type="button" class="btn alt" data-act="autoMake" data-arg="' + x.id + '"' + (autoBusy ? " disabled" : "") + ">" + esc(rt("autoBtn")) + "</button>" + (autoMsg && autoBook === x.id ? '<p class="note" id="automsg" aria-live="polite">' + esc(autoMsg) + "</p>" : "");
     if (d.type === "book" && d.en) {
       var gs = resDocs.filter(function (y) { return y.d.type === "guide" && y.d.bookId === x.id && resVisible(y); })[0];
       if (gs) h += '<button type="button" class="btn alt" data-act="resShowGuide" data-arg="' + gs.id + '">🗣️ ' + esc(rt("guideBtn")) + "</button>";
@@ -4969,7 +4968,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   function autoSay(m, redo) {
     autoMsg = m || "";
     var e = document.getElementById("automsg");
-    if (e && m) e.textContent = m; else if (!resForm && (redo || !e)) render();
+    if (e && m) e.textContent = m; else if (!resForm && (redo || !e)) { render(); var e2 = document.getElementById("automsg"); if (e2 && e2.scrollIntoView) e2.scrollIntoView({ block: "center" }); }
   }
   function autoChapters(paras) {
     var secs = [], cur = null;
@@ -4999,7 +4998,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var b = resById(bookId);
     if (autoBusy || !b || !resAssets || !resAssets.generate) return;
     var u = b.d.src && b.d.src.url; if (!u) return;
-    autoBusy = true; autoSay(rt("autoRead"), true);
+    autoBusy = true; autoBook = bookId; autoSay(rt("autoRead"), true);
     withReader(function () {
       window.IQReader.textOf(u, function (f) { autoSay(rt("autoRead") + " " + Math.round(f * 100) + "%"); }).then(function (d) {
         if (!d || !d.ok || !d.paras.length) { autoBusy = false; autoSay(rt("autoNoText"), true); return; }
