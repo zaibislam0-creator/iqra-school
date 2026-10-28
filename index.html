@@ -959,7 +959,12 @@ const assets=FILES_API?{upload:async f=>{const tok=await auth.currentUser.getIdT
  const r=await fetch(FILES_API+'/upload?name='+encodeURIComponent(f.name||'file'),{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':f.type||'application/octet-stream'},body:f});
  let j=null;try{j=await r.json()}catch(e){}
  if(!r.ok||!j||!j.url){const e=new Error((j&&j.error)||'upload failed');e.code=(j&&j.error)||r.status;throw e}
- return{id:j.id,url:j.url}}}:null;
+ return{id:j.id,url:j.url}},
+ generate:async b=>{const tok=await auth.currentUser.getIdToken();
+ const r=await fetch(FILES_API+'/generate',{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify(b)});
+ let j=null;try{j=await r.json()}catch(e){}
+ if(!r.ok||!j){const e=new Error((j&&j.error)||'generate failed');e.code=(j&&j.error)||r.status;throw e}
+ return j}}:null;
 window.claude={use:async n=>n==='db'?db:n==='user'?user:n==='assets'?(staff()?assets:null):null};
 function begin(u){G.style.display='none';if(window.__iqEntry)window.__iqEntry.remove();document.getElementById('iqout').style.display='block';if(!started){started=true;window.__iqReady=true;ready()}}
 document.getElementById('iqout').onclick=()=>Au.signOut(auth).then(()=>location.reload());
@@ -4662,14 +4667,14 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   }
 
   // ================= Class resources hub: video, PDF notes, books, tests, Urdu guide =================
-  var resDocs = [], resTab = "video", resForm = null, resMsg = "", resOpenId = "", resRun = null, resArm = "", resAssets = null;
+  var resDocs = [], resTab = "video", resForm = null, resMsg = "", resOpenId = "", resRun = null, resArm = "", resAssets = null, autoMsg = "", autoBusy = false;
   var RT = {
     en: {
       hub: "Class resources", sub_video: "Watch and learn", sub_note: "Read and revise", sub_book: "Explore books", sub_test: "Take tests", sub_guide: "Learn in Urdu", play_now: "Play Now", video: "Video lectures", note: "PDF notes", book: "Books", test: "Tests", guide: "Urdu guide",
       none: "Nothing added here yet.", add_video: "Add video", add_note: "Add notes", add_book: "Add book", add_test: "Add test", add_guide: "Add Urdu guide",
       play: "Play", openyt: "Open on YouTube", open: "Open", download: "Download", start: "Start test", submit: "Check answers", again: "Try again",
       score: "Score", last: "Last score", best: "Best", qcount: "questions", engBook: "English book", guideBtn: "Urdu guide for this book",
-      mkGuide: "Make Urdu guide for this book", draft: "Draft - hidden from students", aiNote: "Made with AI help, checked by a teacher",
+      mkGuide: "Make Urdu guide for this book", autoBtn: "✨ Make notes, tests and guide", autoRead: "Reading the book…", autoMaking: "Making study material", autoDone: "Drafts are ready. Check them, then press Publish.", autoNoText: "This book has no readable text (scan or old Urdu font), so notes cannot be made automatically.", autoFail: "Some parts could not be made. You can try again.", autoNoAi: "AI is not set up yet.", autoNoHelp: "AI helper made this: check before use", noteChap: "Chapter notes", draft: "Draft - hidden from students", aiNote: "Made with AI help, checked by a teacher",
       words: "Word meanings", tips: "How to study this", ftype: "Type", fgrade: "Class", fsubj: "Subject", ftitle: "Title", fdesc: "Short description (optional)",
       flink: "Paste a YouTube or https link", fupload: "Or upload a video file (admin only)", fpub: "Show to students", save: "Save", cancel: "Cancel",
       edit: "Edit", del: "Delete", delArm: "Tap again to delete", hide: "Hide", show: "Publish", fen: "This book is in English (needs an Urdu guide)",
@@ -4687,7 +4692,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       none: "ابھی یہاں کچھ شامل نہیں ہوا۔", add_video: "ویڈیو شامل کریں", add_note: "نوٹس شامل کریں", add_book: "کتاب شامل کریں", add_test: "ٹیسٹ شامل کریں", add_guide: "اردو رہنمائی شامل کریں",
       play: "چلائیں", openyt: "یوٹیوب پر کھولیں", open: "کھولیں", download: "ڈاؤن لوڈ", start: "ٹیسٹ شروع کریں", submit: "جوابات جانچیں", again: "دوبارہ کوشش کریں",
       score: "نمبر", last: "آخری نمبر", best: "بہترین", qcount: "سوال", engBook: "انگریزی کتاب", guideBtn: "اس کتاب کی اردو رہنمائی",
-      mkGuide: "اس کتاب کی اردو رہنمائی بنائیں", draft: "مسودہ - طلبہ کو نظر نہیں آتا", aiNote: "اے آئی کی مدد سے بنی، استاد نے جانچی",
+      mkGuide: "اس کتاب کی اردو رہنمائی بنائیں", autoBtn: "✨ نوٹس، ٹیسٹ اور رہنمائی بنائیں", autoRead: "کتاب پڑھی جا رہی ہے…", autoMaking: "پڑھائی کا مواد بن رہا ہے", autoDone: "مسودے تیار ہیں۔ دیکھ لیں، پھر «شائع کریں» دبائیں۔", autoNoText: "اس کتاب میں پڑھنے کے قابل متن نہیں (اسکین یا پرانا اردو فونٹ)، اس لیے نوٹس خود نہیں بن سکتے۔", autoFail: "کچھ حصے نہیں بن سکے۔ دوبارہ کوشش کریں۔", autoNoAi: "اے آئی ابھی سیٹ نہیں ہوا۔", autoNoHelp: "اے آئی کی مدد سے بنا: استعمال سے پہلے جانچ لیں", noteChap: "باب کے نوٹس", draft: "مسودہ - طلبہ کو نظر نہیں آتا", aiNote: "اے آئی کی مدد سے بنی، استاد نے جانچی",
       words: "مشکل الفاظ", tips: "پڑھنے کا طریقہ", ftype: "قسم", fgrade: "جماعت", fsubj: "مضمون", ftitle: "عنوان", fdesc: "مختصر تفصیل (اختیاری)",
       flink: "یوٹیوب یا https لنک لگائیں", fupload: "یا ویڈیو فائل اپ لوڈ کریں (صرف ایڈمن)", fpub: "طلبہ کو دکھائیں", save: "محفوظ کریں", cancel: "منسوخ",
       edit: "ترمیم", del: "حذف کریں", delArm: "حذف کرنے کے لیے دوبارہ دبائیں", hide: "چھپائیں", show: "شائع کریں", fen: "یہ کتاب انگریزی میں ہے (اردو رہنمائی چاہیے)",
@@ -4777,6 +4782,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     });
     h += "</div>";
     if (resMsg) h += '<p class="note" aria-live="polite">' + esc(resMsg) + "</p>";
+    if (autoMsg) h += '<p class="note" id="automsg" aria-live="polite">' + esc(autoMsg) + "</p>";
     if (resForm) return h + resFormHTML() + "</section>";
     var items = resFor(sid, g, resTab);
     if (!items.length) h += '<div class="resempty"><span class="resstar">' + STAR_FACE + "</span><span>" + esc(rt("none")) + "</span></div>";
@@ -4786,7 +4792,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   }
   function resAdminBar(x) {
     if (x.d.builtin || !canEditRes(x)) return "";
-    return '<div class="resadmin"><button type="button" class="icbtn" data-act="resEdit" data-arg="' + x.id + '">' + esc(rt("edit")) + '</button><button type="button" class="icbtn" data-act="resPub" data-arg="' + x.id + '">' + esc(rt(x.d.published ? "hide" : "show")) +
+    return '<div class="resadmin">' + (x.d.type === "note" && !x.d.src ? "" : '<button type="button" class="icbtn" data-act="resEdit" data-arg="' + x.id + '">' + esc(rt("edit")) + "</button>") + '<button type="button" class="icbtn" data-act="resPub" data-arg="' + x.id + '">' + esc(rt(x.d.published ? "hide" : "show")) +
       '</button><button type="button" class="icbtn del' + (resArm === x.id ? " armed" : "") + '" data-act="resDel" data-arg="' + x.id + '">' + esc(rt(resArm === x.id ? "delArm" : "del")) + "</button></div>";
   }
   function resCard(x) {
@@ -4812,6 +4818,16 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var d = x.d, s = d.src || {}, u = safeUrl(s.url), h = "";
     if (d.type === "book" && d.en) h += '<p class="small"><span class="badge inreview">' + esc(rt("engBook")) + "</span></p>";
     if (u) h += '<div class="actions">' + (/\.pdf($|[?#])/i.test(u) ? '<button type="button" class="bigbtn" data-act="readBook" data-arg="res:' + esc(x.id) + '">📖 ' + esc(rt("open")) + "</button>" : '<a class="bigbtn" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(rt("open")) + "</a>") + (s.kind === "asset" ? '<a class="bigbtn alt" href="' + esc(u) + '" download>' + esc(rt("download")) + "</a>" : "") + "</div>";
+    if (d.type === "note" && Array.isArray(d.sections)) {
+      h += '<p class="small"><span class="badge inreview">' + esc(rt("autoNoHelp")) + "</span></p>";
+      d.sections.forEach(function (sc, i) {
+        h += '<details class="resnote"' + (d.sections.length === 1 ? " open" : "") + '><summary dir="auto"><b>' + esc(sc.t || (rt("noteChap") + " " + (i + 1))) + '</b></summary><ul dir="auto">';
+        (sc.pts || []).forEach(function (p) { h += "<li>" + esc(p) + "</li>"; });
+        h += "</ul></details>";
+      });
+    }
+    if (d.type === "book" && u && /\.pdf($|[?#])/i.test(u) && isAdminRes() && resAssets && resAssets.generate && !d.builtin)
+      h += '<button type="button" class="btn alt" data-act="autoMake" data-arg="' + x.id + '"' + (autoBusy ? " disabled" : "") + ">" + esc(rt("autoBtn")) + "</button>";
     if (d.type === "book" && d.en) {
       var gs = resDocs.filter(function (y) { return y.d.type === "guide" && y.d.bookId === x.id && resVisible(y); })[0];
       if (gs) h += '<button type="button" class="btn alt" data-act="resShowGuide" data-arg="' + gs.id + '">🗣️ ' + esc(rt("guideBtn")) + "</button>";
@@ -4821,6 +4837,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   }
   var AUTH = { "t-c1-math": "Sadia Jabeen", "t-c1-eng": "Maryam Zafar", "t-c1-gk": "طاہر محمود", "t-c1-ethics": "ڈاکٹر جمیل الرحمان، مہر صفدر ولید، شمس الرحمان", "t-c1-isl": "معظم ادریس", "t-c1-taj": "ڈاکٹر ابوالحسن محمد شاہ الازہری، علامہ زاہد نبی سیفی، علامہ غلام علی", "t-c1-urdu": "تاج محمد، محمد عثمان طفیل" };
   function authorLine(x) {
+    if (x.d.ai) return '<p class="small authorl">🤖 ' + esc(rt("autoNoHelp")) + "</p>";
     var k, a = ""; for (k in AUTH) if (x.id.indexOf(k) === 0) a = AUTH[k];
     return '<p class="small authorl">✍️ ' + esc(LANG() === "ur" ? "مصنف" : "Writer") + ": <span dir=\"auto\">" + esc(a || "PCTB") + "</span> · PCTB</p>";
   }
@@ -4944,7 +4961,87 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     resForm.busy = "save";
     cloud.db.collection("resources").doc(id).set(doc).then(function () {
       resMsg = rt("saved"); resTab = f.type; resForm = null; render();
+      if (!f.id && f.type === "book" && doc.src && doc.src.kind === "asset" && /\.pdf($|[?#])/i.test(doc.src.url || "") && isAdminRes() && resAssets && resAssets.generate) autoMake(id);
     }).catch(function (e) { cloudFail(e); if (resForm) resForm.busy = ""; resMsgShow("cloudErr2"); });
+  }
+
+  // ---- auto notes / tests / Urdu guide (all saved as drafts) ----
+  function autoSay(m, redo) {
+    autoMsg = m || "";
+    var e = document.getElementById("automsg");
+    if (e && m) e.textContent = m; else if (!resForm && (redo || !e)) render();
+  }
+  function autoChapters(paras) {
+    var secs = [], cur = null;
+    function push() { if (cur && cur.text.length >= 400) secs.push(cur); cur = null; }
+    var heads = paras.filter(function (p) { return p.t === "h" && p.lv === 1; }).length;
+    paras.forEach(function (p) {
+      if (p.t === "h" && p.lv === 1 && heads >= 2) { push(); cur = { title: p.s, text: "" }; return; }
+      if (!cur) cur = { title: "", text: "" };
+      cur.text += (cur.text ? "\n" : "") + (p.t === "h" ? "## " : "") + p.s;
+    });
+    push();
+    var out = [];
+    secs.forEach(function (sc) {   // long parts are cut into pieces of about 8000 characters
+      var parts = Math.ceil(sc.text.length / 8000), size = Math.ceil(sc.text.length / parts);
+      for (var i = 0; i < parts; i++) out.push({ title: (sc.title || "") + (parts > 1 ? " (" + (i + 1) + "/" + parts + ")" : ""), text: sc.text.slice(i * size, (i + 1) * size) });
+    });
+    secs = out.slice(0, 30);
+    secs.forEach(function (sc, i) { if (!sc.title.trim()) sc.title = (LANG() === "ur" ? "حصہ " : "Part ") + (i + 1); });
+    return secs;
+  }
+  function autoPut(id, doc) {
+    var ex = resById(id), pub = ex ? !!ex.d.published : false;
+    doc = Object.assign({ published: pub, ai: true, auto: true, author: cloud.uid, updated: Date.now() }, doc);
+    return cloud.db.collection("resources").doc(id).set(JSON.parse(JSON.stringify(doc)));
+  }
+  function autoMake(bookId) {
+    var b = resById(bookId);
+    if (autoBusy || !b || !resAssets || !resAssets.generate) return;
+    var u = b.d.src && b.d.src.url; if (!u) return;
+    autoBusy = true; autoSay(rt("autoRead"), true);
+    withReader(function () {
+      window.IQReader.textOf(u, function (f) { autoSay(rt("autoRead") + " " + Math.round(f * 100) + "%"); }).then(function (d) {
+        if (!d || !d.ok || !d.paras.length) { autoBusy = false; autoSay(rt("autoNoText"), true); return; }
+        var secs = autoChapters(d.paras), lang = d.rtl ? "ur" : "en", wantGuide = lang === "en", done = 0, fail = 0, i = 0;
+        if (!secs.length) { autoBusy = false; autoSay(rt("autoNoText"), true); return; }
+        var notes = [], tests = [], guide = { summary: [], words: [], tips: [] }, seen = {};
+        function next() {
+          if (i >= secs.length) return Promise.resolve();
+          var k = i++, sc = secs[k];
+          return resAssets.generate({ text: sc.text, title: sc.title, grade: b.d.grade, subject: b.d.subject, lang: lang, guide: wantGuide }).then(function (r) {
+            if (r.notes && r.notes.length) notes[k] = { t: sc.title, pts: r.notes };
+            if (r.questions && r.questions.length) tests[k] = { t: sc.title, qs: r.questions };
+            if (r.guide) {
+              if (r.guide.summary && r.guide.summary.length) { guide.summary.push(sc.title); r.guide.summary.forEach(function (x) { guide.summary.push(x); }); }
+              (r.guide.words || []).forEach(function (w) { var kk = w.en.toLowerCase(); if (!seen[kk] && guide.words.length < 40) { seen[kk] = 1; guide.words.push(w.en + " = " + w.ur); } });
+              (r.guide.tips || []).forEach(function (x) { if (guide.tips.length < 8) guide.tips.push(x); });
+            }
+          }).catch(function (e) { fail++; if (e && e.code === "ai not set up") fail += 1000; }).then(function () {
+            done++; autoSay(rt("autoMaking") + " " + done + "/" + secs.length);
+            return fail >= 1000 ? null : next();
+          });
+        }
+        autoSay(rt("autoMaking") + " 0/" + secs.length);
+        Promise.all([next(), next()]).then(function () {
+          if (fail >= 1000) { autoBusy = false; autoSay(rt("autoNoAi"), true); return; }
+          var base = { grade: b.d.grade, subject: b.d.subject, bookId: bookId }, jobs = [];
+          var nn = notes.filter(Boolean);
+          if (nn.length) jobs.push(autoPut("auto-" + bookId + "-notes", Object.assign({ type: "note", title: (LANG() === "ur" ? "نوٹس: " : "Notes: ") + b.d.title, desc: "", sections: nn }, base)));
+          tests.forEach(function (t, k) {
+            if (!t) return;
+            var qtext = t.qs.map(function (q) { return [q.q].concat(q.o, ["ABCD".charAt(q.c)]).join(" | "); }).join("\n"), qs = parseTest(qtext);
+            if (qs.length) jobs.push(autoPut("auto-" + bookId + "-t" + k, Object.assign({ type: "test", title: (LANG() === "ur" ? "ٹیسٹ: " : "Test: ") + t.t, desc: "", qs: qs, qtext: qtext }, base)));
+          });
+          if (wantGuide && guide.summary.length) {
+            jobs.push(autoPut("auto-" + bookId + "-guide", Object.assign({ type: "guide", title: (LANG() === "ur" ? "اردو رہنمائی: " : "Urdu guide: ") + b.d.title, summary: guide.summary.join("\n"), words: guide.words.join("\n"), tips: guide.tips.join("\n") }, base)));
+            if (!b.d.en) jobs.push(cloud.db.collection("resources").doc(bookId).update({ en: true }));
+          }
+          if (!jobs.length) { autoBusy = false; autoSay(rt("autoFail"), true); return; }
+          return Promise.all(jobs).then(function () { autoBusy = false; autoSay(fail ? rt("autoDone") + " " + rt("autoFail") : rt("autoDone"), true); });
+        }).catch(function (e) { autoBusy = false; cloudFail(e); autoSay(rt("autoFail"), true); });
+      }).catch(function () { autoBusy = false; autoSay(rt("autoNoText"), true); });
+    });
   }
   function withToPdf(ok, bad) {
     if (window.IQToPdf) return ok();
@@ -5001,6 +5098,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "resOpen": resOpenId = arg; render(); break;
       case "resShowGuide": resTab = "guide"; resOpenId = arg; resMsg = ""; render(); var el = root.querySelector("#res-" + arg); if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); break;
       case "resNew": var p = String(arg).split("|"); resMsg = ""; resForm = newRF(p[0], p[1], p[2]); render(); break;
+      case "autoMake": autoMake(arg); break;
       case "resGuideFrom": var b = resById(arg); if (b) { resMsg = ""; resForm = newRF("guide", b.d.subject, b.d.grade); resForm.bookId = b.id; resForm.title = (LANG() === "ur" ? "اردو رہنمائی: " : "Urdu guide: ") + b.d.title; resTab = "guide"; render(); } break;
       case "resEdit":
         var x = resById(arg); if (!x) break;

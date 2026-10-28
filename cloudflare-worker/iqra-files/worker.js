@@ -1,6 +1,8 @@
 /* IQRA files: stores book / video files in Cloudflare R2 and serves them to the site.
    - POST /upload?name=...   admin only (Firebase login token checked here). Body = the file bytes.
    - GET  /f/<id>.<ext>      public read, with Range support (the book reader and video player need it).
+   - POST /generate          admin only. Makes study notes, test questions and (for English books) an Urdu guide
+                             for ONE chapter of text, using Cloudflare Workers AI (binding AI).
    No secrets live in this file. The bucket is bound as BOOKS in wrangler.toml. */
 
 const JWKS_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
@@ -67,7 +69,8 @@ async function isAdmin(claims, token, env) {
   return !!(d && d.fields && d.fields.role && d.fields.role.stringValue === "admin");
 }
 
-async function upload(req, env, h) {
+// Returns { claims } for a signed-in admin, or a Response with the error to send back.
+async function adminOnly(req, env, h) {
   const m = /^Bearer (.+)$/.exec(req.headers.get("Authorization") || "");
   if (!m) return json({ error: "login" }, 401, h);
   let claims;
@@ -75,6 +78,13 @@ async function upload(req, env, h) {
   let admin = false;
   try { admin = await isAdmin(claims, m[1], env); } catch (e) { return json({ error: "role" }, 503, h); }
   if (!admin) return json({ error: "admin only" }, 403, h);
+  return { claims: claims };
+}
+
+async function upload(req, env, h) {
+  const a = await adminOnly(req, env, h);
+  if (a instanceof Response) return a;
+  const claims = a.claims;
 
   const type = String(req.headers.get("Content-Type") || "").split(";")[0].trim().toLowerCase(), ext = TYPES[type];
   if (!ext) return json({ error: "type" }, 415, h);
@@ -87,6 +97,83 @@ async function upload(req, env, h) {
   const name = new URL(req.url).searchParams.get("name") || "";
   await env.BOOKS.put(key, req.body, { httpMetadata: { contentType: type }, customMetadata: { by: claims.sub, name: name.slice(0, 200) } });
   return json({ id: id, url: new URL(req.url).origin + "/" + key, name: name, size: len, type: type }, 200, h);
+}
+
+// ---------- study material for one chapter (Workers AI) ----------
+const MODEL = "@cf/openai/gpt-oss-120b";
+const MAX_TEXT = 9000;
+function str(x, n) { return String(x == null ? "" : x).replace(/[|\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().slice(0, n); }
+function list(a, n, len) { return (Array.isArray(a) ? a : []).map(function (x) { return str(x, len); }).filter(Boolean).slice(0, n); }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function parseJson(t) {
+  t = String(t || "").replace(/```(?:json)?/gi, "");
+  const a = t.indexOf("{"), b = t.lastIndexOf("}");
+  if (a < 0 || b <= a) throw new Error("no json");
+  return JSON.parse(t.slice(a, b + 1));
+}
+// the model's reply can come back in a few shapes (chat style, plain response, or a list of output items)
+function textOf(res) {
+  if (!res) return "";
+  if (typeof res === "string") return res;
+  const m = res.choices && res.choices[0] && res.choices[0].message;
+  if (m && typeof m.content === "string" && m.content) return m.content;
+  if (typeof res.response === "string" && res.response) return res.response;
+  if (res.response && typeof res.response === "object") return JSON.stringify(res.response);
+  if (Array.isArray(res.output)) {
+    let t = "";
+    res.output.forEach(function (o) { (Array.isArray(o && o.content) ? o.content : []).forEach(function (c) { if (c && typeof c.text === "string" && (!c.type || c.type === "output_text")) t += c.text; }); });
+    if (t) return t;
+  }
+  return "";
+}
+function clean(r, wantGuide) {
+  const out = { notes: list(r.notes, 8, 240), questions: [] };
+  (Array.isArray(r.questions) ? r.questions : []).forEach(function (q) {
+    const opts = list(q && q.options, 4, 90), ans = Number(q && q.answer);
+    if (!q || !str(q.q, 240) || opts.length !== 4 || new Set(opts).size !== 4 || !(ans >= 0 && ans <= 3) || Math.floor(ans) !== ans) return;
+    if (opts.some(function (o) { return /all of the above|none of the above/i.test(o); })) return;
+    const right = opts[ans], mixed = shuffle(opts.slice());
+    out.questions.push({ q: str(q.q, 240), o: mixed, c: mixed.indexOf(right) });
+  });
+  out.questions = out.questions.slice(0, 6);
+  if (wantGuide) {
+    const g = r.guide || {};
+    out.guide = {
+      summary: list(g.summary, 8, 260),
+      words: (Array.isArray(g.words) ? g.words : []).map(function (w) { return { en: str(w && w.en, 60), ur: str(w && w.ur, 80) }; }).filter(function (w) { return w.en && w.ur; }).slice(0, 12),
+      tips: list(g.tips, 5, 200)
+    };
+  }
+  return out;
+}
+function promptFor(b) {
+  const lang = b.lang === "ur" ? "Urdu (Urdu script)" : "simple English";
+  let p = "Class level: " + b.grade + (b.subject ? ", subject: " + b.subject : "") + ". Chapter: " + b.title + ".\n" +
+    "Using ONLY the chapter text below, prepare study material. Do not add facts that are not in the text.\n" +
+    "Return JSON only, with exactly this shape:\n" +
+    '{"notes":["..."],"questions":[{"q":"...","options":["...","...","...","..."],"answer":0}]' + (b.guide ? ',"guide":{"summary":["..."],"words":[{"en":"...","ur":"..."}],"tips":["..."]}' : "") + "}\n" +
+    "- notes: 5 to 8 short revision points in " + lang + ", easy for the class level.\n" +
+    "- questions: 5 multiple-choice questions in " + lang + ". Each has exactly 4 different options and exactly one correct option; answer is the 0-based index of the correct option. Questions must be answerable from the text. Never use 'all of the above' or 'none of the above'.\n";
+  if (b.guide) p += "- guide.summary: 5 to 8 short, simple points in Urdu script explaining the chapter.\n- guide.words: 8 to 12 important English words from the text, each with its Urdu meaning in Urdu script.\n- guide.tips: 3 to 5 short Urdu tips on how to study this chapter.\n";
+  return p + "\nChapter text:\n" + b.text;
+}
+async function generate(req, env, h) {
+  const a = await adminOnly(req, env, h);
+  if (a instanceof Response) return a;
+  if (!env.AI) return json({ error: "ai not set up" }, 501, h);
+  if (Number(req.headers.get("Content-Length")) > 60000) return json({ error: "too big" }, 413, h);
+  let b;
+  try { b = await req.json(); } catch (e) { return json({ error: "json" }, 400, h); }
+  const text = str(b && b.text, MAX_TEXT + 100).slice(0, MAX_TEXT);
+  if (text.length < 200) return json({ error: "text too short" }, 422, h);
+  const body = { text: text, title: str(b.title, 120) || "Chapter", grade: str(b.grade, 12) || "school", subject: str(b.subject, 40), lang: b.lang === "ur" ? "ur" : "en", guide: !!b.guide && b.lang !== "ur" };
+  let res, out;
+  try {
+    res = await env.AI.run(MODEL, { messages: [{ role: "system", content: "You prepare study material for Pakistani school students. You write correct, simple, class-appropriate content and answer with JSON only." }, { role: "user", content: promptFor(body) }], max_tokens: 3500, temperature: 0.2 });
+    out = clean(parseJson(textOf(res)), body.guide);
+  } catch (e) { return json({ error: "ai failed" }, 502, h); }
+  if (!out.notes.length && !out.questions.length) return json({ error: "empty" }, 502, h);
+  return json(out, 200, h);
 }
 
 async function download(req, env, h, key) {
@@ -116,6 +203,7 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: h });
     if (o && origins(env).indexOf(o) < 0 && req.method === "POST") return json({ error: "origin not allowed" }, 403, h);
     if (url.pathname === "/upload" && req.method === "POST") return upload(req, env, h);
+    if (url.pathname === "/generate" && req.method === "POST") return generate(req, env, h);
     if (url.pathname.indexOf("/f/") === 0 && (req.method === "GET" || req.method === "HEAD")) return download(req, env, h, url.pathname.slice(1));
     return json({ error: "not found" }, 404, h);
   }

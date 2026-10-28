@@ -20,3 +20,8 @@ Limits and notes
 - Reading a file needs no login (like the PDFs in `/books`): anyone who has the exact link can open it. Links are random, not guessable.
 - Deleting a book in the admin page does not delete its file from R2 yet; unused files can be removed in the R2 dashboard.
 - No rate limit yet. Only admins can upload, so abuse is limited to a signed-in admin account.
+
+
+## Auto study material (`POST /generate`)
+
+Admin only. Takes `{text,title,grade,subject,lang,guide}` for one chapter and returns notes, 5 multiple-choice questions and (English books) an Urdu guide, made by Cloudflare Workers AI (`@cf/openai/gpt-oss-120b`). It needs the `[ai] binding = "AI"` entry in wrangler.toml (or an AI binding named `AI` in the dashboard). The free tier gives 10,000 neurons per day; a book of 20 chapters uses roughly 200-300. The site saves everything as drafts until an admin presses Publish.
