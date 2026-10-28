@@ -4826,7 +4826,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       });
     }
     if (d.type === "book" && u && /\.pdf($|[?#])/i.test(u) && isAdminRes() && resAssets && resAssets.generate && !d.builtin)
-      h += '<button type="button" class="btn alt" data-act="autoMake" data-arg="' + x.id + '"' + (autoBusy ? " disabled" : "") + ">" + esc(rt("autoBtn")) + "</button>" + (autoMsg && autoBook === x.id ? '<p class="note" id="automsg" aria-live="polite">' + esc(autoMsg) + "</p>" : "");
+      h += '<button type="button" class="btn alt" data-act="resAutoMake" data-arg="' + x.id + '"' + (autoBusy ? " disabled" : "") + ">" + esc(rt("autoBtn")) + "</button>" + (autoMsg && autoBook === x.id ? '<p class="note" id="automsg" aria-live="polite">' + esc(autoMsg) + "</p>" : "");
     if (d.type === "book" && d.en) {
       var gs = resDocs.filter(function (y) { return y.d.type === "guide" && y.d.bookId === x.id && resVisible(y); })[0];
       if (gs) h += '<button type="button" class="btn alt" data-act="resShowGuide" data-arg="' + gs.id + '">🗣️ ' + esc(rt("guideBtn")) + "</button>";
@@ -5097,7 +5097,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "resOpen": resOpenId = arg; render(); break;
       case "resShowGuide": resTab = "guide"; resOpenId = arg; resMsg = ""; render(); var el = root.querySelector("#res-" + arg); if (el && el.scrollIntoView) el.scrollIntoView({ block: "start" }); break;
       case "resNew": var p = String(arg).split("|"); resMsg = ""; resForm = newRF(p[0], p[1], p[2]); render(); break;
-      case "autoMake": autoMake(arg); break;
+      case "resAutoMake": autoMake(arg); break;
       case "resGuideFrom": var b = resById(arg); if (b) { resMsg = ""; resForm = newRF("guide", b.d.subject, b.d.grade); resForm.bookId = b.id; resForm.title = (LANG() === "ur" ? "اردو رہنمائی: " : "Urdu guide: ") + b.d.title; resTab = "guide"; render(); } break;
       case "resEdit":
         var x = resById(arg); if (!x) break;
