@@ -951,7 +951,14 @@ function col(n){const c=F.collection(fs,n);return{onSnapshot:(a,b)=>F.onSnapshot
 const db={collection:col};
 const staff=()=>role==='admin';
 const user={isOwner:async()=>staff(),canEdit:async()=>staff(),can:async()=>(role==='admin'||role==='teacher')?true:null,id:async()=>uid};
-window.claude={use:async n=>n==='db'?db:n==='user'?user:null};
+const FILES_API="";/* address of the Cloudflare worker in cloudflare-worker/iqra-files; empty = file upload stays hidden */
+window.IQRA_FILES_API=FILES_API;
+const assets=FILES_API?{upload:async f=>{const tok=await auth.currentUser.getIdToken();
+ const r=await fetch(FILES_API+'/upload?name='+encodeURIComponent(f.name||'file'),{method:'POST',headers:{'Authorization':'Bearer '+tok,'Content-Type':f.type||'application/octet-stream'},body:f});
+ let j=null;try{j=await r.json()}catch(e){}
+ if(!r.ok||!j||!j.url){const e=new Error((j&&j.error)||'upload failed');e.code=(j&&j.error)||r.status;throw e}
+ return{id:j.id,url:j.url}}}:null;
+window.claude={use:async n=>n==='db'?db:n==='user'?user:n==='assets'?(staff()?assets:null):null};
 function begin(u){G.style.display='none';if(window.__iqEntry)window.__iqEntry.remove();document.getElementById('iqout').style.display='block';if(!started){started=true;window.__iqReady=true;ready()}}
 document.getElementById('iqout').onclick=()=>Au.signOut(auth).then(()=>location.reload());
 let pendMsg='';
@@ -4651,14 +4658,14 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       score: "Score", last: "Last score", best: "Best", qcount: "questions", engBook: "English book", guideBtn: "Urdu guide for this book",
       mkGuide: "Make Urdu guide for this book", draft: "Draft - hidden from students", aiNote: "Made with AI help, checked by a teacher",
       words: "Word meanings", tips: "How to study this", ftype: "Type", fgrade: "Class", fsubj: "Subject", ftitle: "Title", fdesc: "Short description (optional)",
-      flink: "Paste a YouTube or https link", fupload: "Or upload a file (admin only, up to 20 MB)", fpub: "Show to students", save: "Save", cancel: "Cancel",
+      flink: "Paste a YouTube or https link", fupload: "Or upload a video file (admin only)", fpub: "Show to students", save: "Save", cancel: "Cancel",
       edit: "Edit", del: "Delete", delArm: "Tap again to delete", hide: "Hide", show: "Publish", fen: "This book is in English (needs an Urdu guide)",
       fqs: "Questions", fqsHint: "One question per line: Question | A | B | C | D | right letter (A, B, C or D). 2 to 4 options.",
       fstext: "English text of the chapter (for the AI helper)", aiBtn: "Write Urdu guide with AI", fsum: "Urdu summary (one point per line)",
       fwords: "Word meanings: English = اردو (one per line)", ftips: "Study tips in Urdu (one per line)", fbook: "Linked book (optional)", none2: "None",
       needTitle: "Please write a title.", needSrc: "Please upload a file or paste a link.", needHttps: "The link must start with https://",
-      needQs: "No valid questions found. Check the format.", needSum: "Please write the Urdu summary.", saved: "Saved.", tooBig: "This file is over 20 MB. Please paste a YouTube or PDF link instead.",
-      uploading: "Uploading...", uploaded: "File uploaded.", upFail: "Upload failed", aiNo: "The AI helper is not available here. Please write the guide by hand.",
+      needQs: "No valid questions found. Check the format.", needSum: "Please write the Urdu summary.", saved: "Saved.", tooBig: "This file is too big. Please make it smaller, or paste a link instead.",
+      uploading: "Uploading...", uploaded: "File uploaded.", upFail: "Upload failed", making: "Making the book from your photos...", mixFiles: "Choose one PDF, or only photos of the pages.", badImg: "This photo could not be read. Use JPG, PNG or WebP.", fuploadBook: "Or upload a PDF, or photos of the pages (admin only)", aiNo: "The AI helper is not available here. Please write the guide by hand.",
       aiWorking: "Writing the Urdu guide... this can take a minute.", aiDone: "Draft ready. Please read and fix it, then publish.", aiFail: "The AI helper could not finish. You can write it by hand.",
       cloudErr2: "Could not save. Please try again.", file: "File attached", pending: "Review pending"
     },
@@ -4669,14 +4676,14 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       score: "نمبر", last: "آخری نمبر", best: "بہترین", qcount: "سوال", engBook: "انگریزی کتاب", guideBtn: "اس کتاب کی اردو رہنمائی",
       mkGuide: "اس کتاب کی اردو رہنمائی بنائیں", draft: "مسودہ - طلبہ کو نظر نہیں آتا", aiNote: "اے آئی کی مدد سے بنی، استاد نے جانچی",
       words: "مشکل الفاظ", tips: "پڑھنے کا طریقہ", ftype: "قسم", fgrade: "جماعت", fsubj: "مضمون", ftitle: "عنوان", fdesc: "مختصر تفصیل (اختیاری)",
-      flink: "یوٹیوب یا https لنک لگائیں", fupload: "یا فائل اپ لوڈ کریں (صرف ایڈمن، 20 ایم بی تک)", fpub: "طلبہ کو دکھائیں", save: "محفوظ کریں", cancel: "منسوخ",
+      flink: "یوٹیوب یا https لنک لگائیں", fupload: "یا ویڈیو فائل اپ لوڈ کریں (صرف ایڈمن)", fpub: "طلبہ کو دکھائیں", save: "محفوظ کریں", cancel: "منسوخ",
       edit: "ترمیم", del: "حذف کریں", delArm: "حذف کرنے کے لیے دوبارہ دبائیں", hide: "چھپائیں", show: "شائع کریں", fen: "یہ کتاب انگریزی میں ہے (اردو رہنمائی چاہیے)",
       fqs: "سوالات", fqsHint: "ہر لائن میں ایک سوال: سوال | A | B | C | D | صحیح حرف (A, B, C یا D)۔ 2 سے 4 آپشن۔",
       fstext: "باب کا انگریزی متن (اے آئی مددگار کے لیے)", aiBtn: "اے آئی سے اردو رہنمائی لکھوائیں", fsum: "اردو خلاصہ (ہر لائن میں ایک نکتہ)",
       fwords: "الفاظ کے معنی: English = اردو (ہر لائن میں ایک)", ftips: "اردو میں پڑھنے کے مشورے (ہر لائن میں ایک)", fbook: "متعلقہ کتاب (اختیاری)", none2: "کوئی نہیں",
       needTitle: "براہ کرم عنوان لکھیں۔", needSrc: "براہ کرم فائل اپ لوڈ کریں یا لنک لگائیں۔", needHttps: "لنک https:// سے شروع ہونا چاہیے۔",
-      needQs: "کوئی درست سوال نہیں ملا۔ فارمیٹ دیکھ لیں۔", needSum: "براہ کرم اردو خلاصہ لکھیں۔", saved: "محفوظ ہو گیا۔", tooBig: "یہ فائل 20 ایم بی سے بڑی ہے۔ براہ کرم یوٹیوب یا پی ڈی ایف کا لنک لگائیں۔",
-      uploading: "اپ لوڈ ہو رہی ہے...", uploaded: "فائل اپ لوڈ ہو گئی۔", upFail: "اپ لوڈ نہیں ہو سکی", aiNo: "یہاں اے آئی مددگار دستیاب نہیں۔ براہ کرم رہنمائی خود لکھیں۔",
+      needQs: "کوئی درست سوال نہیں ملا۔ فارمیٹ دیکھ لیں۔", needSum: "براہ کرم اردو خلاصہ لکھیں۔", saved: "محفوظ ہو گیا۔", tooBig: "یہ فائل بہت بڑی ہے۔ براہ کرم اسے چھوٹا کریں یا لنک لگائیں۔",
+      uploading: "اپ لوڈ ہو رہی ہے...", uploaded: "فائل اپ لوڈ ہو گئی۔", upFail: "اپ لوڈ نہیں ہو سکی", making: "تصاویر سے کتاب بن رہی ہے...", mixFiles: "ایک پی ڈی ایف چنیں، یا صرف صفحات کی تصاویر۔", badImg: "یہ تصویر پڑھی نہیں جا سکی۔ جے پی جی، پی این جی یا ویب پی استعمال کریں۔", fuploadBook: "یا پی ڈی ایف، یا صفحات کی تصاویر اپ لوڈ کریں (صرف ایڈمن)", aiNo: "یہاں اے آئی مددگار دستیاب نہیں۔ براہ کرم رہنمائی خود لکھیں۔",
       aiWorking: "اردو رہنمائی لکھی جا رہی ہے... ایک منٹ لگ سکتا ہے۔", aiDone: "مسودہ تیار ہے۔ براہ کرم پڑھ کر درست کریں، پھر شائع کریں۔", aiFail: "اے آئی مددگار مکمل نہیں کر سکا۔ آپ خود لکھ سکتے ہیں۔",
       cloudErr2: "محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔", file: "فائل لگی ہے", pending: "جانچ باقی"
     }
@@ -4870,7 +4877,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     if (f.type === "video" || f.type === "note" || f.type === "book") {
       h += "<label>" + esc(rt("flink")) + '<input id="rflink" type="url" inputmode="url" dir="ltr" placeholder="https://" value="' + esc(f.link) + '"></label>';
       if (isAdminRes() && resAssets) {
-        h += "<label>" + esc(rt("fupload")) + '<input id="rffile" type="file" accept="' + (f.type === "video" ? "video/*" : "application/pdf,image/*") + '"' + (f.busy === "up" ? " disabled" : "") + "></label>";
+        h += "<label>" + esc(rt(f.type === "video" ? "fupload" : "fuploadBook")) + '<input id="rffile" type="file" accept="' + (f.type === "video" ? "video/*" : "application/pdf,image/*") + '"' + (f.type === "video" ? "" : " multiple") + (f.busy ? " disabled" : "") + "></label>";
         if (f.file) h += '<p class="small">✅ ' + esc(rt("file")) + ": " + esc(f.file.name || "") + "</p>";
       }
       if (f.type === "book") h += '<label class="inl"><input type="checkbox" id="rfen"' + (f.en ? " checked" : "") + "> " + esc(rt("fen")) + "</label>";
@@ -4920,13 +4927,32 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       resMsg = rt("saved"); resTab = f.type; resForm = null; render();
     }).catch(function (e) { cloudFail(e); if (resForm) resForm.busy = ""; resMsgShow("cloudErr2"); });
   }
-  function resUpload(file) {
+  function withToPdf(ok, bad) {
+    if (window.IQToPdf) return ok();
+    var sc = document.createElement("script"); sc.src = "lib/topdf.js"; sc.onload = ok; sc.onerror = bad; document.head.appendChild(sc);
+  }
+  function resUpload(files) {
     readRF();
-    if (!file || !resAssets || !resForm) return;
-    if (file.size > 20 * 1024 * 1024) return resMsgShow("tooBig");
-    var f = resForm; f.busy = "up"; resMsgShow("uploading");
-    resAssets.upload(file).then(function (r) { f.file = { id: r.id, url: r.url, name: file.name }; f.busy = ""; resMsgShow("uploaded"); })
-      .catch(function (e) { f.busy = ""; resMsg = rt("upFail") + (e && e.code ? " (" + e.code + ")" : ""); render(); });
+    var list = !files ? [] : (files.length != null && !files.name ? Array.prototype.slice.call(files) : [files]);
+    if (!list.length || !resAssets || !resForm) return;
+    var f = resForm, lim = (window.IQRA_FILES_API ? 90 : 20) * 1024 * 1024;
+    function isImg(x) { return /^image\//.test(x.type) || /\.(jpe?g|png|webp|gif|bmp)$/i.test(x.name || ""); }
+    var allImg = list.every(isImg);
+    if (!allImg && list.length > 1) return resMsgShow("mixFiles");
+    function fail(e) { f.busy = ""; resMsg = rt("upFail") + (e && e.code ? " (" + e.code + ")" : ""); render(); }
+    function send(file) {
+      if (file.size > lim) { f.busy = ""; return resMsgShow("tooBig"); }
+      resAssets.upload(file).then(function (r) { f.file = { id: r.id, url: r.url, name: file.name }; f.busy = ""; resMsgShow("uploaded"); }).catch(fail);
+    }
+    f.busy = "up";
+    if (!allImg) { resMsgShow("uploading"); return send(list[0]); }
+    resMsgShow("making");
+    withToPdf(function () {
+      window.IQToPdf.fromImages(list).then(function (blob) {
+        var nm = ((f.title || "").trim() || String(list[0].name || "book").replace(/\.[^.]+$/, "")) + ".pdf";
+        send(new File([blob], nm, { type: "application/pdf" }));
+      }).catch(function (e) { if (e && e.code === "badimage") { f.busy = ""; resMsgShow("badImg"); } else fail(e); });
+    }, fail);
   }
   function resAI() {
     readRF();
@@ -4988,7 +5014,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     if (tg.id === "rftype") { readRF(); resForm.type = tg.value; resMsg = ""; render(); }
     else if (tg.id === "rfgrade") { readRF(); render(); }
     else if (tg.id === "rfsubj") { readRF(); render(); }
-    else if (tg.id === "rffile" && tg.files && tg.files[0]) resUpload(tg.files[0]);
+    else if (tg.id === "rffile" && tg.files && tg.files[0]) resUpload(tg.files);
   });
 
   if (root.addEventListener) root.addEventListener("click", function (e) {

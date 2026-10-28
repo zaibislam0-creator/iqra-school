@@ -1,0 +1,12 @@
+name = "iqra-files"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[[r2_buckets]]
+binding = "BOOKS"
+bucket_name = "iqra-books"
+
+[vars]
+PROJECT_ID = "iqra-d3243"
+OWNER_EMAIL = "zaibislam0@gmail.com"
+ALLOWED_ORIGINS = "https://iqradigitalschool.com,https://www.iqradigitalschool.com"
