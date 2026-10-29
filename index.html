@@ -145,6 +145,11 @@ body.low .starrow svg{animation:none}
 .kgone{display:flex;justify-content:center;margin:14px 0}.kgone .kgtile{width:min(86%,320px);min-height:280px;gap:16px;animation:kgfloat 3.2s ease-in-out infinite}.kgone .kgpic{font-size:6rem}.kgone .kgpic img{width:150px;height:150px}.kgone .kgtile b{font-size:1.3rem}
 .kgnav{display:flex;justify-content:center;margin-bottom:24px}.kgskip{border:0;background:#eef2f3;border-radius:50%;width:48px;height:48px;font-size:1.3rem;cursor:pointer}
 .kgdone{text-align:center;padding:30px 10px}.kgdone span{font-size:5rem;display:block}.kgdone b{font-size:1.4rem}
+.kgmix{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;margin:16px 0 8px;padding:24px 12px;border:0;border-radius:30px;background:linear-gradient(135deg,#ffb347,#ff7e5f);color:#fff;font:inherit;cursor:pointer;box-shadow:0 8px 22px rgba(255,126,95,.35);animation:kgfloat 3.2s ease-in-out infinite}
+.kgmix .kgpic{font-size:4rem}.kgmix b{font-size:1.5rem}.kgmix em{font-style:normal;opacity:.9}.kgmix:active{transform:scale(.98)}
+.kgsec small{font-size:.85rem;color:#6b7b80}.kgsec{min-height:150px}.kgsec .kgpic{font-size:3rem}.kgsec .kgpic img{width:72px;height:72px}
+.kgbar{display:flex;align-items:center;gap:10px;margin:14px 0 4px}.kgbar b{font-size:1.3rem}.kgbar .kgpic.sm{font-size:2rem}.kgbar .kgpic.sm img{width:44px;height:44px}
+.kgback{border:0;background:#eef2f3;border-radius:50%;width:48px;height:48px;font-size:1.8rem;cursor:pointer;line-height:1}
 .kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:14px 0 24px}.kgrid .ktile{margin:0}@media (min-width:700px){.kgrid{grid-template-columns:repeat(3,1fr)}}
 .kgtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;padding:16px 8px;border-radius:28px;border:0;background:#fff;color:inherit;font:inherit;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.08);transition:transform .15s}
 .kgtile b{font-size:1.05rem;text-align:center;line-height:1.35}.kgtile:active{transform:scale(.97)}
@@ -3450,6 +3455,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     }
     var cur = curSubject && subs.some(function (x) { return x.id === curSubject; }) ? curSubject : subs[0].id;
     var h = (gnum(state.grade) === 0 ? "" : kidBanner(greet)) + staffBarHTML() + announceHTML();
+    if (gnum(state.grade) === 0) return h + kgHome();
     if (subs.length > 1) {
       h += '<div class="ksubpills" role="tablist">';
       subs.forEach(function (x) { h += '<button type="button" role="tab" aria-selected="' + (x.id === cur ? "true" : "false") + '" class="ksp' + (x.id === cur ? " on" : "") + '" data-act="sub" data-arg="' + x.id + '">' + picon(x.id) + "<span>" + esc(L(x)) + "</span></button>"; });
@@ -3494,6 +3500,62 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     h += '<div class="kgone">' + gameTile(cur) + "</div>";
     if (open.length > 1) h += '<div class="kgnav"><button type="button" class="kgskip" data-act="kgSkip" data-arg="' + esc(cur.id) + '" aria-label="next">⏭</button></div>';
     return h;
+  }
+  // KG home: parents or children pick a section; "Today's Play" mixes everything
+  var kgSec = null;
+  var KG_SECS = [
+    { id: "letters", icon: "🐪", t: { en: "Urdu Letters", ur: "اردو حروف" }, ids: "u-letters-0 u-words-0 t-ur-0 pp-u-pics1 pp-u-pics2 pp-u-pics3 pp-u-pics4 pp-u-pics5 pp-u-order pp-u-join pp-u-marks" },
+    { id: "abc", icon: "🔤", t: { en: "ABC", ur: "اے بی سی" }, ids: "e-sounds-0 pp-e-pics1 pp-e-pics2 pp-e-pics3 pp-e-pics4 pp-e-pics5 pp-e-pics6 e-words-0 t-en-0 pp-e-order pp-e-case pp-e-vowel" },
+    { id: "animals", icon: "img:animals_cat", t: { en: "Animals", ur: "جانور" }, ids: "u-animals-0 e-animals-0 u-sound-0 e-sound-0" },
+    { id: "fruits", icon: "img:fruits_apple", t: { en: "Fruits", ur: "پھل" }, ids: "u-fruits-0 e-fruits-0" },
+    { id: "veg", icon: "img:veg_carrot", t: { en: "Vegetables", ur: "سبزیاں" }, ids: "u-veg-0 e-veg-0" },
+    { id: "things", icon: "img:things_ball", t: { en: "Things", ur: "چیزیں" }, ids: "u-things-0 e-things-0 u-use-0 e-use-0" },
+    { id: "colours", icon: "🌈", t: { en: "Colours", ur: "رنگ" }, ids: "pp-m-colours u-colour-0 e-colour-0" },
+    { id: "numbers", icon: "🔢", t: { en: "Counting and Maths", ur: "گنتی اور حساب" }, ids: "m-count-1 pp-m-find15 pp-m-count15 m-after-0 m-before-0 m-missing-0 pp-m-back5 pp-m-find610 pp-m-count610 m-cnt10-0 m-bigger-0 pp-m-ten pp-m-between pp-m-morelss pp-m-oddeven pp-m-add m-double-0 pp-m-sub m-takeaway-0 pp-u-numbers pp-m-money pp-m-ordinal" },
+    { id: "shapes", icon: "🔺", t: { en: "Shapes and Size", ur: "شکلیں اور سائز" }, ids: "pp-m-shapes t-shape-0 pp-m-size pp-m-hardsoft pp-m-position m-pattern-0" },
+    { id: "think", icon: "🧩", t: { en: "Think and Pick", ur: "سوچو اور چنو" }, ids: "u-group-0 e-group-0 u-odd-0 e-odd-0" },
+    { id: "world", icon: "🌍", t: { en: "My World", ur: "میری دنیا" }, ids: "pp-u-feel pp-u-manners pp-e-polite pp-u-plural pp-e-body pp-e-days pp-m-days pp-m-daynight pp-m-time pp-e-hotcold pp-e-seasons pp-e-prof pp-e-living pp-e-food pp-e-natural pp-e-citizen" }
+  ];
+  function kgAll() {
+    var out = [];
+    D.subjects.forEach(function (sb) { lessonsFor(sb.id, state.grade).forEach(function (l) { if (l.type !== "study" && l.id !== "kg-mix" && out.indexOf(l) < 0) out.push(l); }); });
+    return out;
+  }
+  function kgMix() {
+    var l = lessonById("kg-mix"), src = lessonById("u-animals-0");
+    if (!l) { l = { id: "kg-mix", subject: "urdu", min: 0, max: 0, topic: "mix", type: "game", meta: src ? src.meta : {}, title: { en: "Today's Play", ur: "آج کا کھیل" }, body: { en: "Play and learn.", ur: "کھیلیں اور سیکھیں۔" }, rounds: [], quiz: [] }; D.lessons.push(l); }
+    var picks = ["u-animals-0", "u-fruits-0", "u-veg-0", "u-things-0", "u-colour-0", "u-sound-0", "u-use-0", "m-cnt10-0", "m-after-0", "m-bigger-0", "m-pattern-0", "e-sounds-0"], rs = [];
+    picks.forEach(function (id) { var x = lessonById(id); if (x && x.rounds && x.rounds.length) rs.push(x.rounds[Math.floor(Math.random() * x.rounds.length)]); });
+    l.rounds = shuffle(rs).slice(0, 10);
+    return l;
+  }
+  function kgSections() {
+    var all = kgAll(), used = {}, secs = [];
+    KG_SECS.forEach(function (sec) {
+      KG_ORDER[sec.id] = sec.ids;
+      var ids = sec.ids.split(" "), list = all.filter(function (l) { return ids.indexOf(l.id) > -1; });
+      list.forEach(function (l) { used[l.id] = 1; });
+      if (list.length) secs.push({ sec: sec, list: list });
+    });
+    var rest = all.filter(function (l) { return !used[l.id]; });
+    if (rest.length) { var more = { id: "more", icon: "🎮", t: { en: "More Games", ur: "مزید کھیل" }, ids: rest.map(function (l) { return l.id; }).join(" ") }; KG_ORDER.more = more.ids; secs.push({ sec: more, list: rest }); }
+    return secs;
+  }
+  function kgHome() {
+    var secs = kgSections(), done = state.kgdone || [], ur = LANG() === "ur", h = "";
+    var cur = kgSec && secs.filter(function (x) { return x.sec.id === kgSec; })[0];
+    if (cur) {
+      return '<div class="kgbar"><button type="button" class="kgback" data-act="kgBack" aria-label="back">' + (ur ? "›" : "‹") + '</button><span class="kgpic sm" aria-hidden="true">' + emoOrImg(cur.sec.icon) + "</span><b>" + esc(ur ? cur.sec.t.ur : cur.sec.t.en) + "</b></div>" + kgPath(cur.sec.id, cur.list);
+    }
+    kgSec = null;
+    var mix = kgMix();
+    h += '<button type="button" class="kgmix" data-act="openLesson" data-arg="kg-mix"><span class="kgpic" aria-hidden="true">🎲</span><b>' + esc(ur ? "آج کا کھیل" : "Today's Play") + "</b><em>" + esc(ur ? "سب کچھ ملا کر" : "A bit of everything") + "</em></button>";
+    h += '<h3 class="subhd">' + esc(ur ? "کیا سیکھنا ہے؟" : "What shall we learn?") + '</h3><div class="kgrid">';
+    secs.forEach(function (x) {
+      var n = x.list.filter(function (l) { return done.indexOf(l.id) > -1; }).length;
+      h += '<button type="button" class="kgtile kgsec" data-act="kgSec" data-arg="' + esc(x.sec.id) + '"><span class="kgpic" aria-hidden="true">' + emoOrImg(x.sec.icon) + "</span><b>" + esc(ur ? x.sec.t.ur : x.sec.t.en) + '</b><small>' + n + "/" + x.list.length + "</small></button>";
+    });
+    return h + "</div>";
   }
   function gameIcon(l) {
     var r = l.rounds && l.rounds[0], c = r && r.c && r.c.filter(function (x) { return x[2] === 1; })[0];
@@ -3926,6 +3988,8 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "pathBack": pathTest = null; resRun = null; render(); window.scrollTo(0, 0); break;
       case "rdJump": var _je = document.getElementById(arg); if (_je) _je.scrollIntoView({ behavior: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); break;
       case "rdComplete": finishActivity(); openLesson = null; render(); window.scrollTo(0, 0); if (autoVoice()) speak(t("great")); break;
+      case "kgSec": kgSec = arg; render(); window.scrollTo(0, 0); break;
+      case "kgBack": kgSec = null; render(); window.scrollTo(0, 0); break;
       case "kgSkip": state.kgskip = (state.kgskip || []).concat([arg]); save(); render(); break;
       case "kgReset": state.kgdone = (state.kgdone || []).filter(function (x) { return !(KG_ORDER[arg] || "").split(" ").some(function (y) { return y === x; }); }); state.kgskip = []; save(); render(); break;
       case "closeLesson": openLesson = null; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; render(); setTimeout(function () { var m = document.querySelector(".mission .mstep:not(.ok)") || document.querySelector(".mission"); if (m && m.scrollIntoView) m.scrollIntoView({ block: "center", behavior: "smooth" }); }, 60); break;
