@@ -141,8 +141,8 @@ body.low .starrow svg{animation:none}
 .picchoices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
 .picbtn{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:calc(var(--tap)*1.8);padding:10px 4px;border-radius:var(--rad);border:3px solid var(--line);background:var(--g2);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
 .picbtn .emo{font-size:3.4rem;line-height:1.1}
-.kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:10px 0 16px}@media (min-width:700px){.kgrid{grid-template-columns:repeat(3,1fr)}}
-.kgtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:150px;padding:14px 8px;border-radius:22px;border:3px solid #e5e7eb;background:#fff;color:inherit;font:inherit;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.06)}
+.kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:14px 0 24px}.kgrid .ktile{margin:0}@media (min-width:700px){.kgrid{grid-template-columns:repeat(3,1fr)}}
+.kgtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;padding:16px 8px;border-radius:28px;border:0;background:#fff;color:inherit;font:inherit;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.08);transition:transform .15s}
 .kgtile b{font-size:1.05rem;text-align:center;line-height:1.35}.kgtile:active{transform:scale(.97)}
 .kgpic{font-size:3.2rem;line-height:1;display:block}.kgpic img{width:84px;height:84px;object-fit:contain;display:block}
 .picbtn .emo img{width:clamp(64px,15vh,96px);height:clamp(64px,15vh,96px);object-fit:contain;display:block}
@@ -3308,17 +3308,19 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       h += "</div>";
     }
     var s = D.subjects.filter(function (x) { return x.id === cur; })[0];
-    h += kidSubjBanner(s);
+    var KGMIN = gnum(state.grade) === 0;
+    if (!KGMIN) h += kidSubjBanner(s);
     var lsAll = lessonsFor(cur, state.grade), gm = "", ot = "", gu = {}, path = unitsFor(cur), kgTiles = "";
     lsAll.forEach(function (l) {
       if (l.type === "study") return;
-      if (gnum(state.grade) === 0 && l.type === "game") { kgTiles += gameTile(l); return; }
+      if (gnum(state.grade) === 0) { kgTiles += gameTile(l); return; }
       if (l.type === "game") { var nds = needsOf(l.id); if (nds.length && path.length) nds.forEach(function (nd) { (gu[nd] = gu[nd] || []).push(l); }); else gm += gameCard(l); }
       else ot += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span>" + (kidUI() ? "" : " " + badge(l)) + "</button>";
     });
     h += path.length ? pathCard(path, gu) : "";
-    h += missionCard();
+    if (!KGMIN) h += missionCard();
     if (kgTiles) h += '<h3 class="subhd">' + esc(LANG() === "ur" ? "کھیلیں اور سیکھیں" : "Play and learn") + '</h3><div class="kgrid">' + kgTiles + "</div>";
+    if (KGMIN) return h + (ot ? '<div class="kgrid">' + ot + "</div>" : "") + (canRes() || ADMIN ? resHub(cur, state.grade) : "");
     var more = (gm ? '<h3 class="subhd">' + esc(LANG() === "ur" ? "کھیلیں اور سیکھیں" : "Play and learn") + "</h3>" + gm : "") + ot;
     if (more) h += '<details class="morebox"><summary>' + esc(LANG() === "ur" ? "🎮 مزید کھیل اور سرگرمیاں" : "🎮 More games and activities") + "</summary>" + more + "</details>";
     h += path.length ? '<details class="morebox"><summary>' + esc(LANG() === "ur" ? "📚 کتابیں، نوٹس اور ٹیسٹ" : "📚 Books, notes and tests") + "</summary>" + resHub(cur, state.grade) + "</details>" : resHub(cur, state.grade);
@@ -3329,7 +3331,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
 
   function gameIcon(l) {
     var r = l.rounds && l.rounds[0], c = r && r.c && r.c.filter(function (x) { return x[2] === 1; })[0];
-    return c && c[0] && String(c[0]).trim() ? emoOrImg(c[0]) : "🎮";
+    return c && c[0] && String(c[0]).trim() ? emoOrImg(c[0]) : l.type === "trace" ? "✏️" : "🎮";
   }
   function gameTile(l) {
     return '<button type="button" class="kgtile" data-act="openLesson" data-arg="' + esc(l.id) + '"><span class="kgpic" aria-hidden="true">' + gameIcon(l) + "</span><b>" + esc(L(l.title)) + "</b></button>";
