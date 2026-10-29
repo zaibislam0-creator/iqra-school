@@ -150,6 +150,7 @@ body.low .starrow svg{animation:none}
 .kgsec small{font-size:.85rem;color:#6b7b80}.kgsec{min-height:150px}.kgsec .kgpic{font-size:3rem}.kgsec .kgpic img{width:72px;height:72px}
 .kgbar{display:flex;align-items:center;gap:10px;margin:14px 0 4px}.kgbar b{font-size:1.3rem}.kgbar .kgpic.sm{font-size:2rem}.kgbar .kgpic.sm img{width:44px;height:44px}
 .kgback{border:0;background:#eef2f3;border-radius:50%;width:48px;height:48px;font-size:1.8rem;cursor:pointer;line-height:1}
+.sndbtn{display:block;margin:6px auto;width:96px;height:96px;border-radius:50%;border:0;background:#ffd166;font-size:3rem;cursor:pointer;box-shadow:0 6px 14px rgba(0,0,0,.15);animation:kgfloat 2.4s ease-in-out infinite}
 .kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:14px 0 24px}.kgrid .ktile{margin:0}@media (min-width:700px){.kgrid{grid-template-columns:repeat(3,1fr)}}
 .kgtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;padding:16px 8px;border-radius:28px;border:0;background:#fff;color:inherit;font:inherit;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.08);transition:transform .15s}
 .kgtile b,.kgmix b,.kgmix em,.kgbar b,.kgdone b{line-height:2.1;padding:2px 0;overflow:visible}.kgtile b{font-size:1.2rem;font-weight:700;text-align:center;color:#12343b;max-width:100%;overflow-wrap:anywhere}.kgtile{padding:18px 8px 14px !important}.kgsec small{unicode-bidi:isolate;direction:ltr;font-size:1rem;font-weight:600;background:#eef6f3;border-radius:999px;padding:2px 12px;color:#35575a}.kgtile:active{transform:scale(.97)}
@@ -1375,6 +1376,22 @@ window.DATA = {
       title: { en: "Double It", ur: "دگنا کریں" },
       body: { en: "Play and learn.", ur: "کھیلیں اور سیکھیں۔" },
       rounds: [{"say": {"en": "Two groups of the same. How many altogether?", "ur": "دو برابر گروپ، سب ملا کر کتنے؟"}, "show": "🐱 + 🐱   (1 + 1 = ?)", "c": [["5", "Five · پانچ", 0], ["0", "Zero · صفر", 0], ["2", "Two · دو", 1]]}, {"say": {"en": "Two groups of the same. How many altogether?", "ur": "دو برابر گروپ، سب ملا کر کتنے؟"}, "show": "🍎🍎 + 🍎🍎   (2 + 2 = ?)", "c": [["2", "Two · دو", 0], ["4", "Four · چار", 1], ["5", "Five · پانچ", 0]]}, {"say": {"en": "Two groups of the same. How many altogether?", "ur": "دو برابر گروپ، سب ملا کر کتنے؟"}, "show": "🐤🐤🐤 + 🐤🐤🐤   (3 + 3 = ?)", "c": [["7", "Seven · سات", 0], ["5", "Five · پانچ", 0], ["6", "Six · چھ", 1]]}, {"say": {"en": "Two groups of the same. How many altogether?", "ur": "دو برابر گروپ، سب ملا کر کتنے؟"}, "show": "🎈🎈🎈🎈 + 🎈🎈🎈🎈   (4 + 4 = ?)", "c": [["8", "Eight · آٹھ", 1], ["9", "Nine · نو", 0], ["0", "Zero · صفر", 0]]}, {"say": {"en": "Two groups of the same. How many altogether?", "ur": "دو برابر گروپ، سب ملا کر کتنے؟"}, "show": "🍌🍌 + 🍌🍌   (2 + 2 = ?)", "c": [["3", "Three · تین", 0], ["4", "Four · چار", 1], ["10", "Ten · دس", 0]]}, {"say": {"en": "Two groups of the same. How many altogether?", "ur": "دو برابر گروپ، سب ملا کر کتنے؟"}, "show": "⚽ + ⚽   (1 + 1 = ?)", "c": [["0", "Zero · صفر", 0], ["5", "Five · پانچ", 0], ["2", "Two · دو", 1]]}, {"say": {"en": "Two groups of the same. How many altogether?", "ur": "دو برابر گروپ، سب ملا کر کتنے؟"}, "show": "🍓🍓🍓 + 🍓🍓🍓   (3 + 3 = ?)", "c": [["6", "Six · چھ", 1], ["4", "Four · چار", 0], ["10", "Ten · دس", 0]]}, {"say": {"en": "Two groups of the same. How many altogether?", "ur": "دو برابر گروپ، سب ملا کر کتنے؟"}, "show": "🐟🐟🐟🐟 + 🐟🐟🐟🐟   (4 + 4 = ?)", "c": [["1", "One · ایک", 0], ["8", "Eight · آٹھ", 1], ["10", "Ten · دس", 0]]}],
+      quiz: []
+    },
+    {
+      id: "e-hear-0", subject: "english", min: 0, max: 0, topic: "animal sounds", type: "game",
+      meta: { province: "pakistan", board: "National Curriculum Council (SNC)", year: "SNC Phase 1 (from 2021-22)", version: "SNC 2020", textbook: "", chapter: "ECCE Competency 2: Describing objects, events and daily plans", outcomes: "2a Name things in their environment.", source: "https://www.unique.edu.pk/Content/pdf/DownloadFilesForRnDWebpage/SNC%202020%20Early%20childhood%20care%20and%20education%20grade%20pre-I.pdf", status: "pending" },
+      title: { en: "Who Makes This Sound?", ur: "یہ کس کی آواز ہے؟" },
+      body: { en: "Play and learn.", ur: "کھیلیں اور سیکھیں۔" },
+      rounds: [{"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/cat.mp3", "c": [["img:animals_cat", "Cat", 1], ["img:animals_elephant", "Elephant", 0], ["img:animals_goat", "Goat", 0]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/sheep.mp3", "c": [["img:animals_hen", "Hen", 0], ["img:animals_fish", "Fish", 0], ["img:animals_sheep", "Sheep", 1]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/monkey.mp3", "c": [["img:animals_cow", "Cow", 0], ["img:animals_cat", "Cat", 0], ["img:animals_monkey", "Monkey", 1]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/sheep.mp3", "c": [["img:animals_horse", "Horse", 0], ["img:animals_duck", "Duck", 0], ["img:animals_sheep", "Sheep", 1]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/cat.mp3", "c": [["img:animals_hen", "Hen", 0], ["img:animals_cat", "Cat", 1], ["img:animals_monkey", "Monkey", 0]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/monkey.mp3", "c": [["img:animals_monkey", "Monkey", 1], ["img:animals_cow", "Cow", 0], ["img:animals_cat", "Cat", 0]]}],
+      quiz: []
+    },
+    {
+      id: "u-hear-0", subject: "urdu", min: 0, max: 0, topic: "animal sounds", type: "game",
+      meta: { province: "pakistan", board: "National Curriculum Council (SNC)", year: "SNC Phase 1 (from 2021-22)", version: "SNC 2020", textbook: "", chapter: "ECCE Competency 2: Describing objects, events and daily plans", outcomes: "2a Name things in their environment.", source: "https://www.unique.edu.pk/Content/pdf/DownloadFilesForRnDWebpage/SNC%202020%20Early%20childhood%20care%20and%20education%20grade%20pre-I.pdf", status: "pending" },
+      title: { en: "Who Makes This Sound? (Urdu)", ur: "یہ کس کی آواز ہے؟" },
+      body: { en: "Play and learn.", ur: "کھیلیں اور سیکھیں۔" },
+      rounds: [{"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/cat.mp3", "c": [["img:animals_dog", "کتا", 0], ["img:animals_lion", "شیر", 0], ["img:animals_cat", "بلی", 1]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/sheep.mp3", "c": [["img:animals_sheep", "بھیڑ", 1], ["img:animals_dog", "کتا", 0], ["img:animals_elephant", "ہاتھی", 0]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/monkey.mp3", "c": [["img:animals_dog", "کتا", 0], ["img:animals_fish", "مچھلی", 0], ["img:animals_monkey", "بندر", 1]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/sheep.mp3", "c": [["img:animals_cow", "گائے", 0], ["img:animals_fish", "مچھلی", 0], ["img:animals_sheep", "بھیڑ", 1]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/cat.mp3", "c": [["img:animals_goat", "بکری", 0], ["img:animals_duck", "بطخ", 0], ["img:animals_cat", "بلی", 1]]}, {"say": {"en": "Listen. Who makes this sound?", "ur": "سنیں۔ یہ کس کی آواز ہے؟"}, "show": "", "snd": "audio/animals/monkey.mp3", "c": [["img:animals_monkey", "بندر", 1], ["img:animals_cow", "گائے", 0], ["img:animals_dog", "کتا", 0]]}],
       quiz: []
     },
     {
@@ -3510,7 +3527,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   var KG_SECS = [
     { id: "letters", icon: "🐪", t: { en: "Urdu Letters", ur: "اردو حروف" }, ids: "u-letters-0 u-words-0 t-ur-0 pp-u-pics1 pp-u-pics2 pp-u-pics3 pp-u-pics4 pp-u-pics5 pp-u-order pp-u-join pp-u-marks" },
     { id: "abc", icon: "🔤", t: { en: "ABC", ur: "اے بی سی" }, ids: "e-sounds-0 pp-e-pics1 pp-e-pics2 pp-e-pics3 pp-e-pics4 pp-e-pics5 pp-e-pics6 e-words-0 t-en-0 pp-e-order pp-e-case pp-e-vowel" },
-    { id: "animals", icon: "img:animals_cat", t: { en: "Animals", ur: "جانور" }, ids: "u-animals-0 e-animals-0 u-sound-0 e-sound-0" },
+    { id: "animals", icon: "img:animals_cat", t: { en: "Animals", ur: "جانور" }, ids: "u-hear-0 e-hear-0 u-animals-0 e-animals-0 u-sound-0 e-sound-0" },
     { id: "fruits", icon: "img:fruits_apple", t: { en: "Fruits", ur: "پھل" }, ids: "u-fruits-0 e-fruits-0" },
     { id: "veg", icon: "img:veg_carrot", t: { en: "Vegetables", ur: "سبزیاں" }, ids: "u-veg-0 e-veg-0" },
     { id: "things", icon: "img:things_ball", t: { en: "Things", ur: "چیزیں" }, ids: "u-things-0 e-things-0 u-use-0 e-use-0" },
@@ -3648,10 +3665,12 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
 
   function shuffle(arr) { var a2 = arr.slice(); for (var i = a2.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), x = a2[i]; a2[i] = a2[j]; a2[j] = x; } return a2; }
   function startGame(l) {
-    gameRun = { i: 0, status: "ask", picked: -1, firstTry: true, good: 0, done: false, rounds: shuffle(l.rounds).map(function (r) { return { say: r.say, show: r.show, c: shuffle(r.c) }; }) };
+    gameRun = { i: 0, status: "ask", picked: -1, firstTry: true, good: 0, done: false, rounds: shuffle(l.rounds).map(function (r) { return { say: r.say, show: r.show, snd: r.snd, c: shuffle(r.c) }; }) };
   }
   // a picture choice is either an emoji or "img:<set>_<name>" (a cartoon card in img/kg/)
   function emoOrImg(v) { return /^img:[a-z_]+$/.test(v) ? '<img src="img/kg/' + v.slice(4) + '.webp" alt="" width="96" height="96" decoding="async">' : esc(v); }
+  var sndEl = null;
+  function playSnd(u) { try { if (sndEl) sndEl.pause(); sndEl = new Audio(u); sndEl.play().catch(function () {}); } catch (e) {} }
   function gameView(l) {
     var g = gameRun;
     if (!g) return "";
@@ -3663,6 +3682,10 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var say = L(r.say);
     var h = '<div class="card pager gv"><div class="center">' + mascot(mood, 96) + "</div>";
     if (r.show) h += '<div class="bigletter" dir="auto">' + esc(r.show) + "</div>";
+    if (r.snd) {
+      h += '<button type="button" class="sndbtn" data-act="playSnd" data-arg="' + esc(r.snd) + '" aria-label="' + esc(t("listen")) + '">🔊</button>';
+      if (g.sndI !== g.i && g.status === "ask") { g.sndI = g.i; setTimeout(function () { playSnd(r.snd); }, 350); }
+    }
     h += '<p class="bigtext">' + esc(say) + '</p><button class="bigbtn alt" data-act="speak" data-arg="' + esc(say) + '">' + svg("speaker", 30) + " " + esc(t("listen")) + "</button>";
     h += '<div class="dots">' + g.rounds.map(function (x, i) { return '<i class="' + (i <= g.i ? "on" : "") + '"></i>'; }).join("") + '</div><div class="picchoices">';
     r.c.forEach(function (c, j) {
@@ -3992,6 +4015,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "pathBack": pathTest = null; resRun = null; render(); window.scrollTo(0, 0); break;
       case "rdJump": var _je = document.getElementById(arg); if (_je) _je.scrollIntoView({ behavior: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); break;
       case "rdComplete": finishActivity(); openLesson = null; render(); window.scrollTo(0, 0); if (autoVoice()) speak(t("great")); break;
+      case "playSnd": playSnd(arg); break;
       case "kgSec": kgSec = arg; render(); window.scrollTo(0, 0); break;
       case "kgBack": kgSec = null; render(); window.scrollTo(0, 0); break;
       case "kgPrev": state.kgdone = (state.kgdone || []).filter(function (x) { return x !== arg; }); state.kgskip = (state.kgskip || []).filter(function (x) { return x !== arg; }); save(); render(); break;
