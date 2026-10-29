@@ -141,6 +141,10 @@ body.low .starrow svg{animation:none}
 .picchoices{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
 .picbtn{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:calc(var(--tap)*1.8);padding:10px 4px;border-radius:var(--rad);border:3px solid var(--line);background:var(--g2);color:var(--ink);font:inherit;font-weight:800;cursor:pointer}
 .picbtn .emo{font-size:3.4rem;line-height:1.1}
+.kgdots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:16px 0 8px}.kgdots i{width:10px;height:10px;border-radius:50%;background:#d6dde0}.kgdots i.on{background:#2fb36b}.kgdots i.now{background:#f5a623;transform:scale(1.5)}
+.kgone{display:flex;justify-content:center;margin:14px 0}.kgone .kgtile{width:min(86%,320px);min-height:280px;gap:16px;animation:kgfloat 3.2s ease-in-out infinite}.kgone .kgpic{font-size:6rem}.kgone .kgpic img{width:150px;height:150px}.kgone .kgtile b{font-size:1.3rem}
+.kgnav{display:flex;justify-content:center;margin-bottom:24px}.kgskip{border:0;background:#eef2f3;border-radius:50%;width:48px;height:48px;font-size:1.3rem;cursor:pointer}
+.kgdone{text-align:center;padding:30px 10px}.kgdone span{font-size:5rem;display:block}.kgdone b{font-size:1.4rem}
 .kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:14px 0 24px}.kgrid .ktile{margin:0}@media (min-width:700px){.kgrid{grid-template-columns:repeat(3,1fr)}}
 .kgtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:160px;padding:16px 8px;border-radius:28px;border:0;background:#fff;color:inherit;font:inherit;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.08);transition:transform .15s}
 .kgtile b{font-size:1.05rem;text-align:center;line-height:1.35}.kgtile:active{transform:scale(.97)}
@@ -2858,7 +2862,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var d = today(), l = openLesson ? curLesson() : null;
     state.days = state.days || [];
     if (state.days.indexOf(d) < 0) { state.days.push(d); state.days = state.days.slice(-120); }
-    if (l) { if (!state.mdone || state.mdone.d !== d) state.mdone = { d: d, ids: [] }; if (state.mdone.ids.indexOf(l.id) < 0) state.mdone.ids.push(l.id); }
+    if (l) { if (!state.mdone || state.mdone.d !== d) state.mdone = { d: d, ids: [] }; if (state.mdone.ids.indexOf(l.id) < 0) state.mdone.ids.push(l.id); state.kgdone = state.kgdone || []; if (state.kgdone.indexOf(l.id) < 0) state.kgdone.push(l.id); if (state.kgskip) state.kgskip = state.kgskip.filter(function (x) { return x !== l.id; }); }
     save(); sess.done++; if (kidUI() && sess.done % breakLimit() === 0) sess.breakDue = true; }
   // Voice: a recorded human clip wins; otherwise the phone's own voice; Urdu is never read by a non-Urdu voice.
   var voiceBank = {}, curAudio = null, vState = { tried: false };
@@ -3301,7 +3305,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       return homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + uploadCard() + '<div class="card pager"><p class="bigtext">' + esc(t("soon")) + '</p><button class="bigbtn" data-act="go" data-arg="character">' + svg("heart", 30) + " " + esc(t("stories")) + "</button></div>";
     }
     var cur = curSubject && subs.some(function (x) { return x.id === curSubject; }) ? curSubject : subs[0].id;
-    var h = kidBanner(greet) + staffBarHTML() + announceHTML();
+    var h = (gnum(state.grade) === 0 ? "" : kidBanner(greet)) + staffBarHTML() + announceHTML();
     if (subs.length > 1) {
       h += '<div class="ksubpills" role="tablist">';
       subs.forEach(function (x) { h += '<button type="button" role="tab" aria-selected="' + (x.id === cur ? "true" : "false") + '" class="ksp' + (x.id === cur ? " on" : "") + '" data-act="sub" data-arg="' + x.id + '">' + picon(x.id) + "<span>" + esc(L(x)) + "</span></button>"; });
@@ -3310,16 +3314,16 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var s = D.subjects.filter(function (x) { return x.id === cur; })[0];
     var KGMIN = gnum(state.grade) === 0;
     if (!KGMIN) h += kidSubjBanner(s);
-    var lsAll = lessonsFor(cur, state.grade), gm = "", ot = "", gu = {}, path = unitsFor(cur), kgTiles = "";
+    var lsAll = lessonsFor(cur, state.grade), gm = "", ot = "", gu = {}, path = unitsFor(cur), kgTiles = "", kgList = [];
     lsAll.forEach(function (l) {
       if (l.type === "study") return;
-      if (gnum(state.grade) === 0) { kgTiles += gameTile(l); return; }
+      if (gnum(state.grade) === 0) { kgList.push(l); return; }
       if (l.type === "game") { var nds = needsOf(l.id); if (nds.length && path.length) nds.forEach(function (nd) { (gu[nd] = gu[nd] || []).push(l); }); else gm += gameCard(l); }
       else ot += '<button class="ktile wide" data-act="openLesson" data-arg="' + l.id + '">' + picon(l.subject) + "<span>" + esc(L(l.title)) + "</span>" + (kidUI() ? "" : " " + badge(l)) + "</button>";
     });
     h += path.length ? pathCard(path, gu) : "";
     if (!KGMIN) h += missionCard();
-    if (kgTiles) h += '<h3 class="subhd">' + esc(LANG() === "ur" ? "کھیلیں اور سیکھیں" : "Play and learn") + '</h3><div class="kgrid">' + kgTiles + "</div>";
+    if (kgList.length) h += kgPath(cur, kgList);
     if (KGMIN) return h + (ot ? '<div class="kgrid">' + ot + "</div>" : "") + (canRes() || ADMIN ? resHub(cur, state.grade) : "");
     var more = (gm ? '<h3 class="subhd">' + esc(LANG() === "ur" ? "کھیلیں اور سیکھیں" : "Play and learn") + "</h3>" + gm : "") + ot;
     if (more) h += '<details class="morebox"><summary>' + esc(LANG() === "ur" ? "🎮 مزید کھیل اور سرگرمیاں" : "🎮 More games and activities") + "</summary>" + more + "</details>";
@@ -3329,6 +3333,24 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     return h + uploadCard();
   }
 
+  var KG_ORDER = {
+    urdu: "u-letters-0 u-words-0 t-ur-0 pp-u-pics1 pp-u-pics2 pp-u-pics3 pp-u-pics4 pp-u-pics5 pp-u-order u-animals-0 u-fruits-0 u-veg-0 u-things-0 pp-u-numbers pp-u-feel pp-u-plural pp-u-manners pp-u-join pp-u-marks",
+    english: "e-sounds-0 pp-e-pics1 pp-e-pics2 pp-e-pics3 pp-e-pics4 pp-e-pics5 pp-e-pics6 e-words-0 t-en-0 t-shape-0 pp-e-order pp-e-case e-animals-0 e-fruits-0 e-veg-0 e-things-0 pp-e-vowel pp-e-body pp-e-days pp-e-hotcold pp-e-seasons pp-e-polite pp-e-prof pp-e-living pp-e-food pp-e-natural pp-e-citizen",
+    math: "pp-m-colours pp-m-size m-count-1 pp-m-find15 pp-m-count15 pp-m-back5 pp-m-shapes pp-m-hardsoft pp-m-find610 pp-m-count610 pp-m-ten pp-m-between pp-m-morelss pp-m-oddeven pp-m-add pp-m-sub pp-m-money pp-m-position pp-m-ordinal pp-m-daynight pp-m-days pp-m-time"
+  };
+  // KG: one task at a time; finish it and the next one comes
+  function kgPath(sid, list) {
+    var ord = (KG_ORDER[sid] || "").split(" "), done = state.kgdone || [], skip = state.kgskip || [];
+    var arr = list.slice().sort(function (a, b) { var x = ord.indexOf(a.id), y = ord.indexOf(b.id); return (x < 0 ? 999 : x) - (y < 0 ? 999 : y); });
+    var open = arr.filter(function (l) { return done.indexOf(l.id) < 0; }), pend = open.filter(function (l) { return skip.indexOf(l.id) < 0; });
+    var cur = pend[0] || open[0], h = '<div class="kgdots">';
+    arr.forEach(function (l) { h += '<i class="' + (done.indexOf(l.id) > -1 ? "on" : cur && l.id === cur.id ? "now" : "") + '"></i>'; });
+    h += "</div>";
+    if (!cur) return h + '<div class="kgdone"><span>🌟</span><b>' + esc(LANG() === "ur" ? "شاباش! سب کھیل مکمل" : "Well done! All finished") + '</b><button type="button" class="kgskip" data-act="kgReset" data-arg="' + esc(sid) + '">↻</button></div>';
+    h += '<div class="kgone">' + gameTile(cur) + "</div>";
+    if (open.length > 1) h += '<div class="kgnav"><button type="button" class="kgskip" data-act="kgSkip" data-arg="' + esc(cur.id) + '" aria-label="next">⏭</button></div>';
+    return h;
+  }
   function gameIcon(l) {
     var r = l.rounds && l.rounds[0], c = r && r.c && r.c.filter(function (x) { return x[2] === 1; })[0];
     return c && c[0] && String(c[0]).trim() ? emoOrImg(c[0]) : l.type === "trace" ? "✏️" : "🎮";
@@ -3760,6 +3782,8 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       case "pathBack": pathTest = null; resRun = null; render(); window.scrollTo(0, 0); break;
       case "rdJump": var _je = document.getElementById(arg); if (_je) _je.scrollIntoView({ behavior: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); break;
       case "rdComplete": finishActivity(); openLesson = null; render(); window.scrollTo(0, 0); if (autoVoice()) speak(t("great")); break;
+      case "kgSkip": state.kgskip = (state.kgskip || []).concat([arg]); save(); render(); break;
+      case "kgReset": state.kgdone = (state.kgdone || []).filter(function (x) { return !(KG_ORDER[arg] || "").split(" ").some(function (y) { return y === x; }); }); state.kgskip = []; save(); render(); break;
       case "closeLesson": openLesson = null; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; render(); setTimeout(function () { var m = document.querySelector(".mission .mstep:not(.ok)") || document.querySelector(".mission"); if (m && m.scrollIntoView) m.scrollIntoView({ block: "center", behavior: "smooth" }); }, 60); break;
       case "next": l = curLesson(); if (l) { lessonStep = Math.min(lessonStep + 1, lessonCards(l).length); render(); var cs = lessonCards(l); if (autoVoice() && cs[lessonStep]) speak(cs[lessonStep].text); } break;
       case "prev": l = curLesson(); lessonStep = Math.max(0, lessonStep - 1); render(); if (l && autoVoice()) speak(lessonCards(l)[lessonStep].text); break;
