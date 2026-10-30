@@ -3165,8 +3165,8 @@
     var isReady = false, errMsg = "";
     function paint() {
       el.setAttribute("dir", LANG() === "ur" ? "rtl" : "ltr");
-      var label = LANG() === "ur" ? "گوگل کے ساتھ داخل ہوں" : "Enter with Google";
-      el.innerHTML = '<button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><img src="' + window.IQRA_LOGO + '" alt="IQRA - اقرا - Read - پڑھو"><button class="entry-go entry-google" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + GSVG + "<span>" + esc(label) + '</span></button><p class="entry-err" aria-live="polite">' + esc(errMsg) + '</p><p class="entry-sub">' + esc(t("heroT1")) + " · " + esc(t("heroT2")) + "</p>";
+      var ur = LANG() === "ur", label = ur ? "گوگل کے ساتھ داخل ہوں" : "Continue with Google";
+      el.innerHTML = '<button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><img src="' + window.IQRA_LOGO + '" alt="IQRA"><h1 class="entry-name">' + esc(ur ? "اقرا ڈیجیٹل اسکول" : "IQRA Digital School") + '</h1><p class="entry-note">' + esc(ur ? "جاری رکھنے کے لیے اپنے گوگل اکاؤنٹ سے داخل ہوں۔" : "Sign in with your Google account to continue.") + '</p><button class="entry-go" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + GSVG + "<span>" + esc(label) + '</span></button><p class="entry-err" aria-live="polite">' + esc(errMsg) + "</p>";
       el.querySelector("[data-enter]").onclick = async function () {
         if (!window.__iqSignIn) return;
         errMsg = ""; var m = await window.__iqSignIn(); if (m) { errMsg = m; paint(); }
