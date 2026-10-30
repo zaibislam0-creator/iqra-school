@@ -13,11 +13,11 @@ window.IQRA_FREE = [];
    BOOKS:  { board:"punjab", cls:2, subject:{en,ur}, title:{en,ur}, url:"https://..." }  (cls = 1..12)
    NOTES / PAPERS: { cls:2, subject:{en,ur}, title:{en,ur}, url:"https://..." } (cls optional) */
 window.IQRA_BOARDS = [
-  { id: "punjab", name: { en: "Punjab", ur: "پنجاب" }, url: "" },
-  { id: "sindh", name: { en: "Sindh", ur: "سندھ" }, url: "" },
-  { id: "kp", name: { en: "Khyber Pakhtunkhwa", ur: "خیبر پختونخوا" }, url: "https://tbb.kp.gov.pk/" },
-  { id: "balochistan", name: { en: "Balochistan", ur: "بلوچستان" }, url: "" },
-  { id: "federal", name: { en: "National Book Foundation", ur: "نیشنل بک فاؤنڈیشن" }, url: "https://www.nbf.org.pk" }
+  { id: "punjab", name: { en: "Punjab", ur: "پنجاب" }, code: "PCTB", url: "" },
+  { id: "sindh", name: { en: "Sindh", ur: "سندھ" }, code: "STBB", url: "" },
+  { id: "kp", name: { en: "Khyber Pakhtunkhwa", ur: "خیبر پختونخوا" }, short: { en: "KP", ur: "خیبر پختونخوا" }, code: "KPTBB", url: "https://tbb.kp.gov.pk/" },
+  { id: "balochistan", name: { en: "Balochistan", ur: "بلوچستان" }, code: "BTBB", url: "" },
+  { id: "federal", name: { en: "National Book Foundation", ur: "نیشنل بک فاؤنڈیشن" }, short: { en: "Federal", ur: "وفاقی" }, code: "NBF", url: "https://www.nbf.org.pk" }
 ];
 window.IQRA_BOOKS = [];
 window.IQRA_NOTES = [];
