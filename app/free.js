@@ -6,3 +6,19 @@
    { id: "c1-math-1", cls: {en:"Class 1", ur:"پہلی جماعت"}, subject: {en:"Maths", ur:"ریاضی"}, title: {en:"Counting to 5", ur:"پانچ تک گنتی"},
      cards: { en: ["One, two, three.", "Four, five."], ur: ["ایک، دو، تین۔", "چار، پانچ۔"] } } */
 window.IQRA_FREE = [];
+
+/* Books by class, Notes and Past Papers on the public home page.
+   Only add https links to official boards or to files you are allowed to share.
+   BOARDS: the provincial / federal textbook boards. A board with url:"" is listed but has no link yet.
+   BOOKS:  { board:"punjab", cls:2, subject:{en,ur}, title:{en,ur}, url:"https://..." }  (cls = 1..12)
+   NOTES / PAPERS: { cls:2, subject:{en,ur}, title:{en,ur}, url:"https://..." } (cls optional) */
+window.IQRA_BOARDS = [
+  { id: "punjab", name: { en: "Punjab", ur: "پنجاب" }, url: "" },
+  { id: "sindh", name: { en: "Sindh", ur: "سندھ" }, url: "" },
+  { id: "kp", name: { en: "Khyber Pakhtunkhwa", ur: "خیبر پختونخوا" }, url: "https://tbb.kp.gov.pk/" },
+  { id: "balochistan", name: { en: "Balochistan", ur: "بلوچستان" }, url: "" },
+  { id: "federal", name: { en: "National Book Foundation", ur: "نیشنل بک فاؤنڈیشن" }, url: "https://www.nbf.org.pk" }
+];
+window.IQRA_BOOKS = [];
+window.IQRA_NOTES = [];
+window.IQRA_PAPERS = [];

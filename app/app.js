@@ -3162,7 +3162,7 @@
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
     var el = document.createElement("div"); el.id = "entry";
     var GSVG = '<svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 6.7-9.9 6.7-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.9 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>';
-    var isReady = false, errMsg = "", freeOpen = null; /* freeOpen = { item, i } while a free lesson is being read */
+    var isReady = false, errMsg = "", freeOpen = null, boardSel = "all", clsSel = 0; /* freeOpen = { item, i } while a free lesson is being read */
     function ext(u) { return /^https:\/\/[^\s"<>]+$/i.test(u || "") ? u : ""; }
     function paint() {
       var ur = LANG() === "ur";
@@ -3172,7 +3172,25 @@
       var libs = LIB_STARTER.filter(function (x) { return ext(x.url); }), docs = (D.sources || []).filter(function (x) { return ext(x.url); }).slice(0, 4), free = Array.isArray(window.IQRA_FREE) ? window.IQRA_FREE : [];
       var h = '<header class="lp-bar"><span class="lp-brand">' + (window.IQRA_ORB ? '<img src="' + window.IQRA_ORB + '" alt="" width="34" height="34">' : "") + "<b>" + esc(tx("IQRA Digital School", "اقرا ڈیجیٹل اسکول")) + '</b></span><span class="lp-bar-r"><button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><button class="lp-signin" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + esc(tx("Sign in", "سائن اِن")) + "</button></span></header>";
       h += '<main class="lp-main"><section class="lp-hero"><img class="lp-logo" src="' + window.IQRA_LOGO + '" alt="IQRA"><h1>' + esc(tx("Learn the Pakistani way", "اپنے نصاب کے ساتھ سیکھیں")) + '</h1><p class="lp-lead">' + esc(tx("Games, notes, tests and books for Pakistani children, built on the national curriculum and available in Urdu and English.", "پاکستانی بچوں کے لیے کھیل، نوٹس، ٹیسٹ اور کتابیں، قومی نصاب کی بنیاد پر، اردو اور انگریزی میں۔")) + "</p>" + cta("lp-cta") + '<p class="entry-err" aria-live="polite">' + esc(errMsg) + "</p></section>";
-      h += '<nav class="lp-tiles" aria-label="' + esc(tx("Explore", "دریافت کریں")) + '"><button type="button" class="lp-tile" data-go="lp-lib"><b>' + esc(tx("Library", "کتب خانہ")) + "</b><small>" + esc(tx("Trusted books and official sources", "معتبر کتابیں اور سرکاری ماخذ")) + '</small></button><button type="button" class="lp-tile" data-go="lp-syl"><b>' + esc(tx("Pakistan Syllabus", "پاکستان کا نصاب")) + "</b><small>" + esc(tx("Official curriculum documents", "سرکاری نصاب کی دستاویزات")) + '</small></button><button type="button" class="lp-tile" data-go="lp-free"><b>' + esc(tx("Free Study", "مفت مطالعہ")) + "</b><small>" + esc(tx("Try lessons without signing in", "سائن اِن کے بغیر اسباق آزمائیں")) + "</small></button></nav>";
+      var menuItems = [["lp-books", tx("Books", "کتابیں")], ["lp-notes", tx("Notes", "نوٹس")], ["lp-papers", tx("Past Papers", "پچھلے پرچے")], ["lp-syl", tx("Syllabus", "نصاب")], ["lp-free", tx("Free Study", "مفت مطالعہ")]];
+      h += '<nav class="lp-menu" aria-label="' + esc(tx("Explore", "دریافت کریں")) + '">' + menuItems.map(function (m) { return '<button type="button" data-go="' + m[0] + '">' + esc(m[1]) + "</button>"; }).join("") + "</nav>";
+      var boards = Array.isArray(window.IQRA_BOARDS) ? window.IQRA_BOARDS : [], books = (Array.isArray(window.IQRA_BOOKS) ? window.IQRA_BOOKS : []).filter(function (x) { return ext(x.url) && (boardSel === "all" || x.board === boardSel) && (!clsSel || Number(x.cls) === clsSel); });
+      var linkCard = function (x, label) { return '<a class="lp-card" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer"><i>' + esc((x.cls ? tx("Class ", "جماعت ") + x.cls : "") + (x.subject ? (x.cls ? " · " : "") + lt(x.subject) : "")) + "</i><b>" + esc(lt(x.title)) + "</b><em>" + esc(label) + " ↗</em></a>"; };
+      var soon = function (en, u) { return '<div class="lp-card lp-soon"><b>' + esc(u === undefined || u === en ? en : tx(en, u)) + "</b><span>" + esc(tx("Sign in to study the full lessons meanwhile.", "اس دوران مکمل اسباق کے لیے سائن اِن کریں۔")) + "</span></div>"; };
+      h += '<section class="lp-sec" id="lp-books"><h2>' + esc(tx("Books by class", "جماعت کے لحاظ سے کتابیں")) + "</h2><p>" + esc(tx("Choose your board and class. Links open the official board or publisher.", "اپنا بورڈ اور جماعت چنیں۔ لنک سرکاری بورڈ یا ناشر کی ویب سائٹ کھولتے ہیں۔")) + '</p><div class="lp-chips" role="group" aria-label="' + esc(tx("Board", "بورڈ")) + '"><button type="button" class="lp-chip" data-board="all" aria-pressed="' + (boardSel === "all") + '">' + esc(tx("All", "سب")) + "</button>" + boards.map(function (b) { return '<button type="button" class="lp-chip" data-board="' + esc(b.id) + '" aria-pressed="' + (boardSel === b.id) + '">' + esc(lt(b.name)) + "</button>"; }).join("") + '</div><div class="lp-chips" role="group" aria-label="' + esc(tx("Class", "جماعت")) + '"><button type="button" class="lp-chip" data-cls="0" aria-pressed="' + (!clsSel) + '">' + esc(tx("All classes", "تمام جماعتیں")) + "</button>";
+      for (var ci = 1; ci <= 12; ci++) h += '<button type="button" class="lp-chip" data-cls="' + ci + '" aria-pressed="' + (clsSel === ci) + '">' + ci + "</button>";
+      h += '</div><div class="lp-grid">';
+      books.forEach(function (x) { h += linkCard(x, tx("Open book", "کتاب کھولیں")); });
+      boards.filter(function (b) { return ext(b.url) && (boardSel === "all" || b.id === boardSel); }).forEach(function (b) { h += '<a class="lp-card" href="' + esc(ext(b.url)) + '" target="_blank" rel="noopener noreferrer"><i>' + esc(tx("Official board", "سرکاری بورڈ")) + "</i><b>" + esc(lt(b.name)) + "</b><em>" + esc(tx("Find books on the official site", "سرکاری سائٹ پر کتابیں دیکھیں")) + " ↗</em></a>"; });
+      if (!books.length && !boards.some(function (b) { return ext(b.url) && (boardSel === "all" || b.id === boardSel); })) h += soon("Books for this board are on the way", "اس بورڈ کی کتابیں جلد آ رہی ہیں");
+      h += "</div></section>";
+      [["lp-notes", "IQRA_NOTES", tx("Notes", "نوٹس"), tx("Short, clear class notes. Open one to read it.", "جماعت کے مختصر اور واضح نوٹس۔ کھول کر پڑھیں۔"), tx("Notes are on the way", "نوٹس جلد آ رہے ہیں"), tx("Open notes", "نوٹس کھولیں")], ["lp-papers", "IQRA_PAPERS", tx("Past Papers", "پچھلے پرچے"), tx("Practise with past exam papers.", "پچھلے امتحانی پرچوں سے مشق کریں۔"), tx("Past papers are on the way", "پچھلے پرچے جلد آ رہے ہیں"), tx("Open paper", "پرچہ کھولیں")]].forEach(function (g) {
+        var arr = (Array.isArray(window[g[1]]) ? window[g[1]] : []).filter(function (x) { return ext(x.url); });
+        h += '<section class="lp-sec" id="' + g[0] + '"><h2>' + esc(g[2]) + "</h2><p>" + esc(g[3]) + '</p><div class="lp-grid">';
+        arr.forEach(function (x) { h += linkCard(x, g[5]); });
+        if (!arr.length) h += soon(g[4], g[4]);
+        h += "</div></section>";
+      });
       h += '<section class="lp-sec" id="lp-lib"><h2>' + esc(tx("Library", "کتب خانہ")) + "</h2><p>" + esc(tx("Every source here is an official or trusted Pakistani publisher. Books inside IQRA open after you sign in.", "یہاں ہر ماخذ سرکاری یا معتبر پاکستانی ادارے کا ہے۔ آئی اقرا کی اپنی کتابیں سائن اِن کے بعد کھلتی ہیں۔")) + '</p><div class="lp-grid">';
       libs.forEach(function (x) { h += '<a class="lp-card" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer"><b>' + esc(lt(x.title)) + "</b><span>" + esc(lt(x.author)) + "</span><em>" + esc(tx("Visit website", "ویب سائٹ کھولیں")) + " ↗</em></a>"; });
       h += '</div></section><section class="lp-sec" id="lp-syl"><h2>' + esc(tx("Pakistan Syllabus", "پاکستان کا نصاب")) + "</h2><p>" + esc(tx("Our lessons follow official Pakistani documents. Class-wise syllabus is available after you sign in.", "ہمارے اسباق پاکستان کی سرکاری دستاویزات کے مطابق ہیں۔ کلاس کے لحاظ سے نصاب سائن اِن کے بعد دیکھیں۔")) + '</p><div class="lp-grid">';
@@ -3187,7 +3205,7 @@
           (last ? "<p>" + esc(tx("Well done! Sign in to keep learning with games and tests.", "شاباش! کھیل اور ٹیسٹ کے ساتھ مزید سیکھنے کے لیے سائن اِن کریں۔")) + "</p>" + cta("lp-cta") : "<p>" + esc(cards[freeOpen.i] || "") + "</p>") +
           '</div><div class="lp-rd-nav"><button type="button" class="lp-signin" data-fprev' + (freeOpen.i ? "" : " disabled") + ">" + esc(tx("Back", "پیچھے")) + "</button><span>" + Math.min(freeOpen.i + 1, cards.length) + " / " + cards.length + '</span><button type="button" class="lp-signin" data-fnext' + (last ? " disabled" : "") + ">" + esc(tx("Next", "آگے")) + "</button></div></div></div>";
       }
-      el.innerHTML = h;
+      var keep = el.scrollTop; el.innerHTML = h; el.scrollTop = keep;
       Array.prototype.forEach.call(el.querySelectorAll("[data-free]"), function (b) { b.onclick = function () { freeOpen = { item: free[Number(b.getAttribute("data-free"))], i: 0 }; paint(); }; });
       var fx = function (sel, fn) { var q = el.querySelector(sel); if (q) q.onclick = fn; };
       fx("[data-fclose]", function () { freeOpen = null; paint(); });
@@ -3199,6 +3217,8 @@
           errMsg = ""; var m = await window.__iqSignIn(); if (m) { errMsg = m; paint(); }
         };
       });
+      Array.prototype.forEach.call(el.querySelectorAll("[data-board]"), function (b) { b.onclick = function () { boardSel = b.getAttribute("data-board"); paint(); }; });
+      Array.prototype.forEach.call(el.querySelectorAll("[data-cls]"), function (b) { b.onclick = function () { clsSel = Number(b.getAttribute("data-cls")); paint(); }; });
       Array.prototype.forEach.call(el.querySelectorAll("[data-go]"), function (b) {
         b.onclick = function () { var s = el.querySelector("#" + b.getAttribute("data-go")); if (s) s.scrollIntoView({ behavior: window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
       });
