@@ -3163,19 +3163,36 @@
     var el = document.createElement("div"); el.id = "entry";
     var GSVG = '<svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 6.7-9.9 6.7-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.9 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>';
     var isReady = false, errMsg = "";
+    function ext(u) { return /^https:\/\/[^\s"<>]+$/i.test(u || "") ? u : ""; }
     function paint() {
-      el.setAttribute("dir", LANG() === "ur" ? "rtl" : "ltr");
-      var ur = LANG() === "ur", label = ur ? "گوگل کے ساتھ داخل ہوں" : "Continue with Google";
-      el.innerHTML = '<button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><img src="' + window.IQRA_LOGO + '" alt="IQRA"><h1 class="entry-name">' + esc(ur ? "اقرا ڈیجیٹل اسکول" : "IQRA Digital School") + '</h1><p class="entry-note">' + esc(ur ? "جاری رکھنے کے لیے اپنے گوگل اکاؤنٹ سے داخل ہوں۔" : "Sign in with your Google account to continue.") + '</p><button class="entry-go" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + GSVG + "<span>" + esc(label) + '</span></button><p class="entry-err" aria-live="polite">' + esc(errMsg) + "</p>";
-      el.querySelector("[data-enter]").onclick = async function () {
-        if (!window.__iqSignIn) return;
-        errMsg = ""; var m = await window.__iqSignIn(); if (m) { errMsg = m; paint(); }
-      };
+      var ur = LANG() === "ur";
+      el.setAttribute("dir", ur ? "rtl" : "ltr");
+      var tx = function (en, u) { return ur ? u : en; };
+      var cta = function (cls) { return '<button class="entry-go ' + (cls || "") + '" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + GSVG + "<span>" + esc(tx("Sign in to study", "پڑھنے کے لیے سائن اِن کریں")) + "</span></button>"; };
+      var libs = LIB_STARTER.filter(function (x) { return ext(x.url); }), docs = (D.sources || []).filter(function (x) { return ext(x.url); }).slice(0, 4);
+      var h = '<header class="lp-bar"><span class="lp-brand">' + (window.IQRA_ORB ? '<img src="' + window.IQRA_ORB + '" alt="" width="34" height="34">' : "") + "<b>" + esc(tx("IQRA Digital School", "اقرا ڈیجیٹل اسکول")) + '</b></span><span class="lp-bar-r"><button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><button class="lp-signin" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + esc(tx("Sign in", "سائن اِن")) + "</button></span></header>";
+      h += '<main class="lp-main"><section class="lp-hero"><img class="lp-logo" src="' + window.IQRA_LOGO + '" alt="IQRA"><h1>' + esc(tx("Learn the Pakistani way", "اپنے نصاب کے ساتھ سیکھیں")) + '</h1><p class="lp-lead">' + esc(tx("Games, notes, tests and books for Pakistani children, built on the national curriculum and available in Urdu and English.", "پاکستانی بچوں کے لیے کھیل، نوٹس، ٹیسٹ اور کتابیں، قومی نصاب کی بنیاد پر، اردو اور انگریزی میں۔")) + "</p>" + cta("lp-cta") + '<p class="entry-err" aria-live="polite">' + esc(errMsg) + "</p></section>";
+      h += '<nav class="lp-tiles" aria-label="' + esc(tx("Explore", "دریافت کریں")) + '"><button type="button" class="lp-tile" data-go="lp-lib"><b>' + esc(tx("Library", "کتب خانہ")) + "</b><small>" + esc(tx("Trusted books and official sources", "معتبر کتابیں اور سرکاری ماخذ")) + '</small></button><button type="button" class="lp-tile" data-go="lp-syl"><b>' + esc(tx("Pakistan Syllabus", "پاکستان کا نصاب")) + "</b><small>" + esc(tx("Official curriculum documents", "سرکاری نصاب کی دستاویزات")) + "</small></button></nav>";
+      h += '<section class="lp-sec" id="lp-lib"><h2>' + esc(tx("Library", "کتب خانہ")) + "</h2><p>" + esc(tx("Every source here is an official or trusted Pakistani publisher. Books inside IQRA open after you sign in.", "یہاں ہر ماخذ سرکاری یا معتبر پاکستانی ادارے کا ہے۔ آئی اقرا کی اپنی کتابیں سائن اِن کے بعد کھلتی ہیں۔")) + '</p><div class="lp-grid">';
+      libs.forEach(function (x) { h += '<a class="lp-card" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer"><b>' + esc(lt(x.title)) + "</b><span>" + esc(lt(x.author)) + "</span><em>" + esc(tx("Visit website", "ویب سائٹ کھولیں")) + " ↗</em></a>"; });
+      h += '</div></section><section class="lp-sec" id="lp-syl"><h2>' + esc(tx("Pakistan Syllabus", "پاکستان کا نصاب")) + "</h2><p>" + esc(tx("Our lessons follow official Pakistani documents. Class-wise syllabus is available after you sign in.", "ہمارے اسباق پاکستان کی سرکاری دستاویزات کے مطابق ہیں۔ کلاس کے لحاظ سے نصاب سائن اِن کے بعد دیکھیں۔")) + '</p><div class="lp-grid">';
+      docs.forEach(function (x) { h += '<a class="lp-card" dir="ltr" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer"><b>' + esc(x.title) + "</b><span>" + esc((x.authority || "").split(",")[0]) + "</span><em>" + esc(tx("Open official document", "سرکاری دستاویز کھولیں")) + " ↗</em></a>"; });
+      h += '</div></section><section class="lp-end"><h2>' + esc(tx("Ready to start?", "شروع کرنے کے لیے تیار؟")) + "</h2>" + cta("lp-cta") + "</section></main>";
+      el.innerHTML = h;
+      Array.prototype.forEach.call(el.querySelectorAll("[data-enter]"), function (b) {
+        b.onclick = async function () {
+          if (!window.__iqSignIn) return;
+          errMsg = ""; var m = await window.__iqSignIn(); if (m) { errMsg = m; paint(); }
+        };
+      });
+      Array.prototype.forEach.call(el.querySelectorAll("[data-go]"), function (b) {
+        b.onclick = function () { var s = el.querySelector("#" + b.getAttribute("data-go")); if (s) s.scrollIntoView({ behavior: window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
+      });
       el.querySelector("[data-elang]").onclick = function () { state.lang = state.lang === "ur" ? "en" : "ur"; save(); paint(); render(); };
     }
     window.__iqEntry = {
       active: true,
-      ready: function (msg) { isReady = true; errMsg = msg || ""; paint(); var b = el.querySelector("[data-enter]"); if (b && b.focus) b.focus(); },
+      ready: function (msg) { isReady = true; errMsg = msg || ""; paint(); var b = el.querySelector(".lp-cta"); if (b && b.focus) b.focus({ preventScroll: true }); },
       remove: function () { window.__iqEntry.active = false; el.classList.add("out"); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500); }
     };
     paint(); document.body.appendChild(el);
