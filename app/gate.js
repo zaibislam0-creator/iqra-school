@@ -45,10 +45,11 @@ window.claude={use:async n=>n==='db'?db:n==='user'?user:n==='assets'?(staff()?as
 function begin(u){G.style.display='none';G.setAttribute('aria-hidden','true');G.removeAttribute('role');G.removeAttribute('aria-modal');if(window.__iqEntry)window.__iqEntry.remove();document.getElementById('iqout').style.display='block';if(!started){started=true;window.__iqReady=true;ready()}}
 document.getElementById('iqout').onclick=()=>Au.signOut(auth).then(()=>location.reload());
 let pendMsg='';
-Au.onAuthStateChanged(auth,async u=>{if(!u){if(started)return location.reload();return loginView(pendMsg)}
+Au.onAuthStateChanged(auth,async u=>{if(!u){if(window.IQRA_STAFF_PAGE){location.replace('/');return}if(started)return location.reload();return loginView(pendMsg)}
  uid=u.uid;role=(u.email===OWNER&&u.emailVerified)?'admin':'student';
  try{const r=await F.getDoc(F.doc(fs,'roles',u.uid));if(r.exists()&&['admin','teacher'].includes(r.data().role))role=role==='admin'?'admin':r.data().role}catch(e){}
  if(!window.IQRA_STAFF_PAGE)role='student'; /* the student site never grants staff powers; staff use admin.html */
+ if(window.IQRA_STAFF_PAGE&&role==='student'){location.replace('/');return} /* anyone who is not staff is sent away without seeing anything */
  let d=null;try{const s=await F.getDoc(F.doc(fs,'students',u.uid));d=s.exists()?s.data():null}catch(e){}
  if(window.IQRA_STAFF_PAGE||(d&&d.name)){window.__iqProfile=d||{};begin(u)}else profileView(u,d)});
 }catch(e){show('<h1>IQRA</h1><p class="er">Could not load sign-in: '+esc(e.message||e)+'</p>')}

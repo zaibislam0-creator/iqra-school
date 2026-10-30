@@ -126,9 +126,10 @@
     if (view === "teacher" && !isTeacher()) view = "learn";
     if (STAFFPAGE) {
       if (!cloud.on) view = "staffwait";
-      else if (cloud.role === "student") view = "staffdenied";
+      else if (cloud.role === "student") { view = "staffwait"; location.replace("/"); }
       else if (view !== "staff" && view !== "teacher") view = isStaff() ? "staff" : "teacher";
     }
+    if (STAFFPAGE && cloud.on && cloud.role !== "student") document.title = "IQRA Admin";
     var kid = !ADMIN && !STAFFPAGE && state.setup && kidUI();
     if (kid && ADULT_VIEWS.indexOf(view) > -1 && !adultOK) view = "gate";
     document.documentElement.lang = LANG();
@@ -166,8 +167,7 @@
     else if (view === "pack") h += packView();
     else if (view === "staff") h += staffView();
     else if (view === "teacher") h += teacherView();
-    else if (view === "staffwait") h += staffGateView(false);
-    else if (view === "staffdenied") h += staffGateView(true);
+    else if (view === "staffwait") h += staffGateView();
     h += "</main>";
     var navH = "";
     if (ADMIN) {
@@ -2444,12 +2444,7 @@
   function isPlainStudent() { return !ADMIN && cloud.on && cloud.role === "student"; }
   function isStaff() { return !ADMIN && cloud.on && effRole() === "admin"; }
   function isTeacher() { return !ADMIN && cloud.on && (effRole() === "teacher" || effRole() === "admin"); }
-  function staffGateView(denied) {
-    var ur = LANG() === "ur";
-    return '<section class="card pager"><h2>' + esc(ur ? "ایڈمن پینل" : "Admin panel") + '</h2><p class="bigtext small">' +
-      esc(denied ? (ur ? "یہ صفحہ صرف اساتذہ اور ایڈمن کے لیے ہے۔" : "This page is for teachers and admins only.") : (ur ? "لوڈ ہو رہا ہے…" : "Loading…")) + "</p>" +
-      (denied ? '<a class="bigbtn" href="/">' + esc(ur ? "طلبہ کی سائٹ پر جائیں" : "Go to the student site") + "</a>" : "") + "</section>";
-  }
+  function staffGateView() { return '<p class="note" role="status">' + esc(LANG() === "ur" ? "لوڈ ہو رہا ہے…" : "Loading…") + "</p>"; }
   function roleChip() {
     if (ADMIN || STAFFPAGE || !cloud.on || cloud.role === "student") return "";
     var lab = cloud.viewAs ? t("viewingAs") + " " + t("role_" + effRole()) : t("role_" + cloud.role);
