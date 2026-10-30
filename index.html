@@ -4532,7 +4532,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var libSeen = "";
     shown.forEach(function (x) {
       var grp = x.app ? "here" : "ext";
-      if (grp !== libSeen && shown.some(function (y) { return !!y.app !== !!x.app; })) h += '<h3 class="libgroup">' + esc(st3(grp === "here" ? "libHere" : "libExt")) + "</h3>";
+      if (grp !== libSeen && (grp === "ext" || shown.some(function (y) { return !!y.app !== !!x.app; }))) h += '<h3 class="libgroup">' + esc(st3(grp === "here" ? "libHere" : "libExt")) + "</h3>";
       libSeen = grp;
       var host = ""; if (x.url) { try { host = new URL(x.url).hostname; } catch (e) {} }
       var mine = !x.app && String(x.id).indexOf("s-") !== 0, ar = libArm === x.id;
