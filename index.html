@@ -940,6 +940,23 @@ button.pstep.go{background:var(--coral);border-color:var(--coral);color:var(--in
 @media (max-width:640px){.staffbar{padding:10px 12px;gap:8px;margin:0 0 10px}.staffbar-t span{display:none}.staffbar-b{width:100%;display:flex;gap:8px}.staffbar-b .bigbtn{flex:1;min-height:46px;padding:8px 10px;font-size:1rem}.kbanner{margin:4px 0 10px}}
 @media (max-width:480px){.gw{display:none}.topbar header.kid .hb .chip{min-height:44px}.topbar header.kid{gap:4px}}
 @media (max-width:420px){.topbar .brand{display:none}.topbar header.kid .hb{justify-content:space-between}}
+/* Polish pass: compact staff bar, 44px touch targets, centred back arrow, clear external links */
+.kgback{display:grid;place-items:center;flex:none;padding:0;color:var(--deep,#076c6e)}
+.kgback svg{display:block}
+.staffbar{flex-wrap:nowrap;gap:10px;margin:0 0 10px;padding:8px 12px;border-radius:16px}
+.staffbar-t{flex:1 1 auto;min-width:0}
+.staffbar-t b{font-size:.92rem;white-space:nowrap}
+.staffbar-t span{display:none}
+.staffbar-b{flex:0 0 auto;flex-wrap:nowrap;width:auto}
+.staffbar-b .bigbtn,.staffbar .bigbtn{min-height:44px;padding:6px 14px;font-size:.9rem;border-radius:14px;white-space:nowrap}
+@media (max-width:640px){.staffbar{flex-wrap:wrap;padding:8px 10px;margin:0 0 8px}.staffbar-t{flex:1 0 100%}.staffbar-b{width:100%}.staffbar-b .bigbtn{flex:1;min-height:44px;padding:6px 8px;font-size:.88rem}}
+.topbar .kidnav button,.topbar nav button{min-height:44px}
+.topbar header .hb .chip,.topbar header.kid .hb .chip{min-width:44px;min-height:44px}
+.kgmix{padding:18px 12px;margin:10px 0 6px}
+.kgmix .kgpic{font-size:3.2rem}
+.bk-act a.bigbtn.ext::after{content:"\2197";margin-inline-start:6px;font-size:.95em}
+.bk-ext{display:inline-block;margin-top:4px;font-size:.78rem;opacity:.8}
+.libgroup{margin:18px 0 6px;font-size:1rem;color:var(--deep,#076c6e)}
 </style>
 <div id="iqgate" role="dialog" aria-modal="true" aria-label="IQRA sign in"></div>
 <button id="iqout" type="button">Sign out</button>
@@ -988,7 +1005,7 @@ const assets=FILES_API?{upload:async f=>{const tok=await auth.currentUser.getIdT
  if(!r.ok||!j){const e=new Error((j&&j.error)||'generate failed');e.code=(j&&j.error)||r.status;throw e}
  return j}}:null;
 window.claude={use:async n=>n==='db'?db:n==='user'?user:n==='assets'?(staff()?assets:null):null};
-function begin(u){G.style.display='none';if(window.__iqEntry)window.__iqEntry.remove();document.getElementById('iqout').style.display='block';if(!started){started=true;window.__iqReady=true;ready()}}
+function begin(u){G.style.display='none';G.setAttribute('aria-hidden','true');G.removeAttribute('role');G.removeAttribute('aria-modal');if(window.__iqEntry)window.__iqEntry.remove();document.getElementById('iqout').style.display='block';if(!started){started=true;window.__iqReady=true;ready()}}
 document.getElementById('iqout').onclick=()=>Au.signOut(auth).then(()=>location.reload());
 let pendMsg='';
 Au.onAuthStateChanged(auth,async u=>{if(!u){if(started)return location.reload();return loginView(pendMsg)}
@@ -2698,7 +2715,10 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     libVer: {"en": "Verified source", "ur": "تصدیق شدہ ماخذ"},
     libUnver: {"en": "Not yet checked", "ur": "جانچ باقی"},
     libInApp: {"en": "Read in app", "ur": "ایپ میں پڑھیں"},
-    libOpen: {"en": "Open link", "ur": "لنک کھولیں"},
+    libOpen: {"en": "Visit website", "ur": "ویب سائٹ کھولیں"},
+    libHere: {"en": "Read here in IQRA", "ur": "یہیں آئی اقرا میں پڑھیں"},
+    libExt: {"en": "Official websites (open outside IQRA)", "ur": "سرکاری ویب سائٹس (آئی اقرا سے باہر کھلتی ہیں)"},
+    libOutside: {"en": "Opens another website", "ur": "دوسری ویب سائٹ کھلے گی"},
     libChap: {"en": "chapters", "ur": "ابواب"},
     libEmpty: {"en": "No books here yet.", "ur": "یہاں ابھی کوئی کتاب نہیں۔"},
     libNote: {"en": "Library books are not part of the syllabus unless they are marked as a verified source.", "ur": "کتب خانے کی کتابیں نصاب کا حصہ نہیں ہوتیں جب تک ان پر تصدیق شدہ ماخذ نہ لکھا ہو۔"},
@@ -3472,7 +3492,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       return homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + uploadCard() + '<div class="card pager"><p class="bigtext">' + esc(t("soon")) + '</p><button class="bigbtn" data-act="go" data-arg="character">' + svg("heart", 30) + " " + esc(t("stories")) + "</button></div>";
     }
     var cur = curSubject && subs.some(function (x) { return x.id === curSubject; }) ? curSubject : subs[0].id;
-    var h = (gnum(state.grade) === 0 ? "" : kidBanner(greet)) + staffBarHTML() + announceHTML();
+    var h = (gnum(state.grade) === 0 ? "" : kidBanner(greet)) + (gnum(state.grade) === 0 && kgSec ? "" : staffBarHTML()) + announceHTML();
     if (gnum(state.grade) === 0) return h + kgHome();
     if (subs.length > 1) {
       h += '<div class="ksubpills" role="tablist">';
@@ -3568,7 +3588,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     var cur = kgSec && secs.filter(function (x) { return x.sec.id === kgSec; })[0];
     if (cur) {
       var credit = cur.sec.id === "animals" ? '<p class="kgcredit" dir="ltr">Animal sounds: Secretlondon (Mudchute City Farm), CC-BY-SA 3.0; others CC0. Via OpenGameArt.org</p>' : "";
-      return '<div class="kgbar"><button type="button" class="kgback" data-act="kgBack" aria-label="back">' + (ur ? "›" : "‹") + '</button><span class="kgpic sm" aria-hidden="true">' + emoOrImg(cur.sec.icon) + "</span><b>" + esc(ur ? cur.sec.t.ur : cur.sec.t.en) + "</b></div>" + kgPath(cur.sec.id, cur.list) + credit;
+      return '<div class="kgbar"><button type="button" class="kgback" data-act="kgBack" aria-label="' + (ur ? "واپس" : "Back") + '"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false" style="' + (ur ? "" : "transform:scaleX(-1)") + '"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="kgpic sm" aria-hidden="true">' + emoOrImg(cur.sec.icon) + "</span><b>" + esc(ur ? cur.sec.t.ur : cur.sec.t.en) + "</b></div>" + kgPath(cur.sec.id, cur.list) + credit;
     }
     kgSec = null;
     var mix = kgMix();
@@ -3820,7 +3840,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
   }
   function starsView() {
     return kidBanner(t("starsMsg")) + '<div class="card pager starscard"><p class="small">' + esc(t("starsHave")) + '</p><div class="starbig">' + starSvg(72) + "<span>" + state.stars + "</span></div>" +
-      starRow(Math.min(state.stars, 12), 40) + '<p class="streakline">' + svg("flame", 26) + " <b>" + streakInfo().n + "</b> " + esc(t("streakN")) + "</p></div>";
+      starRow(Math.min(state.stars, 12), 40) + (state.stars ? "" : '<p class="small">' + esc(LANG() === "ur" ? "کوئی کھیل کھیلیں اور اپنا پہلا ستارہ جیتیں۔" : "Play a game to win your first star.") + "</p>") + '<p class="streakline">' + svg("flame", 26) + " <b>" + streakInfo().n + "</b> " + esc(t("streakN")) + "</p></div>";
   }
 
   // ================= grown-ups area =================
@@ -4508,7 +4528,12 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
     h += "</div>";
     h += '<p class="small" aria-live="polite">' + shown.length + " " + esc(st3("libFound")) + (libQ || libCat !== "all" ? ' · <button class="link" data-act="libClear">✕</button>' : "") + "</p>";
     if (!shown.length) h += '<p class="card">' + esc(st3("libEmpty")) + "</p>";
+    shown = shown.filter(function (x) { return x.app; }).concat(shown.filter(function (x) { return !x.app; }));
+    var libSeen = "";
     shown.forEach(function (x) {
+      var grp = x.app ? "here" : "ext";
+      if (grp !== libSeen && shown.some(function (y) { return !!y.app !== !!x.app; })) h += '<h3 class="libgroup">' + esc(st3(grp === "here" ? "libHere" : "libExt")) + "</h3>";
+      libSeen = grp;
       var host = ""; if (x.url) { try { host = new URL(x.url).hostname; } catch (e) {} }
       var mine = !x.app && String(x.id).indexOf("s-") !== 0, ar = libArm === x.id;
       h += '<article class="bk"><span class="bk-ic" aria-hidden="true">' + svg(x.app ? "book" : "lib", 28) + '</span><div class="bk-m"><b>' + esc(lt(x.title)) + "</b>";
@@ -4519,7 +4544,7 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
       if (host) h += '<p class="small host">' + esc(host) + "</p>";
       h += '</div><div class="bk-act">';
       if (x.app) h += '<button class="bigbtn sm" data-act="openLesson" data-arg="' + x.first + '">' + esc(st3("libInApp")) + "</button>";
-      else if (x.url) h += '<a class="bigbtn sm" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">' + esc(st3("libOpen")) + "</a>";
+      else if (x.url) h += '<a class="bigbtn sm ext" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(st3("libOpen") + " · " + st3("libOutside")) + '">' + esc(st3("libOpen")) + "</a>";
       if (mine && canEditLib()) h += '<button class="btn alt sm' + (ar ? " danger" : "") + '" data-act="libDel" data-arg="' + x.id + '">' + esc(st3(ar ? "libDelAgain" : "libDel")) + "</button>";
       h += "</div></article>";
     });
@@ -5527,4 +5552,5 @@ window.IQRA_ORB="data:image/webp;base64,UklGRnY7AABXRUJQVlA4IGo7AACwAwGdASpAAUAB
 </script>
 
 
+<script>if('serviceWorker' in navigator&&location.protocol==='https:')addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})</script>
 </body></html>
