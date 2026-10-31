@@ -1224,7 +1224,7 @@
     }
     kgSec = null;
     var mix = kgMix();
-    h += '<button type="button" class="kgmix" data-act="openLesson" data-arg="kg-mix"><span class="kgpic" aria-hidden="true">🎲</span><b>' + esc(ur ? "آج کا کھیل" : "Today's Play") + "</b><em>" + esc(ur ? "سب کچھ ملا کر" : "A bit of everything") + "</em></button>";
+    h += '<button type="button" class="kgmix" data-act="openLesson" data-arg="kg-mix"><span class="kgpic" aria-hidden="true">🎲</span><span class="kgmix-t"><b>' + esc(ur ? "آج کا کھیل" : "Today's Play") + "</b><em>" + esc(ur ? "سب کچھ ملا کر" : "A bit of everything") + '</em></span><span class="kgmix-go" aria-hidden="true">' + esc(ur ? "کھیلیں" : "Play") + " ▶</span></button>";
     h += '<h3 class="subhd">' + esc(ur ? "کیا سیکھنا ہے؟" : "What shall we learn?") + '</h3><div class="kgrid">';
     secs.forEach(function (x) {
       var n = x.list.filter(function (l) { return done.indexOf(l.id) > -1; }).length;

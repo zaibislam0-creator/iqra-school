@@ -1177,3 +1177,15 @@ body:has(#entry.docked) .topbar{display:none}
 @media (max-width:1250px){#entry.docked .lp-brand b{display:none}}
 @media (max-width:640px){#entry.docked .lp-bar-in{flex-wrap:wrap}#entry.docked .lp-menu{flex:1 1 100%;order:3}}
 #entry.signed .entry-lang{display:none}
+/* Today's Play: one tidy row (dice, text, Play pill) that lines up with the tiles below */
+.kgmix{flex-direction:row;align-items:center;justify-content:flex-start;gap:16px;max-width:none;width:100%;margin:12px 0 16px;padding:14px 20px;border-radius:26px;text-align:start;overflow:hidden;position:relative;animation:none}
+.kgmix::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 120% at 100% 0,rgba(255,255,255,.28),transparent 60%);pointer-events:none}
+.kgmix .kgpic{flex:none;display:grid;place-items:center;width:68px;height:68px;border-radius:50%;background:rgba(255,255,255,.55);font-size:2.4rem;box-shadow:inset 0 0 0 2px rgba(255,255,255,.6);animation:kgdice 2.6s ease-in-out infinite}
+.kgmix-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:0}
+.kgmix-t b{font-size:1.45rem;line-height:1.6;padding:0}
+.kgmix-t em{font-size:1rem;line-height:1.5;opacity:.85}
+.kgmix-go{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 20px;border-radius:999px;background:#0d4a2e;color:#fff;font-weight:700;font-size:1rem;box-shadow:0 4px 12px rgba(9,58,35,.3)}
+.kgmix:hover .kgmix-go{background:#093a23}
+@keyframes kgdice{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(8deg) translateY(-2px)}}
+@media (prefers-reduced-motion:reduce){.kgmix .kgpic{animation:none}}
+@media (max-width:480px){.kgmix{gap:10px;padding:12px 14px}.kgmix .kgpic{width:54px;height:54px;font-size:1.9rem}.kgmix-t b{font-size:1.2rem}.kgmix-t em{font-size:.9rem}.kgmix-go{padding:0 14px;min-height:40px;font-size:.9rem}}
