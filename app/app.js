@@ -328,7 +328,7 @@
     toLib: {"en": "Go to the Library", "ur": "کتب خانے میں جائیں"},
     toSyl: {"en": "See the syllabus", "ur": "نصاب دیکھیں"},
     libIntro: {"en": "Books of every kind in one place: textbooks, Quran, Urdu, English, science, stories and more.", "ur": "ہر قسم کی کتابیں ایک جگہ: نصابی کتابیں، قرآن، اردو، انگریزی، سائنس، کہانیاں اور مزید۔"},
-    libSearch: {"en": "Search by title or author", "ur": "کتاب یا مصنف کا نام لکھیں"},
+    libSearch: {"en": "Search by book name, author or topic", "ur": "کتاب کا نام، مصنف یا موضوع لکھیں"},
     libGo: {"en": "Search", "ur": "تلاش"},
     libAll: {"en": "All books", "ur": "تمام کتابیں"},
     libMine: {"en": "My class", "ur": "میری کلاس"},
@@ -928,6 +928,7 @@
   function readBookAct(arg) {
     var kind = arg.split(":")[0], id = arg.slice(kind.length + 1), ur = LANG() === "ur", o, l, x, u;
     if (kind === "res") { x = resById(id); if (!x) return; u = safeUrl((x.d.src || {}).url); if (!u) return; o = { url: u, title: x.d.title, rtl: bookRtl(u), toc: bookToc(u), lang: LANG(), textMode: true }; }
+    else if (kind === "lib") { x = libItems().filter(function (b) { return b.id === id; })[0]; if (!x || !x.src) return; u = safeUrl(x.src.url); if (!u) return; o = { url: u, title: lt(x.title), rtl: bookRtl(u), toc: bookToc(u), lang: LANG(), textMode: true }; }
     else {
       l = lessonById(id); if (!l) return; u = kind === "notes" ? l.notes : l.book;
       o = { url: u, title: L(l.title).replace(/^(Read first: |پہلے پڑھیں: )/, ""), rtl: bookRtl(u), toc: kind === "notes" ? [] : bookToc(u), lang: LANG() };
@@ -2058,7 +2059,7 @@
   var sylGrade = null, sylSubj = "";
   var LIB_BOARDS = [["all", "All boards", "تمام بورڈ"], ["punjab", "Punjab", "پنجاب"], ["sindh", "Sindh", "سندھ"], ["kp", "Khyber Pakhtunkhwa", "خیبر پختونخوا"], ["balochistan", "Balochistan", "بلوچستان"], ["federal", "Federal (NBF)", "وفاقی (این بی ایف)"], ["other", "Other / private publisher", "دیگر / نجی ناشر"]];
   function boardName(id) { var b = LIB_BOARDS.filter(function (x) { return x[0] === id; })[0]; return b ? (LANG() === "ur" ? b[2] : b[1]) : ""; }
-  var libBoard = "all", libCat = "all", libQ = "", libGrade = "mine", libMsg = "", libArm = "", libDraft = null, libCloud = null, libOpen = false;
+  var libTimer = 0, libBoard = "all", libCat = "all", libQ = "", libGrade = "mine", libMsg = "", libArm = "", libDraft = null, libCloud = null, libOpen = false;
   var LIB_CATS = ["textbook", "quran", "urdu", "english", "science", "stories", "pak", "ref", "exam", "general"];
   // Starter entries: only official or trusted sites that were opened and checked. Admins add the rest.
   function libKind(x) { return x && (x.kind === "syllabus" || x.kind === "general") ? x.kind : (x && x.cat === "textbook" ? "syllabus" : "general"); }
@@ -2071,11 +2072,11 @@
   function cleanLib(o, id) {
     var g = String(o.grade || "all"); if (g !== "all" && D.grades.map(String).indexOf(g) < 0) g = "all";
     var u = String(o.url || ""); if (!/^https:\/\/[^\s]+$/i.test(u)) u = "";
-    return { id: String(o.id || id), title: String(o.title || "").slice(0, 140), author: String(o.author || "").slice(0, 100), cat: LIB_CATS.indexOf(o.cat) > -1 ? o.cat : "general", board: LIB_BOARDS.some(function (b) { return b[0] === o.board; }) ? o.board : "all", kind: o.kind === "syllabus" || o.kind === "general" ? o.kind : (o.cat === "textbook" ? "syllabus" : "general"), grade: g, lang: ["ur", "en", "ar", "ot"].indexOf(o.lang) > -1 ? o.lang : "ur", url: u.slice(0, 500), note: String(o.note || "").slice(0, 240), verified: !!o.verified, added: Number(o.added) || 0 };
+    return { id: String(o.id || id), title: String(o.title || "").slice(0, 140), author: String(o.author || "").slice(0, 100), cat: LIB_CATS.indexOf(o.cat) > -1 ? o.cat : "general", board: LIB_BOARDS.some(function (b) { return b[0] === o.board; }) ? o.board : "all", kind: o.kind === "syllabus" || o.kind === "general" ? o.kind : (o.cat === "textbook" ? "syllabus" : "general"), grade: g, lang: ["ur", "en", "ar", "ot"].indexOf(o.lang) > -1 ? o.lang : "ur", url: u.slice(0, 500), note: String(o.note || "").slice(0, 240), topics: String(o.topics || "").slice(0, 240), src: o.src && typeof o.src === "object" && safeUrl(o.src.url) ? { kind: "asset", url: String(o.src.url), name: String(o.src.name || "").slice(0, 140) } : null, verified: !!o.verified, added: Number(o.added) || 0 };
   }
   function getLib() { return cloud.on ? (libCloud || []) : (state.library || []).map(function (x) { return cleanLib(x, x.id); }); }
   function canEditLib() { return isStaff() || (!cloud.on && adultOK); }
-  function newLibDraft() { return { title: "", author: "", cat: "general", kind: "general", board: "all", grade: "all", lang: "ur", url: "", note: "", verified: false }; }
+  function newLibDraft() { return { title: "", author: "", topics: "", file: null, busy: false, cat: "general", kind: "general", board: "all", grade: "all", lang: "ur", url: "", note: "", verified: false }; }
   function readLibDraft() {
     if (!libDraft) return;
     var v = function (id) { var e = root.querySelector("#" + id); return e ? e.value : null; }, x;
@@ -2084,17 +2085,30 @@
     if ((x = v("libc")) !== null) libDraft.cat = x;
     if ((x = v("libg")) !== null) libDraft.grade = x;
     if ((x = v("libb")) !== null) libDraft.board = x;
+    if ((x = v("libtp")) !== null) libDraft.topics = x;
     if ((x = v("libk")) !== null) libDraft.kind = x;
     if ((x = v("libl")) !== null) libDraft.lang = x;
     if ((x = v("libu")) !== null) libDraft.url = x;
     if ((x = v("libn")) !== null) libDraft.note = x;
     var vv = root.querySelector("#libv"); if (vv) libDraft.verified = vv.checked;
   }
+  function libUpload(file) {
+    if (!file || !resAssets || !libDraft) return;
+    readLibDraft();
+    var d = libDraft, lim = (window.IQRA_FILES_API ? 90 : 20) * 1024 * 1024, ur = LANG() === "ur";
+    if (!/\.pdf$/i.test(file.name || "") && file.type !== "application/pdf") { libMsg = ur ? "صرف پی ڈی ایف فائل چنیں۔" : "Please choose a PDF file."; libOpen = true; return render(); }
+    if (file.size > lim) { libMsg = rt("tooBig"); libOpen = true; return render(); }
+    d.busy = true; libMsg = rt("uploading"); libOpen = true; render();
+    resAssets.upload(file).then(function (r) { d.file = { id: r.id, url: r.url, name: file.name }; d.busy = false; if (!d.title.trim()) d.title = String(file.name || "").replace(/\.pdf$/i, ""); libMsg = rt("uploaded"); libOpen = true; render(); })
+      .catch(function (e) { d.busy = false; libMsg = rt("upFail") + (e && e.code ? " (" + e.code + ")" : ""); libOpen = true; render(); });
+  }
+  if (root.addEventListener) root.addEventListener("change", function (e) { var tg = e.target; if (tg && tg.id === "libfile" && tg.files && tg.files[0]) libUpload(tg.files[0]); });
   function libSave() {
     readLibDraft(); var d = libDraft || newLibDraft(), title = d.title.trim(), url = d.url.trim();
     if (!title || !d.cat) { libMsg = st3("libNeed"); return; }
+    if (d.busy) { libMsg = LANG() === "ur" ? "فائل ابھی اپ لوڈ ہو رہی ہے، ذرا انتظار کریں۔" : "The file is still uploading, please wait."; return; }
     if (url && !/^https:\/\/[^\s]+$/i.test(url)) { libMsg = st3("libBadUrl"); return; }
-    var item = cleanLib({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), title: title, author: d.author.trim(), cat: d.kind === "syllabus" ? "textbook" : d.cat, kind: d.kind, board: d.kind === "syllabus" ? d.board : "all", grade: d.grade, lang: d.lang, url: url, note: d.note.trim(), verified: d.verified, added: Date.now() }, "x");
+    var item = cleanLib({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), title: title, author: d.author.trim(), cat: d.kind === "syllabus" ? "textbook" : d.cat, topics: d.topics.trim(), src: d.file ? { kind: "asset", url: d.file.url, name: d.file.name } : null, kind: d.kind, board: d.kind === "syllabus" ? d.board : "all", grade: d.grade, lang: d.lang, url: url, note: d.note.trim(), verified: d.verified, added: Date.now() }, "x");
     if (cloud.on) {
       if (!cloudOK()) { libMsg = st3("libNoRight"); return; }
       cloudCol("meta").doc("lib-" + item.id).set({ lib: item }).catch(cloudFail); libCloud = (libCloud || []).concat([item]);
@@ -2165,7 +2179,7 @@
       if (libGrade === "mine" && !(x.grade === "all" || gnum(x.grade) === n)) return false;
       if (!STAFFPAGE && libKind(x) === "syllabus") return false;
       if (libBoard !== "all" && x.board && x.board !== "all" && x.board !== libBoard) return false;
-      if (q && (lt(x.title) + " " + lt(x.author) + " " + lt(x.note)).toLowerCase().indexOf(q) < 0) return false;
+      if (q && (lt(x.title) + " " + lt(x.author) + " " + lt(x.note) + " " + (x.topics || "")).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
     var shown = base.filter(function (x) { return libCat === "all" || x.cat === libCat; });
@@ -2194,10 +2208,12 @@
       h += '<div class="bk-t"><span class="badge ' + (x.verified ? "verified" : "pending") + '">' + esc(st3(x.verified ? "libVer" : "libUnver")) + '</span><span class="tag">' + esc(st3("cat_" + x.cat)) + '</span><span class="tag">' + esc(x.grade === "all" ? st3("libAllC") : gradeLabel(x.grade)) + '</span>' + (STAFFPAGE ? '<span class="tag">' + esc(libKind(x) === "syllabus" ? (LANG() === "ur" ? "نصابی" : "Syllabus") : (LANG() === "ur" ? "کتب خانہ" : "Library")) + "</span>" : "") + (x.board && x.board !== "all" ? '<span class="tag">' + esc(boardName(x.board)) + "</span>" : "") + '<span class="tag">' + esc(langLabel(x.lang)) + "</span></div>";
       if (x.app) h += '<p class="small">' + x.n + " " + esc(st3("libChap")) + " · " + esc(st3("libFromApp")) + "</p>";
       if (lt(x.note)) h += '<p class="small">' + esc(lt(x.note)) + "</p>";
+      if (x.topics) h += '<p class="small">' + esc((LANG() === "ur" ? "موضوعات: " : "Topics: ") + x.topics) + "</p>";
       if (host) h += '<p class="small host">' + esc(host) + "</p>";
       h += '</div><div class="bk-act">';
       if (x.app) h += '<button class="bigbtn sm" data-act="openLesson" data-arg="' + x.first + '">' + esc(st3("libInApp")) + "</button>";
-      else if (x.url) h += '<a class="bigbtn sm ext" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(st3("libOpen") + " · " + st3("libOutside")) + '">' + esc(st3("libOpen")) + "</a>";
+      if (!x.app && x.src && safeUrl(x.src.url)) h += '<button class="bigbtn sm" data-act="readBook" data-arg="lib:' + esc(x.id) + '">📖 ' + esc(st3("libInApp")) + "</button>";
+      if (!x.app && x.url) h += '<a class="bigbtn sm ext" href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer" aria-label="' + esc(st3("libOpen") + " · " + st3("libOutside")) + '">' + esc(st3("libOpen")) + "</a>";
       if (mine && canEditLib()) h += '<button class="btn alt sm' + (ar ? " danger" : "") + '" data-act="libDel" data-arg="' + x.id + '">' + esc(st3(ar ? "libDelAgain" : "libDel")) + "</button>";
       h += "</div></article>";
     });
@@ -2225,7 +2241,12 @@
     D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(d.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
     h += '</select><label for="libl">' + esc(st3("libLang")) + '</label><select id="libl">';
     [["ur", "langur"], ["en", "langen"], ["ar", "langar"], ["ot", "langot"]].forEach(function (x) { h += '<option value="' + x[0] + '"' + (d.lang === x[0] ? " selected" : "") + ">" + esc(st3(x[1])) + "</option>"; });
-    h += '</select><label for="libu">' + esc(st3("libUrl")) + '</label><input id="libu" type="url" inputmode="url" dir="ltr" placeholder="https://" value="' + esc(d.url) + '">';
+    h += '</select><label for="libtp">' + esc(LANG() === "ur" ? "موضوعات / کلیدی الفاظ (تلاش کے لیے)" : "Topics / keywords (helps students find it)") + '</label><input id="libtp" dir="auto" maxlength="240" value="' + esc(d.topics) + '">';
+    if (isAdminRes() && resAssets) {
+      h += '<label for="libfile">' + esc(LANG() === "ur" ? "کتاب کی پی ڈی ایف اپ لوڈ کریں (طلبہ ایپ میں پڑھ سکیں گے)" : "Upload the book as PDF (students can read it in the app)") + '</label><input id="libfile" type="file" accept="application/pdf"' + (d.busy ? " disabled" : "") + ">";
+      if (d.file) h += '<p class="small">✅ ' + esc(d.file.name || "") + "</p>";
+    } else if (STAFFPAGE) h += '<p class="small note">' + esc(LANG() === "ur" ? "پی ڈی ایف اپ لوڈ ابھی دستیاب نہیں (فائل سرور سے رابطہ نہیں)۔ آپ ویب لنک دے سکتے ہیں۔" : "PDF upload is not available right now (file service not connected). You can use a web link instead.") + "</p>";
+    h += '<label for="libu">' + esc(st3("libUrl")) + '</label><input id="libu" type="url" inputmode="url" dir="ltr" placeholder="https://" value="' + esc(d.url) + '">';
     h += '<label for="libn">' + esc(st3("libNoteF")) + '</label><input id="libn" dir="auto" maxlength="240" value="' + esc(d.note) + '">';
     h += '<label class="inl"><input type="checkbox" id="libv"' + (d.verified ? " checked" : "") + "> " + esc(st3("libVerF")) + '</label><button class="bigbtn gobtn2" type="submit">' + esc(st3("libSave")) + "</button></form></details>";
     return h;
@@ -2369,6 +2390,7 @@
     var lgSel = $("#libgrade"); if (lgSel) lgSel.addEventListener("change", function () { libGrade = lgSel.value; render(); });
     var sgSel = $("#sylg"); if (sgSel) sgSel.addEventListener("change", function () { sylGrade = sgSel.value; sylSubj = ""; render(); });
     var lqf = $("#libf"); if (lqf) lqf.addEventListener("submit", function (e) { e.preventDefault(); var qi = $("#libq"); libQ = qi ? qi.value.trim() : ""; render(); });
+    var lqi = $("#libq"); if (lqi) lqi.addEventListener("input", function () { clearTimeout(libTimer); libTimer = setTimeout(function () { libQ = lqi.value.trim(); render(); var n = $("#libq"); if (n) { n.focus(); try { n.setSelectionRange(n.value.length, n.value.length); } catch (e) {} } }, 300); });
     var lfm = $("#libform"); if (lfm) lfm.addEventListener("toggle", function () { libOpen = lfm.open; });
     var lad = $("#libaddf"); if (lad) lad.addEventListener("submit", function (e) { e.preventDefault(); libSave(); render(); });
     root.querySelectorAll("[data-chtitle]").forEach(function (i) { i.addEventListener("change", function () { chRename(i.dataset.chtitle, i.value); }); });
