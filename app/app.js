@@ -3186,6 +3186,18 @@
     var GSVG = '<svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 6.7-9.9 6.7-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.9 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>';
     var signed = false; function sizeBar() { var b = el.querySelector(".lp-bar-in"); if (b) document.documentElement.style.setProperty("--lpbar", b.offsetHeight + "px"); }
     function dockEntry() { el.classList.add("docked"); setTimeout(sync, 0); var ap = document.getElementById("app"); if (ap) { ap.removeAttribute("inert"); ap.removeAttribute("aria-hidden"); } el.scrollTop = 0; sync(); }
+    /* the top-bar entry for the part of the page you are looking at lights up */
+    function spy() {
+      var m = el.querySelector(".lp-menu"); if (!m || !el.isConnected) return;
+      var btns = m.querySelectorAll("[data-go]"), cur = "lp-top", k;
+      if (!el.classList.contains("docked")) {
+        var bar = el.querySelector(".lp-bar"), top = el.getBoundingClientRect().top, lim = (bar ? bar.offsetHeight : 0) + 40, ids = ["lp-lib", "lp-boards", "lp-notes", "lp-papers"];
+        for (k = 0; k < ids.length; k++) { var sc = el.querySelector("#" + ids[k]); if (sc && sc.getBoundingClientRect().top - top <= lim) cur = ids[k]; }
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4 && el.scrollTop > 0) cur = ids[ids.length - 1];
+      }
+      for (k = 0; k < btns.length; k++) btns[k].className = !el.classList.contains("docked") && btns[k].getAttribute("data-go") === cur ? "act" : "";
+    }
+    el.addEventListener("scroll", spy, { passive: true });
     /* the app's own header (sound, class, language, sign out, tabs) is shown inside the one top bar: buttons here forward their clicks to the real ones */
     function sync() {
       if (!signed) return;
@@ -3195,7 +3207,7 @@
       for (k = 0; k < hb.length; k++) { var c = hb[k].cloneNode(true); c.removeAttribute("id"); c.removeAttribute("data-act"); c.removeAttribute("data-arg"); c.setAttribute("data-px", k); c.className = "lp-chip2" + (hb[k].classList.contains("on") ? " on" : ""); r.insertBefore(c, first); }
       for (k = 0; k < nv.length; k++) { var n = nv[k].cloneNode(true); n.removeAttribute("data-nav"); n.removeAttribute("data-act"); n.removeAttribute("data-arg"); n.setAttribute("data-pxn", k); n.setAttribute("type", "button"); n.className = nv[k].classList.contains("act") && el.classList.contains("docked") ? "act" : "";
         if (k === 0) { var sp = n.querySelector("span"), lbl = LANG() === "ur" ? "میری جماعت" : "My class"; if (sp) sp.textContent = lbl; else n.textContent = lbl; var hm = m.querySelector('[data-go="lp-top"]'); if (hm && hm.nextSibling) m.insertBefore(n, hm.nextSibling); else m.appendChild(n); } else m.appendChild(n); }
-      var home = el.querySelector('.lp-menu [data-go="lp-top"]'); if (home) home.className = el.classList.contains("docked") ? "" : "act";
+      spy();
       sizeBar();
     }
     el.addEventListener("click", function (e) {
@@ -3257,7 +3269,7 @@
           (last ? "<p>" + esc(tx("Well done! Sign in to keep learning with games and tests.", "شاباش! کھیل اور ٹیسٹ کے ساتھ مزید سیکھنے کے لیے سائن اِن کریں۔")) + "</p>" + cta("lp-cta") : "<p>" + esc(cards[freeOpen.i] || "") + "</p>") +
           '</div><div class="lp-rd-nav"><button type="button" class="lp-signin" data-fprev' + (freeOpen.i ? "" : " disabled") + ">" + esc(tx("Back", "پیچھے")) + "</button><span>" + Math.min(freeOpen.i + 1, cards.length) + " / " + cards.length + '</span><button type="button" class="lp-signin" data-fnext' + (last ? " disabled" : "") + ">" + esc(tx("Next", "آگے")) + "</button></div></div></div>";
       }
-      var keep = el.scrollTop; el.innerHTML = h; el.scrollTop = keep; if (signed) sync();
+      var keep = el.scrollTop; el.innerHTML = h; el.scrollTop = keep; if (signed) sync(); else spy();
       Array.prototype.forEach.call(el.querySelectorAll("[data-free]"), function (b) { b.onclick = function () { freeOpen = { item: free[Number(b.getAttribute("data-free"))], i: 0 }; paint(); }; });
       var fx = function (sel, fn) { var q = el.querySelector(sel); if (q) q.onclick = fn; };
       fx("[data-fclose]", function () { freeOpen = null; paint(); });
@@ -3296,7 +3308,7 @@
         el.classList.add("signed", "docked"); paint(); sizeBar();
       }
     };
-    paint(); document.body.appendChild(el);
+    paint(); document.body.appendChild(el); spy();
   })();
 })();
 
