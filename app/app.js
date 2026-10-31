@@ -1603,7 +1603,7 @@
   function act(name, arg) {
     if (name.indexOf("res") === 0) { resAct(name, arg); return; }
     if (ef && name !== "upClass" && name !== "upBack") readEF();
-    if (libDraft && view === "library") readLibDraft();
+    if (libDraft && (view === "library" || (STAFFPAGE && staffTab === "library"))) readLibDraft();
     var l, q, ok, g;
     switch (name) {
       case "cat":
@@ -2042,7 +2042,9 @@
 
   // ================= Pakistan syllabus (Nisaab) and Library (Kutub khana) =================
   var sylGrade = null, sylSubj = "";
-  var libCat = "all", libQ = "", libGrade = "mine", libMsg = "", libArm = "", libDraft = null, libCloud = null, libOpen = false;
+  var LIB_BOARDS = [["all", "All boards", "تمام بورڈ"], ["punjab", "Punjab", "پنجاب"], ["sindh", "Sindh", "سندھ"], ["kp", "Khyber Pakhtunkhwa", "خیبر پختونخوا"], ["balochistan", "Balochistan", "بلوچستان"], ["federal", "Federal (NBF)", "وفاقی (این بی ایف)"], ["other", "Other / private publisher", "دیگر / نجی ناشر"]];
+  function boardName(id) { var b = LIB_BOARDS.filter(function (x) { return x[0] === id; })[0]; return b ? (LANG() === "ur" ? b[2] : b[1]) : ""; }
+  var libBoard = "all", libCat = "all", libQ = "", libGrade = "mine", libMsg = "", libArm = "", libDraft = null, libCloud = null, libOpen = false;
   var LIB_CATS = ["textbook", "quran", "urdu", "english", "science", "stories", "pak", "ref", "exam", "general"];
   // Starter entries: only official or trusted sites that were opened and checked. Admins add the rest.
   var LIB_STARTER = [
@@ -2054,11 +2056,11 @@
   function cleanLib(o, id) {
     var g = String(o.grade || "all"); if (g !== "all" && D.grades.map(String).indexOf(g) < 0) g = "all";
     var u = String(o.url || ""); if (!/^https:\/\/[^\s]+$/i.test(u)) u = "";
-    return { id: String(o.id || id), title: String(o.title || "").slice(0, 140), author: String(o.author || "").slice(0, 100), cat: LIB_CATS.indexOf(o.cat) > -1 ? o.cat : "general", grade: g, lang: ["ur", "en", "ar", "ot"].indexOf(o.lang) > -1 ? o.lang : "ur", url: u.slice(0, 500), note: String(o.note || "").slice(0, 240), verified: !!o.verified, added: Number(o.added) || 0 };
+    return { id: String(o.id || id), title: String(o.title || "").slice(0, 140), author: String(o.author || "").slice(0, 100), cat: LIB_CATS.indexOf(o.cat) > -1 ? o.cat : "general", board: LIB_BOARDS.some(function (b) { return b[0] === o.board; }) ? o.board : "all", grade: g, lang: ["ur", "en", "ar", "ot"].indexOf(o.lang) > -1 ? o.lang : "ur", url: u.slice(0, 500), note: String(o.note || "").slice(0, 240), verified: !!o.verified, added: Number(o.added) || 0 };
   }
   function getLib() { return cloud.on ? (libCloud || []) : (state.library || []).map(function (x) { return cleanLib(x, x.id); }); }
   function canEditLib() { return isStaff() || (!cloud.on && adultOK); }
-  function newLibDraft() { return { title: "", author: "", cat: "textbook", grade: "all", lang: "ur", url: "", note: "", verified: false }; }
+  function newLibDraft() { return { title: "", author: "", cat: "textbook", board: "all", grade: "all", lang: "ur", url: "", note: "", verified: false }; }
   function readLibDraft() {
     if (!libDraft) return;
     var v = function (id) { var e = root.querySelector("#" + id); return e ? e.value : null; }, x;
@@ -2066,6 +2068,7 @@
     if ((x = v("liba")) !== null) libDraft.author = x;
     if ((x = v("libc")) !== null) libDraft.cat = x;
     if ((x = v("libg")) !== null) libDraft.grade = x;
+    if ((x = v("libb")) !== null) libDraft.board = x;
     if ((x = v("libl")) !== null) libDraft.lang = x;
     if ((x = v("libu")) !== null) libDraft.url = x;
     if ((x = v("libn")) !== null) libDraft.note = x;
@@ -2075,7 +2078,7 @@
     readLibDraft(); var d = libDraft || newLibDraft(), title = d.title.trim(), url = d.url.trim();
     if (!title || !d.cat) { libMsg = st3("libNeed"); return; }
     if (url && !/^https:\/\/[^\s]+$/i.test(url)) { libMsg = st3("libBadUrl"); return; }
-    var item = cleanLib({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), title: title, author: d.author.trim(), cat: d.cat, grade: d.grade, lang: d.lang, url: url, note: d.note.trim(), verified: d.verified, added: Date.now() }, "x");
+    var item = cleanLib({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), title: title, author: d.author.trim(), cat: d.cat, board: d.board, grade: d.grade, lang: d.lang, url: url, note: d.note.trim(), verified: d.verified, added: Date.now() }, "x");
     if (cloud.on) {
       if (!cloudOK()) { libMsg = st3("libNoRight"); return; }
       cloudCol("meta").doc("lib-" + item.id).set({ lib: item }).catch(cloudFail); libCloud = (libCloud || []).concat([item]);
@@ -2144,13 +2147,14 @@
     var all = libItems(), q = libQ.toLowerCase(), n = gnum(state.grade);
     var base = all.filter(function (x) {
       if (libGrade === "mine" && !(x.grade === "all" || gnum(x.grade) === n)) return false;
+      if (libBoard !== "all" && x.board && x.board !== "all" && x.board !== libBoard) return false;
       if (q && (lt(x.title) + " " + lt(x.author) + " " + lt(x.note)).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
     var shown = base.filter(function (x) { return libCat === "all" || x.cat === libCat; });
     var h = '<section class="page3">' + (kidUI() ? kidBanner(st3("libT")) : '<h2>' + esc(st3("libT")) + '</h2><p class="lead3">' + esc(st3("libIntro")) + "</p>");
     h += '<form id="libf" class="libbar"><label class="sr" for="libq">' + esc(st3("libSearch")) + '</label><input id="libq" type="search" dir="auto" placeholder="' + esc(st3("libSearch")) + '" value="' + esc(libQ) + '"><button class="btn" type="submit">' + esc(st3("libGo")) + "</button></form>";
-    h += '<div class="pagebar"><label for="libgrade">' + esc(st3("sylClass")) + '</label><select id="libgrade"><option value="mine"' + (libGrade === "mine" ? " selected" : "") + ">" + esc(st3("libMine")) + " (" + esc(gradeLabel(state.grade)) + ')</option><option value="all"' + (libGrade === "all" ? " selected" : "") + ">" + esc(st3("libAllC")) + '</option></select><button class="chip lightchip" data-nav="syllabus">' + esc(st3("toSyl")) + "</button></div>";
+    h += '<div class="pagebar"><label for="libgrade">' + esc(st3("sylClass")) + '</label><select id="libgrade"><option value="mine"' + (libGrade === "mine" ? " selected" : "") + ">" + esc(st3("libMine")) + " (" + esc(gradeLabel(state.grade)) + ')</option><option value="all"' + (libGrade === "all" ? " selected" : "") + ">" + esc(st3("libAllC")) + '</option></select><label for="libboard">' + esc(LANG() === "ur" ? "بورڈ" : "Board") + '</label><select id="libboard">' + LIB_BOARDS.map(function (b) { return '<option value="' + b[0] + '"' + (libBoard === b[0] ? " selected" : "") + ">" + esc(LANG() === "ur" ? b[2] : b[1]) + "</option>"; }).join("") + '</select><button class="chip lightchip" data-nav="syllabus">' + esc(st3("toSyl")) + "</button></div>";
     h += "<h3>" + esc(st3("libCatT")) + '</h3><div class="libcats"><button class="libcat' + (libCat === "all" ? " on" : "") + '" data-act="libCat" data-arg="all"><b>' + esc(st3("libAll")) + "</b><span>" + base.length + "</span></button>";
     LIB_CATS.forEach(function (c) {
       var cnt = base.filter(function (x) { return x.cat === c; }).length;
@@ -2170,7 +2174,7 @@
       var mine = !x.app && String(x.id).indexOf("s-") !== 0, ar = libArm === x.id;
       h += '<article class="bk"><span class="bk-ic" aria-hidden="true">' + svg(x.app ? "book" : "lib", 28) + '</span><div class="bk-m"><b>' + esc(lt(x.title)) + "</b>";
       if (lt(x.author)) h += '<span class="bk-a">' + esc(lt(x.author)) + "</span>";
-      h += '<div class="bk-t"><span class="badge ' + (x.verified ? "verified" : "pending") + '">' + esc(st3(x.verified ? "libVer" : "libUnver")) + '</span><span class="tag">' + esc(st3("cat_" + x.cat)) + '</span><span class="tag">' + esc(x.grade === "all" ? st3("libAllC") : gradeLabel(x.grade)) + '</span><span class="tag">' + esc(langLabel(x.lang)) + "</span></div>";
+      h += '<div class="bk-t"><span class="badge ' + (x.verified ? "verified" : "pending") + '">' + esc(st3(x.verified ? "libVer" : "libUnver")) + '</span><span class="tag">' + esc(st3("cat_" + x.cat)) + '</span><span class="tag">' + esc(x.grade === "all" ? st3("libAllC") : gradeLabel(x.grade)) + '</span>' + (x.board && x.board !== "all" ? '<span class="tag">' + esc(boardName(x.board)) + "</span>" : "") + '<span class="tag">' + esc(langLabel(x.lang)) + "</span></div>";
       if (x.app) h += '<p class="small">' + x.n + " " + esc(st3("libChap")) + " · " + esc(st3("libFromApp")) + "</p>";
       if (lt(x.note)) h += '<p class="small">' + esc(lt(x.note)) + "</p>";
       if (host) h += '<p class="small host">' + esc(host) + "</p>";
@@ -2198,6 +2202,7 @@
     h += '<label for="liba">' + esc(st3("libAuthor")) + '</label><input id="liba" dir="auto" maxlength="100" value="' + esc(d.author) + '">';
     h += '<label for="libc">' + esc(st3("libCat")) + '</label><select id="libc">';
     LIB_CATS.forEach(function (c) { h += '<option value="' + c + '"' + (d.cat === c ? " selected" : "") + ">" + esc(st3("cat_" + c)) + "</option>"; });
+    h += '</select><label for="libb">' + esc(LANG() === "ur" ? "بورڈ" : "Board") + '</label><select id="libb">'; LIB_BOARDS.forEach(function (b) { h += '<option value="' + b[0] + '"' + (d.board === b[0] ? " selected" : "") + ">" + esc(LANG() === "ur" ? b[2] : b[1]) + "</option>"; });
     h += '</select><label for="libg">' + esc(st3("libClass")) + '</label><select id="libg"><option value="all"' + (d.grade === "all" ? " selected" : "") + ">" + esc(st3("libAllC")) + "</option>";
     D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(d.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
     h += '</select><label for="libl">' + esc(st3("libLang")) + '</label><select id="libl">';
@@ -2339,6 +2344,7 @@
     if (sp0) sp0.addEventListener("change", function () { readSetup(); state.board = ""; render(); });
     var sg = $("#sgrade");
     if (sg) sg.addEventListener("change", function () { readSetup(); render(); });
+    var lbSel = $("#libboard"); if (lbSel) lbSel.addEventListener("change", function () { libBoard = lbSel.value; render(); });
     var lgSel = $("#libgrade"); if (lgSel) lgSel.addEventListener("change", function () { libGrade = lgSel.value; render(); });
     var sgSel = $("#sylg"); if (sgSel) sgSel.addEventListener("change", function () { sylGrade = sgSel.value; sylSubj = ""; render(); });
     var lqf = $("#libf"); if (lqf) lqf.addEventListener("submit", function (e) { e.preventDefault(); var qi = $("#libq"); libQ = qi ? qi.value.trim() : ""; render(); });
@@ -2480,7 +2486,7 @@
     clearTimeout(rerenderT);
     rerenderT = setTimeout(function () {
       if (draft || recRec || resForm || (resRun && !resRun.done) || (tf && view === "teacher")) return;
-      if (view === "library" && document.activeElement && document.activeElement.closest && document.activeElement.closest("#libform")) return;
+      if ((view === "library" || (STAFFPAGE && staffTab === "library")) && document.activeElement && document.activeElement.closest && document.activeElement.closest("#libform")) return;
       // do not interrupt a child who is inside a lesson, quiz or chat
       if (!force && (openLesson || openStory || view === "exam" || view === "tutor" || view === "character")) return;
       render();
@@ -2594,12 +2600,13 @@
     (role === "teacher" ? c.set({ role: "teacher", by: cloud.uid, at: Date.now() }) : c.delete()).then(function () { teamMsg = ""; render(); }).catch(function (e) { teamMsg = String(e && (e.code || e.message) || e); cloudFail(e); render(); });
   }
   function staffView() {
-    var tabs = [["addbook", "tabBooks"], ["voice", "voiceRec"], ["admin", "hubAdmin"], ["team", "teamT"], ["pack", "packT"]];
+    var tabs = [["addbook", "tabBooks"], ["voice", "voiceRec"], ["library", "libT"], ["admin", "hubAdmin"], ["team", "teamT"], ["pack", "packT"]];
     var h = kidBanner(t("staffTab")) + roleSwitch() + '<p class="note cloudnote">' + esc(t(cloud.err ? "cloudErr" : "cloudOn")) + (cloud.err ? " (" + esc(cloud.err) + ")" : "") + "</p><div class=\"subtabs\">";
-    tabs.forEach(function (x) { h += '<button class="chip' + (staffTab === x[0] ? " on" : "") + '" data-act="staffTab" data-arg="' + x[0] + '">' + esc(x[0] === "team" ? (LANG() === "ur" ? "ٹیم" : "Team") : t(x[1])) + "</button>"; });
+    tabs.forEach(function (x) { h += '<button class="chip' + (staffTab === x[0] ? " on" : "") + '" data-act="staffTab" data-arg="' + x[0] + '">' + esc(x[0] === "team" ? (LANG() === "ur" ? "ٹیم" : "Team") : x[0] === "library" ? st3("libT") : t(x[1])) + "</button>"; });
     h += "</div>";
     if (staffTab === "team") { teamStart(); return h + teamView(); }
     if (staffTab === "voice") return h + voiceView();
+    if (staffTab === "library") { if (libGrade === "mine") libGrade = "all"; return h + libraryView(); }
     if (staffTab === "admin") return h + adminView();
     if (staffTab === "pack") return h + packView() + '<div class="card"><button class="btn alt" data-act="migrate">' + esc(t("migrate")) + "</button><p class=\"small\">" + esc(t("migrateNote")) + "</p></div>";
     return h + addBookView();
