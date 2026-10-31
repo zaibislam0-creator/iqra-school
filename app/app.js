@@ -3348,9 +3348,9 @@
       ready: function (msg) { isReady = true; errMsg = msg || ""; paint(); var b = el.querySelector(".lp-cta"); if (b && b.focus) b.focus({ preventScroll: true }); },
       remove: function () {
         window.__iqEntry.active = false; signed = true;
-        var ap = document.getElementById("app"); if (ap) { ap.removeAttribute("inert"); ap.removeAttribute("aria-hidden"); if (el.parentNode && ap.parentNode) ap.parentNode.insertBefore(el, ap); }
+        var ap = document.getElementById("app"); if (ap) { if (el.parentNode && ap.parentNode) ap.parentNode.insertBefore(el, ap); ap.setAttribute("inert", ""); ap.setAttribute("aria-hidden", "true"); }
         el.removeAttribute("role"); el.removeAttribute("aria-modal"); el.removeAttribute("aria-label");
-        el.classList.add("signed", "docked"); paint(); sizeBar();
+        el.classList.add("signed"); el.classList.remove("docked"); paint(); sizeBar(); setTimeout(sync, 0);
       }
     };
     paint(); document.body.appendChild(el); spy();
