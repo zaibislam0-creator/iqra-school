@@ -1,6 +1,6 @@
 /* IQRA service worker: keeps pictures, audio and the PDF reader available on weak connections.
    The page itself is always fetched from the network first, so updates appear immediately. */
-const CACHE = 'iqra-static-v31';
+const CACHE = 'iqra-static-v32';
 const STATIC = /^\/(img|audio|lib|notes|books)\//;
 
 self.addEventListener('install', () => self.skipWaiting());

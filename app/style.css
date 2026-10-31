@@ -1277,3 +1277,9 @@ html.iq-resume,html.iq-resume body{overflow:hidden}
 #iqgate .ob .er{text-align:center;color:#b3261e;font-weight:600;min-height:1.2em}
 #iqgate .ob-priv{text-align:center;font-size:.8rem;color:#6b8a78}
 .setupback{margin-bottom:10px}
+
+/* one page at a time: Home shows the landing text; each top-bar button shows only its own section */
+#entry[data-view="lp-top"] .lp-body{display:none}
+#entry[data-view]:not([data-view="lp-top"]) .lp-hero,#entry[data-view]:not([data-view="lp-top"]) .lp-about,#entry[data-view]:not([data-view="lp-top"]) .lp-end{display:none}
+#entry[data-view="lp-lib"] .lp-body .lp-sec:not(#lp-lib),#entry[data-view="lp-boards"] .lp-body .lp-sec:not(#lp-boards),#entry[data-view="lp-notes"] .lp-body .lp-sec:not(#lp-notes),#entry[data-view="lp-papers"] .lp-body .lp-sec:not(#lp-papers){display:none}
+#entry[data-view]:not([data-view="lp-top"]) .lp-body{min-height:70vh}

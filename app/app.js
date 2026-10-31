@@ -3192,9 +3192,7 @@
       var m = el.querySelector(".lp-menu"); if (!m || !el.isConnected) return;
       var btns = m.querySelectorAll("[data-go]"), cur = "lp-top", k;
       if (!el.classList.contains("docked")) {
-        var bar = el.querySelector(".lp-bar"), top = el.getBoundingClientRect().top, lim = (bar ? bar.offsetHeight : 0) + 40, ids = ["lp-lib", "lp-boards", "lp-notes", "lp-papers"];
-        for (k = 0; k < ids.length; k++) { var sc = el.querySelector("#" + ids[k]); if (sc && sc.getBoundingClientRect().top - top <= lim) cur = ids[k]; }
-        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 4 && el.scrollTop > 0) cur = ids[ids.length - 1];
+        cur = view;
       }
       for (k = 0; k < btns.length; k++) btns[k].className = !el.classList.contains("docked") && btns[k].getAttribute("data-go") === cur ? "act" : "";
     }
@@ -3220,6 +3218,7 @@
     });
     (function () { var ap = document.getElementById("app"), q = 0; if (ap && window.MutationObserver) new MutationObserver(function () { if (q) return; q = requestAnimationFrame(function () { q = 0; sync(); }); }).observe(ap, { childList: true }); })();
     function browseEntry() { el.classList.remove("docked"); setTimeout(sync, 0); var ap = document.getElementById("app"); if (ap) { ap.setAttribute("inert", ""); ap.setAttribute("aria-hidden", "true"); } }
+    var view = "lp-top"; function setView(v) { view = v; el.setAttribute("data-view", v); }
     var signing = false, authBusy = false, busyMsg = "", isReady = false, errMsg = "", freeOpen = null, boardSel = "all", clsSel = 0, typeSel = "all"; /* freeOpen = { item, i } while a free lesson is being read */
     function ext(u) { return /^https:\/\/[^\s"<>]+$/i.test(u || "") ? u : ""; }
     /* sign-in progress: only the buttons change, so the page does not flicker or replay its animations */
@@ -3313,7 +3312,7 @@
           (last ? "<p>" + esc(tx("Well done! Sign in to keep learning with games and tests.", "شاباش! کھیل اور ٹیسٹ کے ساتھ مزید سیکھنے کے لیے سائن اِن کریں۔")) + "</p>" + cta("lp-cta") : "<p>" + esc(cards[freeOpen.i] || "") + "</p>") +
           '</div><div class="lp-rd-nav"><button type="button" class="lp-signin" data-fprev' + (freeOpen.i ? "" : " disabled") + ">" + esc(tx("Back", "پیچھے")) + "</button><span>" + Math.min(freeOpen.i + 1, cards.length) + " / " + cards.length + '</span><button type="button" class="lp-signin" data-fnext' + (last ? " disabled" : "") + ">" + esc(tx("Next", "آگے")) + "</button></div></div></div>";
       }
-      var keep = el.scrollTop; el.innerHTML = h; el.scrollTop = keep; if (signed) sync(); else spy();
+      el.setAttribute("data-view", view); var keep = el.scrollTop; el.innerHTML = h; el.scrollTop = keep; if (signed) sync(); else spy();
       Array.prototype.forEach.call(el.querySelectorAll("[data-free]"), function (b) { b.onclick = function () { freeOpen = { item: free[Number(b.getAttribute("data-free"))], i: 0 }; paint(); }; });
       var fx = function (sel, fn) { var q = el.querySelector(sel); if (q) q.onclick = fn; };
       fx("[data-fclose]", function () { freeOpen = null; paint(); });
@@ -3329,7 +3328,7 @@
         b.onclick = function () {
           boardSel = b.getAttribute("data-board"); paint();
           var f = el.querySelector('.lp-strip [data-board="' + boardSel + '"]'); if (f && f.focus) f.focus({ preventScroll: true });
-          var s = el.querySelector("#lp-lib"); if (s) s.scrollIntoView({ behavior: smoothB(), block: "start" });
+          setView("lp-lib"); el.scrollTop = 0; spy();
         };
       });
       Array.prototype.forEach.call(el.querySelectorAll("[data-type]"), function (b) {
@@ -3337,7 +3336,7 @@
       });
       Array.prototype.forEach.call(el.querySelectorAll("[data-cls]"), function (b) { b.onclick = function () { clsSel = Number(b.getAttribute("data-cls")); paint(); }; });
       Array.prototype.forEach.call(el.querySelectorAll("[data-go]"), function (b) {
-        b.onclick = function () { var gid = b.getAttribute("data-go"); if (signed && el.classList.contains("docked")) { browseEntry(); sizeBar(); } if (gid === "lp-top") { if (el.scrollTo) el.scrollTo({ top: 0, behavior: smoothB() }); else el.scrollTop = 0; return; } var s = el.querySelector("#" + gid); if (s) s.scrollIntoView({ behavior: window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); };
+        b.onclick = function () { var gid = b.getAttribute("data-go"); if (signed && el.classList.contains("docked")) { browseEntry(); sizeBar(); } setView(gid); if (el.scrollTo) el.scrollTo({ top: 0 }); else el.scrollTop = 0; spy(); };
       });
       Array.prototype.forEach.call(el.querySelectorAll("[data-myclass]"), function (b) { b.onclick = function () { dockEntry(); window.scrollTo(0, 0); }; });
       el.querySelector("[data-elang]").onclick = function () { state.lang = state.lang === "ur" ? "en" : "ur"; save(); paint(); render(); };
