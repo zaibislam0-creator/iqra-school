@@ -43,7 +43,7 @@
   var ADMIN = !!window.IQRA_ADMIN;
   var STAFFPAGE = !!window.IQRA_STAFF_PAGE; /* true only on admin.html: staff console, no student screens */
   var cloud = { on: false, db: null, uid: null, role: "student", viewAs: "", err: "" };
-  var staffTab = "addbook", lecStore = [], tf = null, lecMsg = "";
+  var staffTab = "start", lecStore = [], tf = null, lecMsg = "";
   var state = load();
   state.meta = state.meta || {}; state.version = (!state.version || state.version === "2026-27 (draft)") ? "SNC 2020" : state.version; state.board = state.board || "";
   if (state.guide === undefined) state.guide = "ur"; if (state.read === undefined) state.read = "auto"; if (state.voice === undefined) state.voice = true; state.stars = state.stars || 0;
@@ -1641,6 +1641,7 @@
       case "lecToggle": var lt = lecStore.filter(function (x) { return x.id === arg; })[0]; if (lt) { cloud.db.collection("lectures").doc(arg).update({ published: !lt.d.published }).catch(cloudFail); } break;
       case "lecDel": cloud.db.collection("lectures").doc(arg).delete().catch(cloudFail); break;
       case "libKind": readLibDraft(); if (!libDraft) libDraft = newLibDraft(); libDraft.kind = arg; if (arg === "syllabus" && libDraft.board === "all") libDraft.board = "punjab"; libOpen = true; render(); break;
+      case "staffGo": var sg = arg.split(":"); staffTab = sg[0]; if (sg[0] === "library") { if (!libDraft) libDraft = newLibDraft(); libDraft.kind = sg[1] || ""; if (sg[1] === "syllabus" && libDraft.board === "all") libDraft.board = "punjab"; libOpen = true; libInit = true; } render(); window.scrollTo(0, 0); break;
       case "regMore": regShown += 30; render(); break;
       case "libCat": libCat = arg; render(); break;
       case "libClear": libQ = ""; libCat = "all"; render(); break;
@@ -2233,12 +2234,12 @@
     if (libMsg) { h += '<p class="note" aria-live="polite">' + esc(libMsg) + "</p>"; libMsg = ""; }
     if (!d.kind) {
       h += "<h4>" + T("Where should this book go?", "یہ کتاب کہاں جائے؟") + '</h4><div class="libpick">' +
-        '<button type="button" class="libchoice" data-act="libKind" data-arg="general"><b>📚 ' + T("Library", "کتب خانہ") + "</b><span>" + T("For everyone to read: stories, Urdu, general reading. Outside the syllabus.", "سب کے پڑھنے کے لیے: کہانیاں، اردو، عمومی مطالعہ۔ نصاب سے ہٹ کر۔") + "</span></button>" +
-        '<button type="button" class="libchoice" data-act="libKind" data-arg="syllabus"><b>🏫 ' + T("Board book", "بورڈ کی کتاب") + "</b><span>" + T("A syllabus book of a board. You will choose the board and the class.", "کسی بورڈ کی نصابی کتاب۔ آپ بورڈ اور جماعت چنیں گے۔") + "</span></button></div></form></details>";
+        '<button type="button" class="libchoice" data-act="libKind" data-arg="general"><b>' + sIcon("library", 20) + " " + T("Library", "کتب خانہ") + "</b><span>" + T("For everyone to read: stories, Urdu, general reading. Outside the syllabus.", "سب کے پڑھنے کے لیے: کہانیاں، اردو، عمومی مطالعہ۔ نصاب سے ہٹ کر۔") + "</span></button>" +
+        '<button type="button" class="libchoice" data-act="libKind" data-arg="syllabus"><b>' + sIcon("board", 20) + " " + T("Board book", "بورڈ کی کتاب") + "</b><span>" + T("A syllabus book of a board. You will choose the board and the class.", "کسی بورڈ کی نصابی کتاب۔ آپ بورڈ اور جماعت چنیں گے۔") + "</span></button></div></form></details>";
       return h;
     }
     var syl = d.kind === "syllabus";
-    h += '<p class="libwhere"><b>' + (syl ? "🏫 " + T("Board book", "بورڈ کی کتاب") : "📚 " + T("Library book", "کتب خانے کی کتاب")) + '</b> <button type="button" class="link" data-act="libKind" data-arg="">' + T("Change", "بدلیں") + "</button></p>";
+    h += '<p class="libwhere"><b>' + (syl ? T("Board book", "بورڈ کی کتاب") : T("Library book", "کتب خانے کی کتاب")) + '</b> <button type="button" class="link" data-act="libKind" data-arg="">' + T("Change", "بدلیں") + "</button></p>";
     if (syl) {
       h += '<label for="libb">' + T("1. Board", "1. بورڈ") + '</label><select id="libb">';
       LIB_BOARDS.forEach(function (b) { if (b[0] === "all") return; h += '<option value="' + b[0] + '"' + (d.board === b[0] ? " selected" : "") + ">" + esc(ur ? b[2] : b[1]) + "</option>"; });
@@ -2662,11 +2663,28 @@
     var c = cloud.db.collection("roles").doc(uid);
     (role === "teacher" ? c.set({ role: "teacher", by: cloud.uid, at: Date.now() }) : c.delete()).then(function () { teamMsg = ""; render(); }).catch(function (e) { teamMsg = String(e && (e.code || e.message) || e); cloudFail(e); render(); });
   }
+  var SI = { start: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>', library: '<path d="M4 5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2z"/><path d="M4 20a2 2 0 0 1 2-2h13"/>', classes: '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11.500V16c0 1.500 3 3 6 3s6-1.500 6-3v-4.500"/>', voice: '<path d="M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/>', team: '<circle cx="9" cy="8" r="3.500"/><path d="M2 20c0-3.300 3.100-6 7-6s7 2.700 7 6"/><path d="M17 4.500a3.500 3.500 0 0 1 0 6.500"/><path d="M18 14c2.400.6 4 2.400 4 5"/>', file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9 12h6M9 16h6"/>', box: '<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>', board: '<path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/>' };
+  function sIcon(k, n) { return '<svg viewBox="0 0 24 24" width="' + (n || 20) + '" height="' + (n || 20) + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (SI[k] || "") + "</svg>"; }
+  function staffStartView() {
+    var ur = LANG() === "ur", T = function (en, u) { return esc(ur ? u : en); }, st = classStats();
+    var card = function (arg, ic, en, u, den, du) { return '<button type="button" class="startcard" data-act="staffGo" data-arg="' + arg + '"><i aria-hidden="true">' + sIcon(ic, 22) + "</i><b>" + T(en, u) + "</b><span>" + T(den, du) + "</span></button>"; };
+    var h = "<h2>" + T("What would you like to do?", "آپ کیا کرنا چاہتے ہیں؟") + '</h2><div class="startgrid">' +
+      card("library:general", "library", "Add a book to the Library", "کتب خانے میں کتاب شامل کریں", "For everyone: stories, Urdu, general reading.", "سب کے لیے: کہانیاں، اردو، عمومی مطالعہ۔") +
+      card("library:syllabus", "board", "Add a board (syllabus) book", "بورڈ کی نصابی کتاب شامل کریں", "Choose the board and the class.", "بورڈ اور جماعت چنیں۔") +
+      card("addbook", "classes", "Add content to a class", "کسی جماعت میں مواد شامل کریں", "Pick a class and subject, then add a book, notes, video, test or past paper.", "جماعت اور مضمون چنیں، پھر کتاب، نوٹس، ویڈیو، ٹیسٹ یا پچھلا پرچہ شامل کریں۔") +
+      card("voice", "voice", "Record a voice", "آواز ریکارڈ کریں", "Record a person reading the lessons aloud.", "اسباق کی آواز ریکارڈ کریں۔") +
+      card("team", "team", "Team", "ٹیم", "Make someone a teacher.", "کسی کو استاد بنائیں۔") + "</div>";
+    var tile = function (n, en, u) { return '<div class="statt"><b>' + n + "</b><span>" + T(en, u) + "</span></div>"; };
+    h += '<div class="statrow">' + tile(getLib().length, "Library books", "کتب خانے کی کتابیں") + tile(st.chapters, "Class chapters", "جماعتوں کے ابواب") + tile(st.pending, "Waiting for review", "جائزے کے منتظر") + "</div>";
+    return h;
+  }
   function staffView() {
-    var tabs = [["addbook", "tabBooks"], ["voice", "voiceRec"], ["library", "libT"], ["admin", "hubAdmin"], ["team", "teamT"], ["pack", "packT"]];
-    var h = kidBanner(t("staffTab")) + roleSwitch() + '<p class="note cloudnote">' + esc(t(cloud.err ? "cloudErr" : "cloudOn")) + (cloud.err ? " (" + esc(cloud.err) + ")" : "") + "</p><div class=\"subtabs\">";
-    tabs.forEach(function (x) { h += '<button class="chip' + (staffTab === x[0] ? " on" : "") + '" data-act="staffTab" data-arg="' + x[0] + '">' + esc(x[0] === "team" ? (LANG() === "ur" ? "ٹیم" : "Team") : x[0] === "library" ? st3("libT") : t(x[1])) + "</button>"; });
+    var ur = LANG() === "ur";
+    var tabs = [["start", "start", "Start", "شروع"], ["library", "library", "Library", "کتب خانہ"], ["addbook", "classes", "Classes and content", "کلاسیں اور مواد"], ["voice", "voice", "Voice recordings", "آواز کی ریکارڈنگ"], ["team", "team", "Team", "ٹیم"], ["sep"], ["admin", "file", "Curriculum register", "نصاب رجسٹر"], ["pack", "box", "Content pack", "مواد کا پیک"]];
+    var h = kidBanner(t("staffTab")) + roleSwitch() + '<p class="note cloudnote' + (cloud.err ? "" : " ok") + '">' + esc(t(cloud.err ? "cloudErr" : "cloudOn")) + (cloud.err ? " (" + esc(cloud.err) + ")" : "") + '</p><div class="subtabs" role="tablist">';
+    tabs.forEach(function (x) { if (x[0] === "sep") { h += '<span class="subsep">' + esc(ur ? "مزید" : "More") + "</span>"; return; } h += '<button class="chip' + (staffTab === x[0] ? " on" : "") + '" role="tab" aria-selected="' + (staffTab === x[0]) + '" data-act="staffTab" data-arg="' + x[0] + '"><i aria-hidden="true">' + sIcon(x[1], 20) + "</i><span>" + esc(ur ? x[3] : x[2]) + "</span></button>"; });
     h += "</div>";
+    if (staffTab === "start") return h + staffStartView();
     if (staffTab === "team") { teamStart(); return h + teamView(); }
     if (staffTab === "voice") return h + voiceView();
     if (staffTab === "library") { if (libGrade === "mine") libGrade = "all"; if (!libInit) { libInit = true; libOpen = true; } return h + libraryView(); }
