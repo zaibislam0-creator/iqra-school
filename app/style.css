@@ -1283,3 +1283,6 @@ html.iq-resume,html.iq-resume body{overflow:hidden}
 #entry[data-view]:not([data-view="lp-top"]) .lp-hero,#entry[data-view]:not([data-view="lp-top"]) .lp-about,#entry[data-view]:not([data-view="lp-top"]) .lp-end{display:none}
 #entry[data-view="lp-lib"] .lp-body .lp-sec:not(#lp-lib),#entry[data-view="lp-boards"] .lp-body .lp-sec:not(#lp-boards),#entry[data-view="lp-notes"] .lp-body .lp-sec:not(#lp-notes),#entry[data-view="lp-papers"] .lp-body .lp-sec:not(#lp-papers){display:none}
 #entry[data-view]:not([data-view="lp-top"]) .lp-body{min-height:70vh}
+.lp-contact{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center}
+.lp-mail{display:inline-block;padding:12px 20px;border-radius:999px;background:#0d4a2e;color:#fff;font-weight:700;text-decoration:none;word-break:break-all}
+.lp-priv{color:#0d4a2e;font-weight:600;text-decoration:underline;text-underline-offset:3px}
