@@ -1640,6 +1640,7 @@
       case "lecEdit": var le = lecStore.filter(function (x) { return x.id === arg; })[0]; if (le) { tf = { id: le.id, grade: String(le.d.grade), subject: le.d.subject, title: L(le.d.lesson.title), cards: le.d.cards || "", qs: (le.d.qs || newTF().qs), published: !!le.d.published }; lecMsg = ""; render(); } break;
       case "lecToggle": var lt = lecStore.filter(function (x) { return x.id === arg; })[0]; if (lt) { cloud.db.collection("lectures").doc(arg).update({ published: !lt.d.published }).catch(cloudFail); } break;
       case "lecDel": cloud.db.collection("lectures").doc(arg).delete().catch(cloudFail); break;
+      case "libKind": readLibDraft(); if (!libDraft) libDraft = newLibDraft(); libDraft.kind = arg; if (arg === "syllabus" && libDraft.board === "all") libDraft.board = "punjab"; libOpen = true; render(); break;
       case "regMore": regShown += 30; render(); break;
       case "libCat": libCat = arg; render(); break;
       case "libClear": libQ = ""; libCat = "all"; render(); break;
@@ -2059,7 +2060,7 @@
   var sylGrade = null, sylSubj = "";
   var LIB_BOARDS = [["all", "All boards", "تمام بورڈ"], ["punjab", "Punjab", "پنجاب"], ["sindh", "Sindh", "سندھ"], ["kp", "Khyber Pakhtunkhwa", "خیبر پختونخوا"], ["balochistan", "Balochistan", "بلوچستان"], ["federal", "Federal (NBF)", "وفاقی (این بی ایف)"], ["other", "Other / private publisher", "دیگر / نجی ناشر"]];
   function boardName(id) { var b = LIB_BOARDS.filter(function (x) { return x[0] === id; })[0]; return b ? (LANG() === "ur" ? b[2] : b[1]) : ""; }
-  var libTimer = 0, libBoard = "all", libCat = "all", libQ = "", libGrade = "mine", libMsg = "", libArm = "", libDraft = null, libCloud = null, libOpen = false;
+  var libInit = false, libTimer = 0, libBoard = "all", libCat = "all", libQ = "", libGrade = "mine", libMsg = "", libArm = "", libDraft = null, libCloud = null, libOpen = false;
   var LIB_CATS = ["textbook", "quran", "urdu", "english", "science", "stories", "pak", "ref", "exam", "general"];
   // Starter entries: only official or trusted sites that were opened and checked. Admins add the rest.
   function libKind(x) { return x && (x.kind === "syllabus" || x.kind === "general") ? x.kind : (x && x.cat === "textbook" ? "syllabus" : "general"); }
@@ -2076,7 +2077,7 @@
   }
   function getLib() { return cloud.on ? (libCloud || []) : (state.library || []).map(function (x) { return cleanLib(x, x.id); }); }
   function canEditLib() { return isStaff() || (!cloud.on && adultOK); }
-  function newLibDraft() { return { title: "", author: "", topics: "", file: null, busy: false, cat: "general", kind: "general", board: "all", grade: "all", lang: "ur", url: "", note: "", verified: false }; }
+  function newLibDraft() { return { title: "", author: "", topics: "", file: null, busy: false, cat: "general", kind: "", board: "punjab", grade: "all", lang: "ur", url: "", note: "", verified: false }; }
   function readLibDraft() {
     if (!libDraft) return;
     var v = function (id) { var e = root.querySelector("#" + id); return e ? e.value : null; }, x;
@@ -2106,6 +2107,10 @@
   function libSave() {
     readLibDraft(); var d = libDraft || newLibDraft(), title = d.title.trim(), url = d.url.trim();
     if (!title || !d.cat) { libMsg = st3("libNeed"); return; }
+    var ur2 = LANG() === "ur";
+    if (!d.kind) { libMsg = ur2 ? "پہلے چنیں کہ کتاب کہاں جائے۔" : "First choose where the book goes."; libOpen = true; return; }
+    if (d.kind === "syllabus" && (d.grade === "all" || !d.board || d.board === "all")) { libMsg = ur2 ? "بورڈ کی کتاب کے لیے جماعت چنیں۔" : "For a board book, please choose the class."; libOpen = true; return; }
+    if (!d.file && !url) { libMsg = ur2 ? "پی ڈی ایف اپ لوڈ کریں یا ویب لنک لکھیں۔" : "Upload a PDF or paste a web link."; libOpen = true; return; }
     if (d.busy) { libMsg = LANG() === "ur" ? "فائل ابھی اپ لوڈ ہو رہی ہے، ذرا انتظار کریں۔" : "The file is still uploading, please wait."; return; }
     if (url && !/^https:\/\/[^\s]+$/i.test(url)) { libMsg = st3("libBadUrl"); return; }
     var item = cleanLib({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), title: title, author: d.author.trim(), cat: d.kind === "syllabus" ? "textbook" : d.cat, topics: d.topics.trim(), src: d.file ? { kind: "asset", url: d.file.url, name: d.file.name } : null, kind: d.kind, board: d.kind === "syllabus" ? d.board : "all", grade: d.grade, lang: d.lang, url: url, note: d.note.trim(), verified: d.verified, added: Date.now() }, "x");
@@ -2113,7 +2118,7 @@
       if (!cloudOK()) { libMsg = st3("libNoRight"); return; }
       cloudCol("meta").doc("lib-" + item.id).set({ lib: item }).catch(cloudFail); libCloud = (libCloud || []).concat([item]);
     } else { state.library = state.library || []; state.library.push(item); save(); }
-    libMsg = st3("libSaved"); libDraft = newLibDraft();
+    libMsg = st3("libSaved"); libOpen = true; libDraft = newLibDraft();
   }
   function libDelete(id) {
     if (cloud.on) { if (!cloudOK()) return; cloudCol("meta").doc("lib-" + id).delete().catch(cloudFail); libCloud = (libCloud || []).filter(function (x) { return x.id !== id; }); }
@@ -2183,7 +2188,7 @@
       return true;
     });
     var shown = base.filter(function (x) { return libCat === "all" || x.cat === libCat; });
-    var h = '<section class="page3">' + (kidUI() ? kidBanner(st3("libT")) : '<h2>' + esc(st3("libT")) + '</h2><p class="lead3">' + esc(st3("libIntro")) + "</p>");
+    var h = '<section class="page3">' + (kidUI() && !STAFFPAGE ? kidBanner(st3("libT")) : '<h2>' + esc(st3("libT")) + '</h2><p class="lead3">' + esc(st3("libIntro")) + "</p>") + (STAFFPAGE && canEditLib() ? libAddHTML() : "");
     h += '<form id="libf" class="libbar"><label class="sr" for="libq">' + esc(st3("libSearch")) + '</label><input id="libq" type="search" dir="auto" placeholder="' + esc(st3("libSearch")) + '" value="' + esc(libQ) + '"><button class="btn" type="submit">' + esc(st3("libGo")) + "</button></form>";
     h += '<div class="pagebar"><label for="libgrade">' + esc(st3("sylClass")) + '</label><select id="libgrade"><option value="mine"' + (libGrade === "mine" ? " selected" : "") + ">" + esc(st3("libMine")) + " (" + esc(gradeLabel(state.grade)) + ')</option><option value="all"' + (libGrade === "all" ? " selected" : "") + ">" + esc(st3("libAllC")) + '</option></select><label for="libboard">' + esc(LANG() === "ur" ? "بورڈ" : "Board") + '</label><select id="libboard">' + LIB_BOARDS.map(function (b) { return '<option value="' + b[0] + '"' + (libBoard === b[0] ? " selected" : "") + ">" + esc(LANG() === "ur" ? b[2] : b[1]) + "</option>"; }).join("") + '</select><button class="chip lightchip" data-nav="syllabus">' + esc(st3("toSyl")) + "</button></div>";
     h += "<h3>" + esc(st3("libCatT")) + '</h3><div class="libcats"><button class="libcat' + (libCat === "all" ? " on" : "") + '" data-act="libCat" data-arg="all"><b>' + esc(st3("libAll")) + "</b><span>" + base.length + "</span></button>";
@@ -2218,37 +2223,52 @@
       h += "</div></article>";
     });
     h += '<p class="note">' + esc(st3("libNote")) + "</p>";
-    if (canEditLib()) h += libAddHTML();
+    if (canEditLib() && !STAFFPAGE) h += libAddHTML();
     return h + "</section>";
   }
   function libAddHTML() {
     if (!libDraft) libDraft = newLibDraft();
-    var d = libDraft, h = '<details class="more libadd" id="libform"' + (libOpen ? " open" : "") + "><summary>" + esc(st3("libAddT")) + '</summary><form id="libaddf">';
+    var d = libDraft, ur = LANG() === "ur", T = function (en, u) { return esc(ur ? u : en); };
+    var h = '<details class="more libadd" id="libform"' + (libOpen ? " open" : "") + "><summary>" + T("Upload a book", "کتاب اپ لوڈ کریں") + '</summary><form id="libaddf">';
     if (libMsg) { h += '<p class="note" aria-live="polite">' + esc(libMsg) + "</p>"; libMsg = ""; }
-    var miss = ["punjab", "sindh", "balochistan"].filter(function (id) { var b = D.boards[id]; return b && !getLib().some(function (x) { return x.title === b.authority; }); });
-    if (miss.length) {
-      h += "<h4>" + esc(st3("libBoards")) + '</h4><p class="small">' + esc(st3("libBoardsHint")) + '</p><div class="chiprow">';
-      miss.forEach(function (id) { h += '<button type="button" class="chip lightchip" data-act="libPrefill" data-arg="' + id + '">' + esc(D.boards[id].authority) + "</button>"; });
-      h += "</div>";
+    if (!d.kind) {
+      h += "<h4>" + T("Where should this book go?", "یہ کتاب کہاں جائے؟") + '</h4><div class="libpick">' +
+        '<button type="button" class="libchoice" data-act="libKind" data-arg="general"><b>📚 ' + T("Library", "کتب خانہ") + "</b><span>" + T("For everyone to read: stories, Urdu, general reading. Outside the syllabus.", "سب کے پڑھنے کے لیے: کہانیاں، اردو، عمومی مطالعہ۔ نصاب سے ہٹ کر۔") + "</span></button>" +
+        '<button type="button" class="libchoice" data-act="libKind" data-arg="syllabus"><b>🏫 ' + T("Board book", "بورڈ کی کتاب") + "</b><span>" + T("A syllabus book of a board. You will choose the board and the class.", "کسی بورڈ کی نصابی کتاب۔ آپ بورڈ اور جماعت چنیں گے۔") + "</span></button></div></form></details>";
+      return h;
     }
-    h += '<label for="libt">' + esc(st3("libTitle")) + '</label><input id="libt" dir="auto" maxlength="140" value="' + esc(d.title) + '">';
-    h += '<label for="liba">' + esc(st3("libAuthor")) + '</label><input id="liba" dir="auto" maxlength="100" value="' + esc(d.author) + '">';
-    h += '<label for="libk">' + esc(LANG() === "ur" ? "کتاب کی قسم" : "Kind of book") + '</label><select id="libk"><option value="general"' + (d.kind === "general" ? " selected" : "") + ">" + esc(LANG() === "ur" ? "کتب خانہ: نصاب سے ہٹ کر، سب کے لیے" : "Library: outside the syllabus, for everyone") + '</option><option value="syllabus"' + (d.kind === "syllabus" ? " selected" : "") + ">" + esc(LANG() === "ur" ? "نصابی کتاب: بورڈ اور جماعت کے تحت" : "Syllabus book: shown under its board and class") + '</option></select><p class="small">' + esc(LANG() === "ur" ? "نصابی کتاب کے لیے بورڈ اور جماعت ضرور چنیں۔ کتب خانے کی کتاب کے لیے بورڈ نہیں چاہیے۔" : "For a syllabus book choose its board and class. A library book does not need a board.") + "</p>";
-    h += '<label for="libc">' + esc(st3("libCat")) + '</label><select id="libc">';
-    LIB_CATS.forEach(function (c) { h += '<option value="' + c + '"' + (d.cat === c ? " selected" : "") + ">" + esc(st3("cat_" + c)) + "</option>"; });
-    h += '</select><label for="libb">' + esc(LANG() === "ur" ? "بورڈ" : "Board") + '</label><select id="libb">'; LIB_BOARDS.forEach(function (b) { h += '<option value="' + b[0] + '"' + (d.board === b[0] ? " selected" : "") + ">" + esc(LANG() === "ur" ? b[2] : b[1]) + "</option>"; });
-    h += '</select><label for="libg">' + esc(st3("libClass")) + '</label><select id="libg"><option value="all"' + (d.grade === "all" ? " selected" : "") + ">" + esc(st3("libAllC")) + "</option>";
-    D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(d.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
-    h += '</select><label for="libl">' + esc(st3("libLang")) + '</label><select id="libl">';
-    [["ur", "langur"], ["en", "langen"], ["ar", "langar"], ["ot", "langot"]].forEach(function (x) { h += '<option value="' + x[0] + '"' + (d.lang === x[0] ? " selected" : "") + ">" + esc(st3(x[1])) + "</option>"; });
-    h += '</select><label for="libtp">' + esc(LANG() === "ur" ? "موضوعات / کلیدی الفاظ (تلاش کے لیے)" : "Topics / keywords (helps students find it)") + '</label><input id="libtp" dir="auto" maxlength="240" value="' + esc(d.topics) + '">';
+    var syl = d.kind === "syllabus";
+    h += '<p class="libwhere"><b>' + (syl ? "🏫 " + T("Board book", "بورڈ کی کتاب") : "📚 " + T("Library book", "کتب خانے کی کتاب")) + '</b> <button type="button" class="link" data-act="libKind" data-arg="">' + T("Change", "بدلیں") + "</button></p>";
+    if (syl) {
+      h += '<label for="libb">' + T("1. Board", "1. بورڈ") + '</label><select id="libb">';
+      LIB_BOARDS.forEach(function (b) { if (b[0] === "all") return; h += '<option value="' + b[0] + '"' + (d.board === b[0] ? " selected" : "") + ">" + esc(ur ? b[2] : b[1]) + "</option>"; });
+      h += '</select><label for="libg">' + T("2. Class", "2. جماعت") + '</label><select id="libg"><option value="all"' + (d.grade === "all" ? " selected" : "") + ">" + T("Choose a class", "جماعت چنیں") + "</option>";
+      D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(d.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
+      h += "</select>";
+    }
+    h += '<label for="libt">' + T(syl ? "3. Book title" : "1. Book title", syl ? "3. کتاب کا نام" : "1. کتاب کا نام") + '</label><input id="libt" dir="auto" maxlength="140" value="' + esc(d.title) + '">';
+    h += '<label for="libtp">' + (syl ? T("Subject", "مضمون") : T("Topics / keywords (helps students find it)", "موضوعات / کلیدی الفاظ (تلاش کے لیے)")) + '</label><input id="libtp" dir="auto" maxlength="240" placeholder="' + esc(syl ? (ur ? "مثلاً اردو، ریاضی" : "e.g. Urdu, Maths") : (ur ? "مثلاً سچائی، اخلاق، کہانیاں" : "e.g. honesty, stories")) + '" value="' + esc(d.topics) + '">';
+    if (!syl) h += '<label for="liba">' + T("Author (optional)", "مصنف (اختیاری)") + '</label><input id="liba" dir="auto" maxlength="100" value="' + esc(d.author) + '">';
     if (isAdminRes() && resAssets) {
-      h += '<label for="libfile">' + esc(LANG() === "ur" ? "کتاب کی پی ڈی ایف اپ لوڈ کریں (طلبہ ایپ میں پڑھ سکیں گے)" : "Upload the book as PDF (students can read it in the app)") + '</label><input id="libfile" type="file" accept="application/pdf"' + (d.busy ? " disabled" : "") + ">";
+      h += '<label for="libfile">' + T(syl ? "4. Upload the PDF" : "2. Upload the PDF", syl ? "4. پی ڈی ایف اپ لوڈ کریں" : "2. پی ڈی ایف اپ لوڈ کریں") + '</label><input id="libfile" type="file" accept="application/pdf"' + (d.busy ? " disabled" : "") + ">";
       if (d.file) h += '<p class="small">✅ ' + esc(d.file.name || "") + "</p>";
-    } else if (STAFFPAGE) h += '<p class="small note">' + esc(LANG() === "ur" ? "پی ڈی ایف اپ لوڈ ابھی دستیاب نہیں (فائل سرور سے رابطہ نہیں)۔ آپ ویب لنک دے سکتے ہیں۔" : "PDF upload is not available right now (file service not connected). You can use a web link instead.") + "</p>";
-    h += '<label for="libu">' + esc(st3("libUrl")) + '</label><input id="libu" type="url" inputmode="url" dir="ltr" placeholder="https://" value="' + esc(d.url) + '">';
-    h += '<label for="libn">' + esc(st3("libNoteF")) + '</label><input id="libn" dir="auto" maxlength="240" value="' + esc(d.note) + '">';
-    h += '<label class="inl"><input type="checkbox" id="libv"' + (d.verified ? " checked" : "") + "> " + esc(st3("libVerF")) + '</label><button class="bigbtn gobtn2" type="submit">' + esc(st3("libSave")) + "</button></form></details>";
+      h += '<p class="small">' + T("Or paste a web link instead:", "یا اس کی جگہ ویب لنک لکھیں:") + "</p>";
+    } else h += '<p class="small note">' + T("PDF upload is not available right now. Paste a web link below.", "پی ڈی ایف اپ لوڈ ابھی دستیاب نہیں۔ نیچے ویب لنک لکھیں۔") + "</p>";
+    h += '<input id="libu" type="url" inputmode="url" dir="ltr" placeholder="https://" value="' + esc(d.url) + '" aria-label="' + T("Web link", "ویب لنک") + '">';
+    h += '<details class="more"><summary>' + T("More options", "مزید اختیارات") + "</summary>";
+    if (syl) h += '<label for="liba">' + T("Author / publisher", "مصنف / ناشر") + '</label><input id="liba" dir="auto" maxlength="100" value="' + esc(d.author) + '">';
+    else {
+      h += '<label for="libc">' + esc(st3("libCat")) + '</label><select id="libc">';
+      LIB_CATS.forEach(function (c) { if (c === "textbook") return; h += '<option value="' + c + '"' + (d.cat === c ? " selected" : "") + ">" + esc(st3("cat_" + c)) + "</option>"; });
+      h += '</select><label for="libg">' + T("Suitable for class", "کس جماعت کے لیے") + '</label><select id="libg"><option value="all"' + (d.grade === "all" ? " selected" : "") + ">" + esc(st3("libAllC")) + "</option>";
+      D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(d.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
+      h += "</select>";
+    }
+    h += '<label for="libl">' + esc(st3("libLang")) + '</label><select id="libl">';
+    [["ur", "langur"], ["en", "langen"], ["ar", "langar"], ["ot", "langot"]].forEach(function (x) { h += '<option value="' + x[0] + '"' + (d.lang === x[0] ? " selected" : "") + ">" + esc(st3(x[1])) + "</option>"; });
+    h += '</select><label for="libn">' + esc(st3("libNoteF")) + '</label><input id="libn" dir="auto" maxlength="240" value="' + esc(d.note) + '">';
+    h += '<label class="inl"><input type="checkbox" id="libv"' + (d.verified ? " checked" : "") + "> " + esc(st3("libVerF")) + "</label></details>";
+    h += '<button class="bigbtn gobtn2" type="submit"' + (d.busy ? " disabled" : "") + ">" + T(syl ? "Save under this board and class" : "Save to Library", syl ? "اس بورڈ اور جماعت میں محفوظ کریں" : "کتب خانے میں محفوظ کریں") + "</button></form></details>";
     return h;
   }
   function announceHTML() {
@@ -2649,7 +2669,7 @@
     h += "</div>";
     if (staffTab === "team") { teamStart(); return h + teamView(); }
     if (staffTab === "voice") return h + voiceView();
-    if (staffTab === "library") { if (libGrade === "mine") libGrade = "all"; return h + libraryView(); }
+    if (staffTab === "library") { if (libGrade === "mine") libGrade = "all"; if (!libInit) { libInit = true; libOpen = true; } return h + libraryView(); }
     if (staffTab === "admin") return h + adminView();
     if (staffTab === "pack") return h + packView() + '<div class="card"><button class="btn alt" data-act="migrate">' + esc(t("migrate")) + "</button><p class=\"small\">" + esc(t("migrateNote")) + "</p></div>";
     return h + addBookView();
