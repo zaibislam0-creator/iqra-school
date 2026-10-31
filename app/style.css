@@ -1115,7 +1115,7 @@ nav button.act,.kidnav button.act,.topbar .kidnav button.act{background:#0d4a2e;
 @keyframes lpSheen{0%{transform:translateX(-300px) skewX(-18deg)}38%,100%{transform:translateX(1250px) skewX(-18deg)}}
 
 /* one scrollbar only: while the public home screen is open it scrolls by itself, the page behind stays still */
-html:has(#entry),html:has(#entry) body{overflow:hidden!important;height:100%}
+html:has(#entry:not(.docked)),html:has(#entry:not(.docked)) body{overflow:hidden!important;height:100%}
 
 /* ===== audit fixes ===== */
 /* dark mode: deep-green text must become light mint on dark cards */
@@ -1154,3 +1154,11 @@ html:has(#entry),html:has(#entry) body{overflow:hidden!important;height:100%}
 :root[data-theme="dark"] .kgtile{background:var(--card)!important;border-color:var(--line)!important}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kgsec,:root:not([data-theme="light"]) .kgsec small{background:var(--card)!important;color:var(--tx)!important}}
 :root[data-theme="dark"] .kgsec,:root[data-theme="dark"] .kgsec small{background:var(--card)!important;color:var(--tx)!important}
+
+/* one site, one header: after sign-in the public bar stays on top and the learning app opens right under it */
+#entry.docked{position:sticky;top:0;inset:auto;height:auto;overflow:visible;background:transparent;z-index:50;transition:none}
+#entry.docked>:not(.lp-bar){display:none}
+#entry.docked .lp-strip,#entry.docked .entry-lang{display:none}
+#entry.signed .lp-signin,#entry.signed .lp-hero,#entry.signed .lp-end{display:none}
+body:has(#entry.docked) .topbar{top:calc(var(--lpbar,56px) + 6px)}
+body:has(#entry.docked) .topbar .brand{display:none}
