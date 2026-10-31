@@ -1068,3 +1068,8 @@ button.pstep.go{background:var(--coral);border-color:var(--coral);color:var(--in
 .lp-rd-top{color:#cfe5d5}
 .lp-rd h3{color:#fff}
 @media (min-width:900px){.lp-sec{scroll-margin-top:128px}}
+
+/* ===== Logo: gold lettering only, no background plate (matches the home page palette) ===== */
+.lp-logo{-webkit-mask-image:none;mask-image:none;border-radius:0;object-fit:contain;background:none;box-shadow:none;filter:drop-shadow(0 6px 16px rgba(120,86,10,.28))}
+.brand-logo,.topbar .brand-logo{border:0;background:transparent;border-radius:0;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.28))}
+.hero3-art .logo-orb{border-radius:0;object-fit:contain;box-shadow:none;background:none}
