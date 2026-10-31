@@ -1,0 +1,183 @@
+rules_version = '2';
+// IQRA Digital School: STRICT Firestore rules.  Everything not listed here is denied.
+// Real protection lives here (server side). Nothing in index.html, admin.html or gate.js is trusted.
+//
+// Who is who
+//   owner    : token claim owner == true, or (bootstrap) the verified Google account below. Only the owner can create or remove ADMINS.
+//   admin    : token claim admin == true, or roles/<uid>.role == 'admin', or owner. Can manage teachers, approve classes, publish.
+//   teacher  : roles/<uid>.role == 'teacher'. Has NO access until an admin fills roles/<uid>.classes AND roles/<uid>.subjects.
+//   student  : any other signed-in user.
+//
+// To stop relying on an e-mail address at all: run tools/set-admin-claim.js for the owner, sign in again, then delete the
+// bootstrap line in ownerBootstrap().  See SECURITY-RUNBOOK.md.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------ identity
+    function signedIn() { return request.auth != null; }
+    function ownerBootstrap() {
+      return signedIn()
+        && request.auth.token.email == 'zaibislam0@gmail.com'
+        && request.auth.token.email_verified == true
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+    function isOwner() { return signedIn() && (request.auth.token.get('owner', false) == true || ownerBootstrap()); }
+    function roleRef() { return /databases/$(database)/documents/roles/$(request.auth.uid); }
+    function hasRole() { return signedIn() && exists(roleRef()); }
+    function roleName() { return get(roleRef()).data.get('role', ''); }
+    function isAdmin() { return isOwner() || (signedIn() && request.auth.token.get('admin', false) == true) || (hasRole() && roleName() == 'admin'); }
+    function isTeacher() { return !isAdmin() && hasRole() && roleName() == 'teacher'; }
+    function isStaff() { return isAdmin() || isTeacher(); }
+
+    // ------------------------------------------------------------------ vocab
+    function classIds() { return ['PG', 'NU', 'KG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']; }       // grade strings used by content
+    function profileClasses() { return ['Play Group', 'Nursery', 'KG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']; } // students/<uid>.cls (new students)
+    function boards() { return ['punjab', 'federal']; }
+    function isSecCls(c) { return c in ['9', '10']; }
+
+    // ------------------------------------------------------------------ teacher scope (default: nothing)
+    function tClasses() { return hasRole() ? get(roleRef()).data.get('classes', []) : []; }
+    function tSubjects() { return hasRole() ? get(roleRef()).data.get('subjects', []) : []; }
+    function teacherMay(grade, subject) { return isTeacher() && grade is string && subject is string && grade in tClasses() && subject in tSubjects(); }
+
+    // ------------------------------------------------------------------ student audience for published content
+    // Content carries aud = 'all', or 'punjab' / 'federal' for Grades 9-10 (or 'none' when a Grade 9-10 item has no board yet).
+    function myAud() {
+      return signedIn() && exists(/databases/$(database)/documents/students/$(request.auth.uid))
+        && get(/databases/$(database)/documents/students/$(request.auth.uid)).data.get('sboard', '') in boards()
+        ? get(/databases/$(database)/documents/students/$(request.auth.uid)).data.sboard : 'all';
+    }
+    // a signed-in learner may read an item only if it is published and meant for everyone or for their own board
+    function learnerMayRead() {
+      return signedIn() && resource.data.get('published', false) == true && (resource.data.get('aud', 'none') == 'all' || resource.data.get('aud', 'none') == myAud());
+    }
+    // staff read rule shared by content collections (queries must be constrained the same way; see app code)
+    function staffMayRead() {
+      return isAdmin()
+        || (isTeacher() && (resource.data.get('published', false) == true || resource.data.get('author', '') == request.auth.uid || resource.data.get('grade', '') in tClasses()));
+    }
+    // a teacher may write only inside the assigned class AND subject, only as author, and can never publish
+    function teacherCreates() {
+      return teacherMay(request.resource.data.get('grade', ''), request.resource.data.get('subject', ''))
+        && request.resource.data.get('author', '') == request.auth.uid
+        && request.resource.data.get('published', false) == false;
+    }
+    function teacherEdits() {
+      return teacherMay(resource.data.get('grade', ''), resource.data.get('subject', ''))
+        && resource.data.get('author', '') == request.auth.uid
+        && teacherCreates();
+    }
+    function teacherDeletes() {
+      return teacherMay(resource.data.get('grade', ''), resource.data.get('subject', ''))
+        && resource.data.get('author', '') == request.auth.uid
+        && resource.data.get('published', false) == false;
+    }
+
+    // ------------------------------------------------------------------ roles
+    match /roles/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      // only the owner may create/change/remove an ADMIN; admins may manage teachers; nobody can change their own role document
+      allow create, update: if signedIn() && request.auth.uid != uid
+        && request.resource.data.keys().hasOnly(['role', 'by', 'at', 'classes', 'subjects'])
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.role in ['teacher', 'admin']
+        && request.resource.data.get('classes', []) is list && request.resource.data.get('classes', []).hasOnly(classIds())
+        && request.resource.data.get('subjects', []) is list && request.resource.data.get('subjects', []).size() <= 60
+        && (isOwner()
+            || (isAdmin() && request.resource.data.role == 'teacher'
+                && (resource == null || resource.data.role == 'teacher')));
+      allow delete: if signedIn() && request.auth.uid != uid && (isOwner() || (isAdmin() && resource.data.role == 'teacher'));
+    }
+
+    // ------------------------------------------------------------------ students (private details)
+    match /students/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      // first sign-up: the student picks a class (never F.A) and, for Grades 9-10, a board
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'cls', 'city', 'phone', 'email', 'updated', 'sboard'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 80
+        && request.resource.data.cls in profileClasses()
+        && request.resource.data.get('city', '') is string && request.resource.data.get('city', '').size() <= 80
+        && request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 30
+        && request.resource.data.get('email', '') in ['', request.auth.token.email]
+        && request.resource.data.updated is number
+        && (isSecCls(request.resource.data.cls) ? request.resource.data.get('sboard', '') in boards() : request.resource.data.get('sboard', '') == '');
+      // afterwards the student can change only personal details. cls and sboard are frozen (changes go through classRequests).
+      // One exception: a legacy Grade 9-10 profile that has no board yet may set it once.
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'cls', 'city', 'phone', 'email', 'updated', 'sboard'])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 80
+        && request.resource.data.get('city', '') is string && request.resource.data.get('city', '').size() <= 80
+        && request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 30
+        && request.resource.data.get('email', '') in ['', request.auth.token.email]
+        && request.resource.data.updated is number
+        && request.resource.data.cls == resource.data.cls
+        && (request.resource.data.get('sboard', '') == resource.data.get('sboard', '')
+            || (resource.data.get('sboard', '') == '' && isSecCls(resource.data.cls) && request.resource.data.sboard in boards()));
+      // an admin approves official class and board changes (and may set F.A for a legacy student)
+      allow create, update: if isAdmin() && request.resource.data.get('sboard', '') in ['', 'punjab', 'federal'];
+      allow delete: if isAdmin();
+
+      match /history/{hid} {
+        allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+        allow create: if isAdmin();            // written when an admin approves a class or board change; never edited
+        allow update, delete: if false;
+      }
+    }
+
+    // class / board change requests: the student asks, an admin decides
+    match /classRequests/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'name', 'from', 'fromBoard', 'to', 'toBoard', 'status', 'at'])
+        && request.resource.data.uid == uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.to in profileClasses()
+        && (isSecCls(request.resource.data.to) ? request.resource.data.get('toBoard', '') in boards() : request.resource.data.get('toBoard', '') == '')
+        && request.resource.data.at is number;
+      allow update: if isAdmin() && request.resource.data.status in ['approved', 'rejected'];
+      allow delete: if isAdmin() || (signedIn() && request.auth.uid == uid);
+    }
+
+    // ------------------------------------------------------------------ learning content
+    match /resources/{id} {
+      allow get, list: if learnerMayRead() || staffMayRead();
+      allow create: if isAdmin() || (isTeacher() && teacherCreates());
+      allow update: if isAdmin() || (isTeacher() && teacherEdits());
+      allow delete: if isAdmin() || (isTeacher() && teacherDeletes());
+    }
+    match /lectures/{id} {
+      allow get, list: if learnerMayRead() || staffMayRead();
+      allow create: if isAdmin() || (isTeacher() && teacherCreates());
+      allow update: if isAdmin() || (isTeacher() && teacherEdits());
+      allow delete: if isAdmin() || (isTeacher() && teacherDeletes());
+    }
+    // uploaded book chapters: created and published by admins only
+    match /chapters/{id} {
+      allow get, list: if learnerMayRead() || isAdmin() || (isTeacher() && resource.data.get('published', false) == true);
+      allow create, update, delete: if isAdmin();
+    }
+    // verification status, version, class notes, library entries, voice clips: readable to signed-in users, written by admins only
+    match /meta/{id}  { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /clips/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+
+    // ------------------------------------------------------------------ audit trail (append only)
+    match /auditLog/{id} {
+      allow read: if isAdmin();
+      allow create: if isStaff() && request.resource.data.keys().hasOnly(['actor', 'action', 'target', 'detail', 'at'])
+        && request.resource.data.actor == request.auth.uid && request.resource.data.at is number
+        && request.resource.data.action is string && request.resource.data.action.size() <= 60
+        && request.resource.data.get('detail', '') is string && request.resource.data.get('detail', '').size() <= 500;
+      allow update, delete: if false;
+    }
+
+    // ------------------------------------------------------------------ translation service (Cloud Functions only)
+    match /translations/{id}     { allow read: if signedIn(); allow write: if false; }
+    match /translationUsage/{id} { allow read, write: if false; }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

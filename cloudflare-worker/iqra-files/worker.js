@@ -10,6 +10,13 @@ const TYPES = { "application/pdf": "pdf", "video/mp4": "mp4", "video/webm": "web
 const MAX_BYTES = 90 * 1024 * 1024; // Workers accept request bodies up to 100 MB
 const KEY_RE = /^f\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|mp4|webm)$/;
 
+// First bytes of each allowed file type: PDF "%PDF-", MP4 "....ftyp", WebM/Matroska 1A 45 DF A3
+function magicOk(ext, b) {
+  if (ext === "pdf") return b.length >= 5 && b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46 && b[4] === 0x2d;
+  if (ext === "mp4") return b.length >= 8 && b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70;
+  if (ext === "webm") return b.length >= 4 && b[0] === 0x1a && b[1] === 0x45 && b[2] === 0xdf && b[3] === 0xa3;
+  return false;
+}
 function origins(env) { return String(env.ALLOWED_ORIGINS || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean); }
 function cors(req, env) {
   const o = req.headers.get("Origin") || "", list = origins(env), ok = list.indexOf(o) > -1;
@@ -55,13 +62,18 @@ async function verifyToken(token, env) {
   if (!ok) throw new Error("signature");
   const now = Math.floor(Date.now() / 1000);
   if (claims.aud !== env.PROJECT_ID || claims.iss !== "https://securetoken.google.com/" + env.PROJECT_ID) throw new Error("audience");
-  if (!claims.sub || typeof claims.sub !== "string" || claims.exp <= now || claims.iat > now + 60) throw new Error("expired");
+  if (!claims.sub || typeof claims.sub !== "string" || claims.sub.length > 128 || claims.exp <= now || claims.iat > now + 60) throw new Error("expired");
+  if (typeof claims.auth_time === "number" && claims.auth_time > now + 60) throw new Error("auth_time");
   return claims;
 }
 // Same rule the site uses: the owner (verified email) or anyone whose roles/<uid> document says "admin".
+// Trusted sources only, in this order: (1) an admin custom claim set by the server-side script (tools/set-admin-claim.js),
+// (2) a roles/<uid> document that says "admin" (the document can only be written by the owner/admin through Firestore rules),
+// (3) the bootstrap owner account: verified Google e-mail from the Google sign-in provider.
 async function isAdmin(claims, token, env) {
-  const mail = String(claims.email || "").toLowerCase();
-  if (mail && claims.email_verified === true && mail === String(env.OWNER_EMAIL || "").toLowerCase()) return true;
+  if (claims.admin === true) return true;
+  const mail = String(claims.email || "").toLowerCase(), provider = claims.firebase && claims.firebase.sign_in_provider;
+  if (mail && claims.email_verified === true && provider === "google.com" && mail === String(env.OWNER_EMAIL || "").toLowerCase()) return true;
   const url = "https://firestore.googleapis.com/v1/projects/" + encodeURIComponent(env.PROJECT_ID) + "/databases/(default)/documents/roles/" + encodeURIComponent(claims.sub);
   const r = await fetch(url, { headers: { Authorization: "Bearer " + token } });
   if (!r.ok) return false;
@@ -95,7 +107,17 @@ async function upload(req, env, h) {
 
   const id = crypto.randomUUID(), key = "f/" + id + "." + ext;
   const name = new URL(req.url).searchParams.get("name") || "";
-  await env.BOOKS.put(key, req.body, { httpMetadata: { contentType: type }, customMetadata: { by: claims.sub, name: name.slice(0, 200) } });
+  // onlyIf: never replace an existing object (keys are random and there is no overwrite or delete endpoint)
+  const put = await env.BOOKS.put(key, req.body, { onlyIf: { etagDoesNotMatch: "*" }, httpMetadata: { contentType: type }, customMetadata: { by: claims.sub, name: name.slice(0, 200) } });
+  if (!put) return json({ error: "exists" }, 409, h);
+  // the declared type must match the real bytes, and the stored size must match what was announced
+  let okBytes = false;
+  try {
+    const head = await env.BOOKS.get(key, { range: { offset: 0, length: 16 } });
+    const buf = head ? new Uint8Array(await head.arrayBuffer()) : new Uint8Array(0);
+    okBytes = magicOk(ext, buf) && head.size === len;
+  } catch (e) { okBytes = false; }
+  if (!okBytes) { try { await env.BOOKS.delete(key); } catch (e) {} return json({ error: "content does not match type" }, 415, h); }
   return json({ id: id, url: new URL(req.url).origin + "/" + key, name: name, size: len, type: type }, 200, h);
 }
 

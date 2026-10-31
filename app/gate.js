@@ -28,29 +28,47 @@ const gisPrompt=()=>new Promise(r=>{try{google.accounts.id.prompt(n=>{if((n.isNo
 const gisToken=()=>new Promise(res=>{try{const tc=google.accounts.oauth2.initTokenClient({client_id:CID,scope:'openid email profile',callback:async t=>{if(!t||!t.access_token){res(t&&t.error==='access_denied'?'':'x');return}try{await Au.signInWithCredential(auth,Au.GoogleAuthProvider.credential(null,t.access_token));res('')}catch(e){res(friendly(e))}},error_callback:e=>res(e&&(e.type==='popup_closed')?'':'x')});tc.requestAccessToken({prompt:'select_account'})}catch(e){res('x')}});
 window.__iqSignIn=async()=>{if(await gisInit()){if(await gisPrompt()!=='fallback')return '';const r=await gisToken();if(r!=='x')return r}
  try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider());return ''}catch(e){return friendly(e)}};
-window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try{const x={updated:Date.now()};if(p&&p.name)x.name=String(p.name).slice(0,80);if(p&&p.cls)x.cls=String(p.cls);if(p&&p.sboard)x.sboard=String(p.sboard);await F.setDoc(F.doc(fs,'students',u.uid),x,{merge:true});return true}catch(e){return false}};
+window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try{
+ const cur=window.__iqProfile||{},sec=c=>c==='9'||c==='10',x={updated:Date.now()};
+ if(p&&p.name)x.name=String(p.name).slice(0,80);
+ const wantC=p&&p.cls?String(p.cls):'',wantB=p&&p.sboard?String(p.sboard):'';let req=false;
+ if(cur.cls){ /* an official class exists: the student cannot change it or the board; they can only ask */
+  const tc=wantC||cur.cls,tb=sec(tc)?(wantB||cur.sboard||''):'';
+  if(sec(cur.cls)&&!cur.sboard&&tc===cur.cls&&tb){x.sboard=tb} /* legacy Grade 9-10 profile: choosing the board for the first time */
+  else if(tc!==cur.cls||tb!==(cur.sboard||''))req=true;
+ }else{if(wantC)x.cls=wantC;if(sec(wantC)&&wantB)x.sboard=wantB}
+ await F.setDoc(F.doc(fs,'students',u.uid),x,{merge:true});
+ if(x.sboard)window.__iqProfile=Object.assign({},cur,{sboard:x.sboard});
+ if(req){const tc=wantC||cur.cls,tb=sec(tc)?(wantB||cur.sboard||''):'';
+  const r={uid:u.uid,name:String((p&&p.name)||cur.name||'').slice(0,80),from:cur.cls||'',fromBoard:cur.sboard||'',to:tc,toBoard:tb,status:'pending',at:Date.now()};
+  await F.setDoc(F.doc(fs,'classRequests',u.uid),r);window.__iqReq=r;return 'requested'}
+ return true}catch(e){return false}};
 function profileView(u,d){
  leaveSplash();if(window.__iqEntry&&window.__iqEntry.busy)window.__iqEntry.busy(false);
  const cl=[['Play Group','پلے گروپ'],['Nursery','نرسری'],['KG','کے جی'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['10','10'],['F.A','ایف اے']];
  let local={};try{local=JSON.parse(localStorage.getItem('pds-state-v1'))||{}}catch(e){}
  let sel=d&&d.cls||(local.setup&&local.grade!==undefined?(Number(local.grade)>=11?'F.A':local.grade==='PG'?'Play Group':local.grade==='NU'?'Nursery':String(local.grade)):'');
  if(sel!=='F.A'){const fi=cl.findIndex(x=>x[0]==='F.A');if(fi>-1)cl.splice(fi,1)}
+ let sbd=(d&&d.sboard)||(local.setup&&local.sboard)||'';const isSec=c=>c==='9'||c==='10';
  G.setAttribute('dir',LNG==='ur'?'rtl':'ltr');G.classList.add('ob-on');
  show('<div class="ob"><img class="ob-logo" src="/icon-192.png" width="64" height="64" alt="IQRA"><h2>'+esc(T('Welcome! Let’s set up the learner','خوش آمدید! آئیے طالب علم کی معلومات بھر لیں'))+'</h2><p class="ob-sub">'+esc(T('This takes under a minute. You can change the class any time from the top bar.','اس میں ایک منٹ سے کم لگتا ہے۔ جماعت آپ کسی بھی وقت اوپر والی بار سے بدل سکتے ہیں۔'))+'</p><p class="ob-acct">'+esc(T('Signed in as ','لاگ اِن: '))+'<b dir="ltr">'+esc(u.email||u.displayName||'')+'</b></p>'
  +'<label class="ob-f"><span>'+esc(T('Student name','طالب علم کا نام'))+'</span><input id="pn" autocomplete="given-name" value="'+esc(d?.name||u.displayName||'')+'"></label>'
  +'<div class="ob-f" role="radiogroup" aria-label="'+esc(T('Class','جماعت'))+'"><span>'+esc(T('Class','جماعت'))+'</span><div class="ob-chips" id="pcl">'+cl.map(x=>'<button type="button" role="radio" class="ob-chip'+(sel===x[0]?' on':'')+'" aria-checked="'+(sel===x[0])+'" data-c="'+x[0]+'">'+esc(T(x[0],x[1]))+'</button>').join('')+'</div></div>'
+ +'<div class="ob-f" id="pbw" role="radiogroup" aria-label="Board"'+(isSec(sel)?'':' hidden')+'><span>'+esc(T('Board (required for Grades 9 and 10)','بورڈ (نویں اور دسویں کے لیے لازمی)'))+'</span><div class="ob-chips" id="pbd">'+[['punjab','Punjab Board','پنجاب بورڈ'],['federal','Federal Board (FBISE)','وفاقی بورڈ (FBISE)']].map(x=>'<button type="button" role="radio" class="ob-chip'+(sbd===x[0]?' on':'')+'" aria-checked="'+(sbd===x[0])+'" data-b="'+x[0]+'">'+esc(T(x[1],x[2]))+'</button>').join('')+'</div></div>'
  +'<label class="ob-f"><span>'+esc(T('City','شہر'))+' <em>'+esc(T('(optional)','(اختیاری)'))+'</em></span><input id="pt" autocomplete="address-level2" value="'+esc(d?.city||'')+'"></label>'
  +'<label class="ob-f"><span>'+esc(T('Parent phone','والدین کا فون'))+' <em>'+esc(T('(optional)','(اختیاری)'))+'</em></span><input id="pp" inputmode="tel" autocomplete="tel" dir="ltr" value="'+esc(d?.phone||'')+'"></label>'
  +'<button class="pb" id="ps" type="button">'+esc(T('Start learning','پڑھائی شروع کریں'))+'</button><button class="ob-alt" id="po" type="button">'+esc(T('Use a different account','دوسرے اکاؤنٹ سے لاگ اِن کریں'))+'</button><p class="er" id="er" aria-live="polite"></p><p class="ob-priv">'+esc(T('Your details are used only to personalise learning.','آپ کی معلومات صرف سیکھنے کو بہتر بنانے کے لیے استعمال ہوتی ہیں۔'))+'</p></div>');
- const rows=[...G.querySelectorAll('.ob-chip')];
- rows.forEach(b=>b.onclick=()=>{sel=b.dataset.c;rows.forEach(x=>{const on=x.dataset.c===sel;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});$('#er').textContent=''});
+ const rows=[...G.querySelectorAll('#pcl .ob-chip')],brows=[...G.querySelectorAll('#pbd .ob-chip')];
+ rows.forEach(b=>b.onclick=()=>{sel=b.dataset.c;rows.forEach(x=>{const on=x.dataset.c===sel;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});$('#pbw').hidden=!isSec(sel);$('#er').textContent=''});
+ brows.forEach(b=>b.onclick=()=>{sbd=b.dataset.b;brows.forEach(x=>{const on=x.dataset.b===sbd;x.classList.toggle('on',on);x.setAttribute('aria-checked',on)});$('#er').textContent=''});
  $('#po').onclick=()=>Au.signOut(auth);
  $('#ps').onclick=async()=>{const n=$('#pn').value.trim(),er=$('#er');
   if(!n){er.textContent=T('Please enter the student’s name.','براہِ کرم طالب علم کا نام لکھیں۔');$('#pn').focus();return}
   if(!sel){er.textContent=T('Please choose a class.','براہِ کرم جماعت چنیں۔');return}
+  if(isSec(sel)&&!sbd){er.textContent=T('Please choose your board.','براہِ کرم اپنا بورڈ چنیں۔');return}
   const b=$('#ps');b.disabled=true;b.textContent=T('Saving…','محفوظ ہو رہا ہے…');
-  try{const now=Date.now();await F.setDoc(F.doc(fs,'students',u.uid),{name:n,cls:sel,city:$('#pt').value.trim(),phone:$('#pp').value.trim(),email:u.email||'',updated:now},{merge:true});window.__iqProfile={name:n,cls:sel,updated:now};G.classList.remove('ob-on');begin(u)}catch(e){b.disabled=false;b.textContent=T('Start learning','پڑھائی شروع کریں');er.textContent=friendly(e)||T('Could not save. Please try again.','محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔')}}}
-function col(n){const c=F.collection(fs,n);return{onSnapshot:(a,b)=>F.onSnapshot(c,a,b),where:(f,o,v)=>({get:()=>F.getDocs(F.query(c,F.where(f,o,v)))}),doc:id=>{const r=F.doc(fs,n,id);return{set:x=>F.setDoc(r,x),update:x=>F.updateDoc(r,x),delete:()=>F.deleteDoc(r),get:()=>F.getDoc(r)}}}}
+  try{const now=Date.now();await F.setDoc(F.doc(fs,'students',u.uid),{name:n,cls:sel,city:$('#pt').value.trim(),phone:$('#pp').value.trim(),email:u.email||'',updated:now,...(isSec(sel)?{sboard:sbd}:{})},{merge:true});window.__iqProfile={name:n,cls:sel,sboard:isSec(sel)?sbd:'',updated:now};G.classList.remove('ob-on');begin(u)}catch(e){b.disabled=false;b.textContent=T('Start learning','پڑھائی شروع کریں');er.textContent=friendly(e)||T('Could not save. Please try again.','محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔')}}}
+function col(n){const c=F.collection(fs,n);const mk=cs=>({onSnapshot:(a,b)=>F.onSnapshot(cs.length?F.query(c,...cs):c,a,b),get:()=>F.getDocs(cs.length?F.query(c,...cs):c),where:(f,o,v)=>mk(cs.concat([F.where(f,o,v)]))});return{...mk([]),doc:id=>{const r=F.doc(fs,n,id);return{set:x=>F.setDoc(r,x),update:x=>F.updateDoc(r,x),delete:()=>F.deleteDoc(r),get:()=>F.getDoc(r)}}}}
 const db={collection:col};
 const staff=()=>role==='admin';
 const user={isOwner:async()=>staff(),canEdit:async()=>staff(),can:async()=>(role==='admin'||role==='teacher')?true:null,id:async()=>uid};
@@ -77,5 +95,6 @@ Au.onAuthStateChanged(auth,async u=>{if(!u){try{localStorage.removeItem('iq-sess
  if(!window.IQRA_STAFF_PAGE)role='student'; /* the student site never grants staff powers; staff use admin.html */
  if(window.IQRA_STAFF_PAGE&&role==='student'){location.replace('/');return} /* anyone who is not staff is sent away without seeing anything */
  let d=null;try{const s=await F.getDoc(F.doc(fs,'students',u.uid));d=s.exists()?s.data():null}catch(e){}
+ try{const q=await F.getDoc(F.doc(fs,'classRequests',u.uid));window.__iqReq=q.exists()?q.data():null}catch(e){window.__iqReq=null}
  if(window.IQRA_STAFF_PAGE||(d&&d.name)){window.__iqProfile=d||{};begin(u)}else profileView(u,d)});
 }catch(e){leaveSplash();show('<h1>IQRA</h1><p class="er">Could not load sign-in: '+esc(e.message||e)+'</p>')}
