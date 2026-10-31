@@ -17,9 +17,9 @@ service cloud.firestore {
     function signedIn() { return request.auth != null; }
     function ownerBootstrap() {
       return signedIn()
-        && request.auth.token.email == 'zaibislam0@gmail.com'
-        && request.auth.token.email_verified == true
-        && request.auth.token.firebase.sign_in_provider == 'google.com';
+        && request.auth.token.get('email', '') == 'zaibislam0@gmail.com'
+        && request.auth.token.get('email_verified', false) == true
+        && request.auth.token.get('firebase', {}).get('sign_in_provider', '') == 'google.com';
     }
     function isOwner() { return signedIn() && (request.auth.token.get('owner', false) == true || ownerBootstrap()); }
     function roleRef() { return /databases/$(database)/documents/roles/$(request.auth.uid); }
@@ -101,7 +101,7 @@ service cloud.firestore {
         && request.resource.data.cls in profileClasses()
         && request.resource.data.get('city', '') is string && request.resource.data.get('city', '').size() <= 80
         && request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 30
-        && request.resource.data.get('email', '') in ['', request.auth.token.email]
+        && request.resource.data.get('email', '') in ['', request.auth.token.get('email', '')]
         && request.resource.data.updated is number
         && (isSecCls(request.resource.data.cls) ? request.resource.data.get('sboard', '') in boards() : request.resource.data.get('sboard', '') == '');
       // afterwards the student can change only personal details. cls and sboard are frozen (changes go through classRequests).
@@ -111,7 +111,7 @@ service cloud.firestore {
         && request.resource.data.name is string && request.resource.data.name.size() <= 80
         && request.resource.data.get('city', '') is string && request.resource.data.get('city', '').size() <= 80
         && request.resource.data.get('phone', '') is string && request.resource.data.get('phone', '').size() <= 30
-        && request.resource.data.get('email', '') in ['', request.auth.token.email]
+        && request.resource.data.get('email', '') in ['', request.auth.token.get('email', '')]
         && request.resource.data.updated is number
         && request.resource.data.cls == resource.data.cls
         && (request.resource.data.get('sboard', '') == resource.data.get('sboard', '')
