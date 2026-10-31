@@ -612,20 +612,33 @@
     return h + "</section>" + coverageView();
   }
 
+  var regStatus = "all", regGrade = "all", regQ = "", regShown = 30;
   function adminView() {
     var needs = D.lessons.filter(function (l) { return statusOf(l) === "needs"; }).length;
-    var h = '<button class="btn" data-nav="addbook">' + esc(t("addbook")) + "</button><h2>" + esc(t("adminTitle")) + '</h2><p class="note">' + esc(t("adminNote")) + "</p>";
+    var h = (STAFFPAGE ? "" : '<button class="btn" data-nav="addbook">' + esc(t("addbook")) + "</button>") + "<h2>" + esc(t("adminTitle")) + '</h2><p class="note">' + esc(t("adminNote")) + "</p>";
     if (needs) h += '<p class="note warnnote">' + needs + " " + esc(t("reviewcount")) + "</p>";
     h += '<section class="card"><h3>' + esc(t("version")) + ": " + esc(state.version) + '</h3><p class="small">' + esc(t("newverNote")) + '</p><form id="verf"><input id="nv" placeholder="2027-28" required><button class="btn alt">' + esc(t("newver")) + "</button></form></section>";
     h += '<section class="card"><h3>' + esc(t("srcdocs")) + "</h3>";
     D.sources.forEach(function (d) { h += "<p><b>" + esc(d.title) + "</b><br><small>" + esc(d.authority) + " · " + esc(d.version) + (d.url ? ' · <a href="' + esc(d.url) + '" target="_blank" rel="noopener">' + esc(t("opensrc")) + "</a>" : "") + "</small></p>"; });
     h += "</section>";
-    D.lessons.forEach(function (l) {
+    var ur = LANG() === "ur", regList = D.lessons.filter(function (l) {
+      if (regStatus !== "all" && statusOf(l) !== regStatus) return false;
+      if (regGrade !== "all") { var g = gnum(regGrade); if (!(l.min <= g && g <= l.max)) return false; }
+      if (regQ && (L(l.title) + " " + l.subject).toLowerCase().indexOf(regQ.toLowerCase()) < 0) return false;
+      return true;
+    });
+    h += '<section class="card regbar"><h3>' + esc(ur ? "اندراجات کی فہرست" : "Register of lessons") + '</h3><div class="pagebar"><label for="regst">' + esc(ur ? "حالت" : "Status") + '</label><select id="regst"><option value="all">' + esc(ur ? "سب" : "All") + "</option>";
+    ["needs", "inreview", "verified"].forEach(function (k) { h += '<option value="' + k + '"' + (regStatus === k ? " selected" : "") + ">" + esc(t(k)) + "</option>"; });
+    h += '</select><label for="regcl">' + esc(ur ? "جماعت" : "Class") + '</label><select id="regcl"><option value="all">' + esc(ur ? "تمام" : "All") + "</option>";
+    D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(regGrade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
+    h += '</select><input id="regq" type="search" dir="auto" placeholder="' + esc(ur ? "عنوان یا مضمون تلاش کریں" : "Search title or subject") + '" value="' + esc(regQ) + '"></div><p class="small" aria-live="polite">' + regList.length + " / " + D.lessons.length + "</p></section>";
+    regList.slice(0, regShown).forEach(function (l) {
       var m = metaOf(l);
       h += '<div class="card"><b>' + esc(L(l.title)) + "</b> " + badge(l) + "<br><small>" + esc(l.subject) + " · " + l.min + "–" + l.max + (m.province ? " · " + esc(provLabel(m.province)) : "") + "</small>";
       if (m.status === "inreview" && complete(m)) h += '<br><button class="btn alt" data-verify="' + l.id + '">' + esc(t("signoff")) + "</button>";
       h += "</div>";
     });
+    if (regList.length > regShown) h += '<button class="btn alt" data-act="regMore">' + esc(ur ? "مزید دکھائیں" : "Show more") + " (" + (regList.length - regShown) + ")</button>";
     h += '<form id="mapf" class="card"><h3>' + esc(t("addMap")) + "</h3><label>" + esc(t("chapter")) + '<select id="mid">';
     D.lessons.forEach(function (l) { h += '<option value="' + l.id + '">' + esc(L(l.title)) + "</option>"; });
     h += "</select></label>";
@@ -1626,6 +1639,7 @@
       case "lecEdit": var le = lecStore.filter(function (x) { return x.id === arg; })[0]; if (le) { tf = { id: le.id, grade: String(le.d.grade), subject: le.d.subject, title: L(le.d.lesson.title), cards: le.d.cards || "", qs: (le.d.qs || newTF().qs), published: !!le.d.published }; lecMsg = ""; render(); } break;
       case "lecToggle": var lt = lecStore.filter(function (x) { return x.id === arg; })[0]; if (lt) { cloud.db.collection("lectures").doc(arg).update({ published: !lt.d.published }).catch(cloudFail); } break;
       case "lecDel": cloud.db.collection("lectures").doc(arg).delete().catch(cloudFail); break;
+      case "regMore": regShown += 30; render(); break;
       case "libCat": libCat = arg; render(); break;
       case "libClear": libQ = ""; libCat = "all"; render(); break;
       case "sylSubj": sylSubj = arg; render(); break;
@@ -2236,7 +2250,7 @@
           var c = gradeCounts(g), hn = 0, pn = 0;
           bookStore.forEach(function (b) { if (String(b.grade) === String(g)) b.lessons.forEach(function (l) { if (l.hidden) hn++; if (statusOf(l) !== "verified") pn++; }); });
           var hasNote = !!((state.classNotes || {})[String(g)]);
-          h += '<button class="classbtn' + (c.up ? " has" : "") + '" data-act="upClass" data-arg="' + g + '"><b>' + esc(gradeLabel(g)) + (hasNote ? ' <i class="notedot" title="' + esc(st3("noteT")) + '"></i>' : "") + "</b><small>" + c.up + " " + esc(t("chapters")) + (c.books ? " · " + c.books + " " + esc(t("books")) : "") + "</small>" + (c.up ? '<span class="cbadges">' + (pn ? "<em>" + pn + " " + esc(st3("pendingN")) + "</em>" : "") + (hn ? "<em class=\"h\">" + hn + " " + esc(st3("hiddenN")) + "</em>" : "") + "</span>" : "") + "</button>";
+          h += '<button class="classbtn' + (c.up ? " has" : "") + '" data-act="upClass" data-arg="' + g + '"><b>' + esc(gradeLabel(g)) + (hasNote ? ' <i class="notedot" title="' + esc(st3("noteT")) + '"></i>' : "") + "</b><small>" + c.up + " " + esc(t("chapters")) + (c.books ? " · " + c.books + " " + esc(c.books === 1 && LANG() !== "ur" ? "book" : t("books")) : "") + "</small>" + (c.up ? '<span class="cbadges">' + (pn ? "<em>" + pn + " " + esc(st3("pendingN")) + "</em>" : "") + (hn ? "<em class=\"h\">" + hn + " " + esc(st3("hiddenN")) + "</em>" : "") + "</span>" : "") + "</button>";
         });
         h += "</div></section>";
       });
@@ -2348,6 +2362,9 @@
     if (sp0) sp0.addEventListener("change", function () { readSetup(); state.board = ""; render(); });
     var sg = $("#sgrade");
     if (sg) sg.addEventListener("change", function () { readSetup(); render(); });
+    var rgS = $("#regst"); if (rgS) rgS.addEventListener("change", function () { regStatus = rgS.value; regShown = 30; render(); });
+    var rgC = $("#regcl"); if (rgC) rgC.addEventListener("change", function () { regGrade = rgC.value; regShown = 30; render(); });
+    var rgQ = $("#regq"); if (rgQ) rgQ.addEventListener("change", function () { regQ = rgQ.value.trim(); regShown = 30; render(); });
     var lbSel = $("#libboard"); if (lbSel) lbSel.addEventListener("change", function () { libBoard = lbSel.value; render(); });
     var lgSel = $("#libgrade"); if (lgSel) lgSel.addEventListener("change", function () { libGrade = lgSel.value; render(); });
     var sgSel = $("#sylg"); if (sgSel) sgSel.addEventListener("change", function () { sylGrade = sgSel.value; sylSubj = ""; render(); });
