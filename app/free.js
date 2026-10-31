@@ -10,7 +10,10 @@ window.IQRA_FREE = [];
 /* Books by class, Notes and Past Papers on the public home page.
    Only add https links to official boards or to files you are allowed to share.
    BOARDS: the provincial / federal textbook boards. A board with url:"" is listed but has no link yet.
-   BOOKS:  { board:"punjab", cls:2, subject:{en,ur}, title:{en,ur}, url:"https://..." }  (cls = 1..12)
+   BOOKS:  syllabus book (shown under Boards, by board and class):
+             { board:"punjab", cls:2, subject:{en,ur}, title:{en,ur}, url:"https://..." }  (cls = 1..12)
+           library book (outside the syllabus, for everyone; shown under Library): leave board out or use board:"general"
+             { cls:0, subject:{en,ur}, title:{en,ur}, url:"https://..." }
    NOTES / PAPERS: { cls:2, subject:{en,ur}, title:{en,ur}, url:"https://..." } (cls optional) */
 window.IQRA_BOARDS = [
   { id: "punjab", name: { en: "Punjab", ur: "پنجاب" }, code: "PCTB", url: "" },

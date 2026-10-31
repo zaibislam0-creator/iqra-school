@@ -2047,6 +2047,7 @@
   var libBoard = "all", libCat = "all", libQ = "", libGrade = "mine", libMsg = "", libArm = "", libDraft = null, libCloud = null, libOpen = false;
   var LIB_CATS = ["textbook", "quran", "urdu", "english", "science", "stories", "pak", "ref", "exam", "general"];
   // Starter entries: only official or trusted sites that were opened and checked. Admins add the rest.
+  function libKind(x) { return x && (x.kind === "syllabus" || x.kind === "general") ? x.kind : (x && x.cat === "textbook" ? "syllabus" : "general"); }
   var LIB_STARTER = [
     { id: "s-kp-tbb", title: { en: "Khyber Pakhtunkhwa Textbook Board", ur: "خیبر پختونخوا ٹیکسٹ بک بورڈ" }, author: { en: "Government of Khyber Pakhtunkhwa", ur: "حکومت خیبر پختونخوا" }, cat: "textbook", grade: "all", lang: "ur", url: "https://tbb.kp.gov.pk/", verified: true, note: { en: "The official textbook board for Khyber Pakhtunkhwa schools.", ur: "خیبر پختونخوا کے سکولوں کی نصابی کتابوں کا سرکاری بورڈ۔" } },
     { id: "s-nbf", title: { en: "National Book Foundation", ur: "نیشنل بک فاؤنڈیشن" }, author: { en: "Government of Pakistan", ur: "حکومت پاکستان" }, cat: "general", grade: "all", lang: "ur", url: "https://www.nbf.org.pk", verified: true, note: { en: "Pakistan's national book body, founded in 1972 to make books available at moderate prices.", ur: "پاکستان کا قومی ادارہ جو 1972 میں مناسب قیمت پر کتابیں فراہم کرنے کے لیے قائم ہوا۔" } },
@@ -2056,11 +2057,11 @@
   function cleanLib(o, id) {
     var g = String(o.grade || "all"); if (g !== "all" && D.grades.map(String).indexOf(g) < 0) g = "all";
     var u = String(o.url || ""); if (!/^https:\/\/[^\s]+$/i.test(u)) u = "";
-    return { id: String(o.id || id), title: String(o.title || "").slice(0, 140), author: String(o.author || "").slice(0, 100), cat: LIB_CATS.indexOf(o.cat) > -1 ? o.cat : "general", board: LIB_BOARDS.some(function (b) { return b[0] === o.board; }) ? o.board : "all", grade: g, lang: ["ur", "en", "ar", "ot"].indexOf(o.lang) > -1 ? o.lang : "ur", url: u.slice(0, 500), note: String(o.note || "").slice(0, 240), verified: !!o.verified, added: Number(o.added) || 0 };
+    return { id: String(o.id || id), title: String(o.title || "").slice(0, 140), author: String(o.author || "").slice(0, 100), cat: LIB_CATS.indexOf(o.cat) > -1 ? o.cat : "general", board: LIB_BOARDS.some(function (b) { return b[0] === o.board; }) ? o.board : "all", kind: o.kind === "syllabus" || o.kind === "general" ? o.kind : (o.cat === "textbook" ? "syllabus" : "general"), grade: g, lang: ["ur", "en", "ar", "ot"].indexOf(o.lang) > -1 ? o.lang : "ur", url: u.slice(0, 500), note: String(o.note || "").slice(0, 240), verified: !!o.verified, added: Number(o.added) || 0 };
   }
   function getLib() { return cloud.on ? (libCloud || []) : (state.library || []).map(function (x) { return cleanLib(x, x.id); }); }
   function canEditLib() { return isStaff() || (!cloud.on && adultOK); }
-  function newLibDraft() { return { title: "", author: "", cat: "textbook", board: "all", grade: "all", lang: "ur", url: "", note: "", verified: false }; }
+  function newLibDraft() { return { title: "", author: "", cat: "general", kind: "general", board: "all", grade: "all", lang: "ur", url: "", note: "", verified: false }; }
   function readLibDraft() {
     if (!libDraft) return;
     var v = function (id) { var e = root.querySelector("#" + id); return e ? e.value : null; }, x;
@@ -2069,6 +2070,7 @@
     if ((x = v("libc")) !== null) libDraft.cat = x;
     if ((x = v("libg")) !== null) libDraft.grade = x;
     if ((x = v("libb")) !== null) libDraft.board = x;
+    if ((x = v("libk")) !== null) libDraft.kind = x;
     if ((x = v("libl")) !== null) libDraft.lang = x;
     if ((x = v("libu")) !== null) libDraft.url = x;
     if ((x = v("libn")) !== null) libDraft.note = x;
@@ -2078,7 +2080,7 @@
     readLibDraft(); var d = libDraft || newLibDraft(), title = d.title.trim(), url = d.url.trim();
     if (!title || !d.cat) { libMsg = st3("libNeed"); return; }
     if (url && !/^https:\/\/[^\s]+$/i.test(url)) { libMsg = st3("libBadUrl"); return; }
-    var item = cleanLib({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), title: title, author: d.author.trim(), cat: d.cat, board: d.board, grade: d.grade, lang: d.lang, url: url, note: d.note.trim(), verified: d.verified, added: Date.now() }, "x");
+    var item = cleanLib({ id: "b" + Date.now().toString(36) + Math.random().toString(36).slice(2, 4), title: title, author: d.author.trim(), cat: d.kind === "syllabus" ? "textbook" : d.cat, kind: d.kind, board: d.kind === "syllabus" ? d.board : "all", grade: d.grade, lang: d.lang, url: url, note: d.note.trim(), verified: d.verified, added: Date.now() }, "x");
     if (cloud.on) {
       if (!cloudOK()) { libMsg = st3("libNoRight"); return; }
       cloudCol("meta").doc("lib-" + item.id).set({ lib: item }).catch(cloudFail); libCloud = (libCloud || []).concat([item]);
@@ -2147,6 +2149,7 @@
     var all = libItems(), q = libQ.toLowerCase(), n = gnum(state.grade);
     var base = all.filter(function (x) {
       if (libGrade === "mine" && !(x.grade === "all" || gnum(x.grade) === n)) return false;
+      if (!STAFFPAGE && libKind(x) === "syllabus") return false;
       if (libBoard !== "all" && x.board && x.board !== "all" && x.board !== libBoard) return false;
       if (q && (lt(x.title) + " " + lt(x.author) + " " + lt(x.note)).toLowerCase().indexOf(q) < 0) return false;
       return true;
@@ -2174,7 +2177,7 @@
       var mine = !x.app && String(x.id).indexOf("s-") !== 0, ar = libArm === x.id;
       h += '<article class="bk"><span class="bk-ic" aria-hidden="true">' + svg(x.app ? "book" : "lib", 28) + '</span><div class="bk-m"><b>' + esc(lt(x.title)) + "</b>";
       if (lt(x.author)) h += '<span class="bk-a">' + esc(lt(x.author)) + "</span>";
-      h += '<div class="bk-t"><span class="badge ' + (x.verified ? "verified" : "pending") + '">' + esc(st3(x.verified ? "libVer" : "libUnver")) + '</span><span class="tag">' + esc(st3("cat_" + x.cat)) + '</span><span class="tag">' + esc(x.grade === "all" ? st3("libAllC") : gradeLabel(x.grade)) + '</span>' + (x.board && x.board !== "all" ? '<span class="tag">' + esc(boardName(x.board)) + "</span>" : "") + '<span class="tag">' + esc(langLabel(x.lang)) + "</span></div>";
+      h += '<div class="bk-t"><span class="badge ' + (x.verified ? "verified" : "pending") + '">' + esc(st3(x.verified ? "libVer" : "libUnver")) + '</span><span class="tag">' + esc(st3("cat_" + x.cat)) + '</span><span class="tag">' + esc(x.grade === "all" ? st3("libAllC") : gradeLabel(x.grade)) + '</span>' + (STAFFPAGE ? '<span class="tag">' + esc(libKind(x) === "syllabus" ? (LANG() === "ur" ? "نصابی" : "Syllabus") : (LANG() === "ur" ? "کتب خانہ" : "Library")) + "</span>" : "") + (x.board && x.board !== "all" ? '<span class="tag">' + esc(boardName(x.board)) + "</span>" : "") + '<span class="tag">' + esc(langLabel(x.lang)) + "</span></div>";
       if (x.app) h += '<p class="small">' + x.n + " " + esc(st3("libChap")) + " · " + esc(st3("libFromApp")) + "</p>";
       if (lt(x.note)) h += '<p class="small">' + esc(lt(x.note)) + "</p>";
       if (host) h += '<p class="small host">' + esc(host) + "</p>";
@@ -2200,6 +2203,7 @@
     }
     h += '<label for="libt">' + esc(st3("libTitle")) + '</label><input id="libt" dir="auto" maxlength="140" value="' + esc(d.title) + '">';
     h += '<label for="liba">' + esc(st3("libAuthor")) + '</label><input id="liba" dir="auto" maxlength="100" value="' + esc(d.author) + '">';
+    h += '<label for="libk">' + esc(LANG() === "ur" ? "کتاب کی قسم" : "Kind of book") + '</label><select id="libk"><option value="general"' + (d.kind === "general" ? " selected" : "") + ">" + esc(LANG() === "ur" ? "کتب خانہ: نصاب سے ہٹ کر، سب کے لیے" : "Library: outside the syllabus, for everyone") + '</option><option value="syllabus"' + (d.kind === "syllabus" ? " selected" : "") + ">" + esc(LANG() === "ur" ? "نصابی کتاب: بورڈ اور جماعت کے تحت" : "Syllabus book: shown under its board and class") + '</option></select><p class="small">' + esc(LANG() === "ur" ? "نصابی کتاب کے لیے بورڈ اور جماعت ضرور چنیں۔ کتب خانے کی کتاب کے لیے بورڈ نہیں چاہیے۔" : "For a syllabus book choose its board and class. A library book does not need a board.") + "</p>";
     h += '<label for="libc">' + esc(st3("libCat")) + '</label><select id="libc">';
     LIB_CATS.forEach(function (c) { h += '<option value="' + c + '"' + (d.cat === c ? " selected" : "") + ">" + esc(st3("cat_" + c)) + "</option>"; });
     h += '</select><label for="libb">' + esc(LANG() === "ur" ? "بورڈ" : "Board") + '</label><select id="libb">'; LIB_BOARDS.forEach(function (b) { h += '<option value="' + b[0] + '"' + (d.board === b[0] ? " selected" : "") + ">" + esc(LANG() === "ur" ? b[2] : b[1]) + "</option>"; });
@@ -3245,8 +3249,8 @@
       el.setAttribute("dir", ur ? "rtl" : "ltr");
       var tx = function (en, u) { return ur ? u : en; };
       var cta = function (cls) { if (!signed && (signing || authBusy)) return '<button class="entry-go ' + (cls || "") + ' busy" type="button" disabled aria-busy="true"><i class="spin" aria-hidden="true"></i><span>' + esc(busyMsg || tx("Signing you in\u2026", "لاگ اِن ہو رہا ہے…")) + "</span></button>"; if (signed) return '<button class="entry-go ' + (cls || "") + '" data-myclass type="button"><span>' + esc(tx("Open my class", "میری جماعت کھولیں")) + "</span></button>"; return '<button class="entry-go ' + (cls || "") + '" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + GSVG + "<span>" + esc(tx("Sign in to study", "پڑھنے کے لیے سائن اِن کریں")) + "</span></button>"; };
-      var libs = LIB_STARTER.filter(function (x) { return ext(x.url); }), docs = (D.sources || []).filter(function (x) { return ext(x.url); }).slice(0, 4), free = Array.isArray(window.IQRA_FREE) ? window.IQRA_FREE : [];
-      var boards = Array.isArray(window.IQRA_BOARDS) ? window.IQRA_BOARDS : [], books = (Array.isArray(window.IQRA_BOOKS) ? window.IQRA_BOOKS : []).filter(function (x) { return ext(x.url) && (boardSel === "all" || x.board === boardSel) && (!clsSel || Number(x.cls) === clsSel) && typeOk(x); });
+      var libs = LIB_STARTER.filter(function (x) { return ext(x.url) && libKind(x) === "general"; }), docs = (D.sources || []).filter(function (x) { return ext(x.url); }).slice(0, 4), free = Array.isArray(window.IQRA_FREE) ? window.IQRA_FREE : [];
+      var boards = Array.isArray(window.IQRA_BOARDS) ? window.IQRA_BOARDS : [], allBooks = (Array.isArray(window.IQRA_BOOKS) ? window.IQRA_BOOKS : []).filter(function (x) { return ext(x.url) && (!clsSel || Number(x.cls) === clsSel) && typeOk(x); }), books = allBooks.filter(function (x) { return !x.board || x.board === "general"; }), sylBooks = allBooks.filter(function (x) { return x.board && x.board !== "general" && (boardSel === "all" || x.board === boardSel); });
       var sec = function (id, title, lead, body) { return '<section class="lp-sec" id="' + id + '"><div class="lp-sec-h"><h2>' + esc(title) + "</h2><p>" + esc(lead) + '</p></div><div class="lp-sec-b">' + body + "</div></section>"; };
       var linkCard = function (x, label, withBadge) { return '<a class="lp-card" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer"><i>' + esc((x.cls ? tx("Class ", "جماعت ") + x.cls : "") + (x.subject ? (x.cls ? " · " : "") + lt(x.subject) : "")) + "</i><b>" + esc(lt(x.title)) + "</b>" + (withBadge ? badge(x) : "") + "<em>" + esc(label) + "</em></a>"; };
       var soon = function (title) { return '<div class="lp-card lp-soon"><b>' + esc(title) + "</b><span>" + esc(tx("Sign in to study the full lessons meanwhile.", "اس دوران مکمل اسباق کے لیے سائن اِن کریں۔")) + "</span></div>"; };
@@ -3300,15 +3304,22 @@
       var lg = "";
       books.forEach(function (x) { lg += linkCard(x, tx("Open book", "کتاب کھولیں"), true); });
       if (typeSel !== "paid") {
-        boards.filter(function (b) { return ext(b.url) && (boardSel === "all" || b.id === boardSel); }).forEach(function (b) { lg += '<a class="lp-card" href="' + esc(ext(b.url)) + '" target="_blank" rel="noopener noreferrer"><i>' + esc(tx("Official board", "سرکاری بورڈ")) + "</i><b>" + esc(lt(b.name)) + "</b>" + badge({}) + "<em>" + esc(tx("Find books on the official site", "سرکاری سائٹ پر کتابیں دیکھیں")) + "</em></a>"; });
         libs.forEach(function (x) { lg += '<a class="lp-card" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer"><b>' + esc(lt(x.title)) + "</b><span>" + esc(lt(x.author)) + "</span>" + badge({}) + "<em>" + esc(tx("Visit website", "ویب سائٹ کھولیں")) + "</em></a>"; });
         free.forEach(function (x, n) { lg += '<button type="button" class="lp-card lp-free" data-free="' + n + '"><i>' + esc(lt(x.cls)) + " · " + esc(lt(x.subject)) + "</i><b>" + esc(lt(x.title)) + "</b>" + badge({}) + "<em>" + esc(tx("Read now", "ابھی پڑھیں")) + "</em></button>"; });
       }
-      if (!lg) lg = soon(typeSel === "paid" ? tx("Paid books are on the way", "ادائیگی والی کتابیں جلد آ رہی ہیں") : tx("Books for this board are on the way", "اس بورڈ کی کتابیں جلد آ رہی ہیں"));
-      h += sec("lp-lib", tx("Library", "کتب خانہ"), tx("Books by class, free and paid in one place. Every link goes to an official board or a trusted Pakistani publisher. IQRA's own books open after you sign in.", "ایک ہی جگہ جماعت کے لحاظ سے مفت اور ادائیگی والی کتابیں۔ ہر لنک سرکاری بورڈ یا معتبر پاکستانی ادارے کی سائٹ کھولتا ہے۔ آئی اقرا کی اپنی کتابیں سائن اِن کے بعد کھلتی ہیں۔"), chipsT + chipsC + '<div class="lp-grid">' + lg + "</div>");
+      if (!lg) lg = soon(typeSel === "paid" ? tx("Paid books are on the way", "ادائیگی والی کتابیں جلد آ رہی ہیں") : tx("Library books are on the way", "کتب خانے کی کتابیں جلد آ رہی ہیں"));
+      h += sec("lp-lib", tx("Library", "کتب خانہ"), tx("Books for everyone, beyond the school syllabus: general reading, Urdu literature, stories and more. Syllabus books are under Boards.", "ہر کسی کے لیے کتابیں، نصاب سے ہٹ کر: عمومی مطالعہ، اردو ادب، کہانیاں اور مزید۔ نصابی کتابیں بورڈز میں ہیں۔"), chipsT + chipsC + '<div class="lp-grid">' + lg + "</div>");
       var bg = ""; boards.forEach(function (b) { bg += '<button type="button" class="lp-card lp-free" data-board="' + esc(b.id) + '"><i>' + esc(b.code || "") + "</i><b>" + esc(lt(b.name)) + "</b><em>" + esc(tx("See books", "کتابیں دیکھیں")) + "</em></button>"; });
       var dg = ""; docs.forEach(function (x) { dg += '<a class="lp-card" dir="ltr" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer"><b>' + esc(x.title) + "</b><span>" + esc((x.authority || "").split(",")[0]) + "</span><em>" + esc(tx("Open official document", "سرکاری دستاویز کھولیں")) + "</em></a>"; });
-      h += sec("lp-boards", tx("Pakistani Curriculum", "پاکستانی نصاب"), tx("Choose your board to see its books. Our lessons follow official Pakistani documents.", "اپنا بورڈ چنیں تاکہ اس کی کتابیں دیکھ سکیں۔ ہمارے اسباق پاکستان کی سرکاری دستاویزات کے مطابق ہیں۔"), '<div class="lp-grid">' + bg + dg + "</div>");
+      var sb = "";
+      if (boardSel !== "all") {
+        var cb = boards.filter(function (b) { return b.id === boardSel; })[0];
+        if (cb && ext(cb.url)) sb += '<a class="lp-card" href="' + esc(ext(cb.url)) + '" target="_blank" rel="noopener noreferrer"><i>' + esc(tx("Official board", "سرکاری بورڈ")) + "</i><b>" + esc(lt(cb.name)) + "</b><em>" + esc(tx("Find books on the official site", "سرکاری سائٹ پر کتابیں دیکھیں")) + "</em></a>";
+        sylBooks.forEach(function (x) { sb += linkCard(x, tx("Open book", "کتاب کھولیں"), true); });
+        if (!sylBooks.length) sb += soon(tx("Books for this board and class are on the way", "اس بورڈ اور جماعت کی کتابیں جلد آ رہی ہیں"));
+      }
+      var bsel = boardSel === "all" ? "" : '<h3 class="lp-sub">' + esc(lt((boards.filter(function (b) { return b.id === boardSel; })[0] || {}).name || "")) + "</h3>" + chipsC + '<div class="lp-grid">' + sb + "</div>";
+      h += sec("lp-boards", tx("Boards and syllabus", "بورڈز اور نصاب"), tx("Choose your board, then your class, to see its syllabus books. Our lessons follow official Pakistani documents.", "اپنا بورڈ اور پھر جماعت چنیں تاکہ نصابی کتابیں دیکھ سکیں۔ ہمارے اسباق پاکستان کی سرکاری دستاویزات کے مطابق ہیں۔"), '<div class="lp-grid">' + bg + "</div>" + bsel + (dg ? '<h3 class="lp-sub">' + esc(tx("Official documents", "سرکاری دستاویزات")) + '</h3><div class="lp-grid">' + dg + "</div>" : ""));
       [["lp-notes", "IQRA_NOTES", tx("Notes", "نوٹس"), tx("Short, clear class notes. Open one to read it.", "جماعت کے مختصر اور واضح نوٹس۔ کھول کر پڑھیں۔"), tx("Notes are on the way", "نوٹس جلد آ رہے ہیں"), tx("Open notes", "نوٹس کھولیں")], ["lp-papers", "IQRA_PAPERS", tx("Past Papers", "پچھلے پرچے"), tx("Practise with past exam papers.", "پچھلے امتحانی پرچوں سے مشق کریں۔"), tx("Past papers are on the way", "پچھلے پرچے جلد آ رہے ہیں"), tx("Open paper", "پرچہ کھولیں")]].forEach(function (g) {
         var arr = (Array.isArray(window[g[1]]) ? window[g[1]] : []).filter(function (x) { return ext(x.url); }), gg = "";
         arr.forEach(function (x) { gg += linkCard(x, g[5]); });
@@ -3338,7 +3349,7 @@
         b.onclick = function () {
           boardSel = b.getAttribute("data-board"); paint();
           var f = el.querySelector('.lp-strip [data-board="' + boardSel + '"]'); if (f && f.focus) f.focus({ preventScroll: true });
-          setView("lp-lib"); el.scrollTop = 0; spy();
+          setView("lp-boards"); el.scrollTop = 0; spy();
         };
       });
       Array.prototype.forEach.call(el.querySelectorAll("[data-type]"), function (b) {
