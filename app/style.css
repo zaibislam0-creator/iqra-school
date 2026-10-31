@@ -1093,3 +1093,6 @@ nav button.act,.kidnav button.act,.topbar .kidnav button.act{background:#0d4a2e;
 
 /* header brand: only the gold IQRA logo, no extra wordmark or tagline */
 .brand-t,.brand-tag,.topbar .brand h1::after,.topbar .brand-tag{display:none!important}
+
+/* Today's Play card keeps its original warm orange gradient */
+.kgmix{background:linear-gradient(135deg,#ffb347,#ff7e5f);box-shadow:0 8px 22px rgba(255,126,95,.35)}
