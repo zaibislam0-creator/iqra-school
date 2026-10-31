@@ -1,0 +1,16 @@
+# IQRA Digital School
+
+> IQRA Digital School (اقرا ڈیجیٹل اسکول) is a free-to-start online learning platform for Pakistani students from KG to F.A (class 12), in Urdu and English. Mission: bring Pakistan's national curriculum and education online so learning is easy and reaches every kind of learner, building a bright, educated Pakistan.
+
+## What it offers
+- Games, short lessons, notes, quizzes and books based on the national curriculum
+- Subjects: Urdu, English, Mathematics, General Science, Physics, Chemistry, Biology, Computer Science, Pakistan Studies, Social Studies, Islamiat, Ethics, General Knowledge, Quran (Tajweedi Qaida), Arts, Physical Education, Financial Literacy, Digital Literacy, Communication Skills, Environmental Awareness
+- Levels: Primary (KG-5), Middle and Matric (6-10), F.A / Intermediate (11-12) with Pre-Medical, Pre-Engineering, I.C.S and Humanities groups
+- Regions: Punjab, Sindh, Khyber Pakhtunkhwa, Balochistan, Islamabad (Federal), Gilgit-Baltistan, Azad Jammu and Kashmir
+- Library of official board and publisher books, plus Notes and Past Papers sections
+
+## Current status
+Content is being added class by class. KG and Class 1 lessons and books are available now.
+
+## Links
+- Home: https://iqradigitalschool.com/

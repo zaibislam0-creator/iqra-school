@@ -1218,3 +1218,24 @@ body:has(#entry.docked) .topbar{display:none}
 @keyframes kgpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
 @keyframes kgtwinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(25deg)}}
 @media (prefers-reduced-motion:reduce){.kgmix,.kgmix::before,.kgmix .kgpic,.kgmix-go,.kgmix-go::after,.kgsp{animation:none!important}.kgsp{opacity:.7}}
+
+/* about / mission section on the public page */
+.lp-about{background:#fff;border-top:1px solid #d3e6d8;border-bottom:1px solid #d3e6d8;padding:8px 0 24px}
+.lp-about .lp-wrap{width:min(1080px,100%);margin:0 auto;padding:0 20px}
+.lp-mission{margin:36px 0 8px;padding:28px 28px 26px;border-radius:26px;background:linear-gradient(135deg,#0d4a2e,#14613c);color:#e6f4e8;position:relative;overflow:hidden}
+.lp-mission::after{content:"";position:absolute;inset-inline-end:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(232,198,94,.35),transparent 65%)}
+.lp-mission h2{margin:0 0 10px;font-size:clamp(1.4rem,3.4vw,2rem);color:#f3d77a;line-height:1.5}
+.lp-mission p{margin:0;font-size:clamp(1rem,2.2vw,1.2rem);line-height:2;max-width:62ch;position:relative;z-index:1}
+.lp-about .lp-sec{padding-top:28px}
+.lp-about .lp-sec-h h2{color:#0d4a2e}
+.lp-who span{display:block;margin-top:6px;color:#3d5a49;line-height:1.8;font-size:.95rem}
+.lp-grp{align-items:flex-start}
+.lp-tags{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.lp-tags li{padding:5px 12px;border-radius:999px;background:#e6f4e8;border:1px solid #b9d6c0;color:#0d4a2e;font-size:.88rem;font-weight:600}
+.lp-faqs{display:grid;gap:10px;max-width:860px}
+.lp-faq{border:1px solid #d3e6d8;border-radius:16px;background:#f4faf5;padding:0 16px}
+.lp-faq summary{cursor:pointer;list-style:none;padding:14px 0;font-weight:700;color:#0d4a2e;min-height:44px}
+.lp-faq summary::-webkit-details-marker{display:none}
+.lp-faq summary::after{content:"+";float:inline-end;font-weight:800;color:#c9962a}
+.lp-faq[open] summary::after{content:"\2212"}
+.lp-faq p{margin:0 0 14px;line-height:1.9;color:#2c4a3a}
