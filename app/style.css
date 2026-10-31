@@ -1377,3 +1377,8 @@ html.adm .bigbtn.gobtn2{border-radius:12px;min-height:48px}
   .pager:has(.tcanvas) .center{zoom:.8}
 }
 .picbtn .gloss{display:block;margin-top:2px;font-size:.8rem;font-weight:500;color:#587566;letter-spacing:0}
+
+.lp-tag{margin:0 0 12px;font-weight:700;letter-spacing:.02em;color:#14613c;font-size:1.02rem}
+#entry[dir=rtl] .lp-tag{letter-spacing:0;line-height:2}
+.lp-note{margin:18px 0 0;color:#3d5a49;font-size:.92rem;line-height:1.8;max-width:70ch}
+#entry[dir=rtl] .lp-note{line-height:2.1}
