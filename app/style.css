@@ -1176,3 +1176,4 @@ body:has(#entry.docked) .topbar{display:none}
 #entry.docked .lp-menu button{flex:none;white-space:nowrap}
 @media (max-width:1250px){#entry.docked .lp-brand b{display:none}}
 @media (max-width:640px){#entry.docked .lp-bar-in{flex-wrap:wrap}#entry.docked .lp-menu{flex:1 1 100%;order:3}}
+#entry.signed .entry-lang{display:none}
