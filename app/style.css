@@ -1287,3 +1287,12 @@ html.iq-resume,html.iq-resume body{overflow:hidden}
 .lp-mail{display:inline-block;padding:12px 20px;border-radius:999px;background:#0d4a2e;color:#fff;font-weight:700;text-decoration:none;word-break:break-all}
 .lp-priv{color:#0d4a2e;font-weight:600;text-decoration:underline;text-underline-offset:3px}
 #entry .lp-strip{display:none!important}
+
+/* admin page: same colours as the student site (flat deep-green bar, mint banner, no photo) */
+html.adm .topbar{background:#0d4a2e!important;border:0!important;box-shadow:0 2px 10px rgba(9,58,35,.18)!important;border-radius:18px!important}
+html.adm .kbanner{background:#e6f4e8!important;color:#0d4a2e!important;border:1px solid #cfe3d4;box-shadow:none!important;min-height:0!important}
+html.adm .kbanner .kb-text,html.adm .kbanner .kb-text span{color:#0d4a2e!important}
+html.adm .kbanner .kb-text em{color:#8a6a12!important}
+html.adm .kb-photo,html.adm .kb-art,html.adm .kb-sky{display:none!important}
+html.adm .kb-say{border-color:#b9d6c0!important;background:#fff!important;color:#0d4a2e!important}
+html.adm .kb-orb img{filter:none}
