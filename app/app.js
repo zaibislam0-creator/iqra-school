@@ -57,7 +57,7 @@
   function save() { state.maps = adminMaps; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   function kidCtx() { return !!(state.setup && kidUI() && ["setup", "gate", "exam", "progress", "admin", "settings", "adult", "addbook", "voice"].indexOf(view) < 0); }
   var forceUr = false;
-  function LANG() { if (forceUr) return "ur"; return kidCtx() ? (state.guide || "ur") : state.lang; }
+  function LANG() { if (forceUr) return "ur"; if (window.__iqEntry && window.__iqEntry.active) return state.lang; return kidCtx() ? (state.guide || "ur") : state.lang; }
   UI.en.library = "Library"; UI.ur.library = "کتب خانہ";
   function t(k) { return UI[LANG()][k] || k; }
   function L(o) { return o[LANG()] || o.en; }
