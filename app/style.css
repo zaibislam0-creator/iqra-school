@@ -1189,3 +1189,32 @@ body:has(#entry.docked) .topbar{display:none}
 @keyframes kgdice{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(8deg) translateY(-2px)}}
 @media (prefers-reduced-motion:reduce){.kgmix .kgpic{animation:none}}
 @media (max-width:480px){.kgmix{gap:10px;padding:12px 14px}.kgmix .kgpic{width:54px;height:54px;font-size:1.9rem}.kgmix-t b{font-size:1.2rem}.kgmix-t em{font-size:.9rem}.kgmix-go{padding:0 14px;min-height:40px;font-size:.9rem}}
+/* Stars: its own golden button on the right of the bar, always in view */
+#entry .lp-stars{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid #e8c65e;background:rgba(232,198,94,.16);color:#f6e3a0;font:700 .88rem Inter,system-ui,sans-serif;cursor:pointer;white-space:nowrap;flex:none}
+#entry .lp-stars svg{width:20px;height:20px;stroke:#e8c65e;fill:rgba(232,198,94,.4)}
+#entry .lp-stars:hover{background:rgba(232,198,94,.28)}
+#entry .lp-stars.act{background:linear-gradient(135deg,#f3d77a,#c9962a);border-color:#f3d77a;color:#093a23}
+#entry .lp-stars.act svg{stroke:#093a23;fill:rgba(9,58,35,.25)}
+@media (max-width:640px){#entry .lp-stars{width:40px;padding:0;justify-content:center}#entry .lp-stars span{display:none}}
+
+/* Today's Play: live, unique card (moving colour, sheen sweep, twinkling stars, hopping dice, pulsing Play) */
+.kgmix{background:linear-gradient(120deg,#ffb347,#ff8a5b,#ffc15e,#ff7e5f);background-size:260% 260%;animation:kgflow 9s ease-in-out infinite;transition:transform .2s ease,box-shadow .2s ease}
+.kgmix::before{content:"";position:absolute;top:-30%;bottom:-30%;width:38%;left:-45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:kgsheen 5s ease-in-out infinite;pointer-events:none}
+.kgmix:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(255,126,95,.45)}
+.kgmix:hover .kgpic{animation:kgroll .9s ease-in-out}
+.kgmix .kgpic{animation:kgdice 2.6s ease-in-out infinite,kghop 4s ease-in-out infinite}
+.kgmix-go{position:relative;animation:kgpulse 2.2s ease-out infinite}
+.kgmix-go::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:0 0 0 0 rgba(13,74,46,.55);animation:kgring 2.2s ease-out infinite}
+.kgsp{position:absolute;pointer-events:none;color:#fff;font-style:normal;text-shadow:0 0 8px rgba(255,255,255,.9);opacity:0;animation:kgtwinkle 3.2s ease-in-out infinite}
+.kgsp.s1{top:12%;inset-inline-start:30%;font-size:1rem}
+.kgsp.s2{bottom:14%;inset-inline-start:46%;font-size:.8rem;animation-delay:1s}
+.kgsp.s3{top:18%;inset-inline-end:24%;font-size:1.1rem;animation-delay:1.8s;color:#fff6b8}
+.kgsp.s4{bottom:12%;inset-inline-end:34%;font-size:.7rem;animation-delay:2.4s}
+@keyframes kgflow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes kgsheen{0%,55%{left:-45%}100%{left:130%}}
+@keyframes kghop{0%,82%,100%{translate:0 0}88%{translate:0 -10px}94%{translate:0 0}97%{translate:0 -4px}}
+@keyframes kgroll{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+@keyframes kgring{0%{box-shadow:0 0 0 0 rgba(13,74,46,.5)}80%,100%{box-shadow:0 0 0 14px rgba(13,74,46,0)}}
+@keyframes kgpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes kgtwinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(25deg)}}
+@media (prefers-reduced-motion:reduce){.kgmix,.kgmix::before,.kgmix .kgpic,.kgmix-go,.kgmix-go::after,.kgsp{animation:none!important}.kgsp{opacity:.7}}

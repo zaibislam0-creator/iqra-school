@@ -1224,7 +1224,7 @@
     }
     kgSec = null;
     var mix = kgMix();
-    h += '<button type="button" class="kgmix" data-act="openLesson" data-arg="kg-mix"><span class="kgpic" aria-hidden="true">🎲</span><span class="kgmix-t"><b>' + esc(ur ? "آج کا کھیل" : "Today's Play") + "</b><em>" + esc(ur ? "سب کچھ ملا کر" : "A bit of everything") + '</em></span><span class="kgmix-go" aria-hidden="true">' + esc(ur ? "کھیلیں" : "Play") + " ▶</span></button>";
+    h += '<button type="button" class="kgmix" data-act="openLesson" data-arg="kg-mix"><span class="kgpic" aria-hidden="true">🎲</span><span class="kgmix-t"><b>' + esc(ur ? "آج کا کھیل" : "Today's Play") + "</b><em>" + esc(ur ? "سب کچھ ملا کر" : "A bit of everything") + '</em></span><span class="kgmix-go" aria-hidden="true">' + esc(ur ? "کھیلیں" : "Play") + " ▶</span><i class=\"kgsp s1\" aria-hidden=\"true\">✦</i><i class=\"kgsp s2\" aria-hidden=\"true\">✦</i><i class=\"kgsp s3\" aria-hidden=\"true\">★</i><i class=\"kgsp s4\" aria-hidden=\"true\">✦</i></button>";
     h += '<h3 class="subhd">' + esc(ur ? "کیا سیکھنا ہے؟" : "What shall we learn?") + '</h3><div class="kgrid">';
     secs.forEach(function (x) {
       var n = x.list.filter(function (l) { return done.indexOf(l.id) > -1; }).length;
@@ -3205,8 +3205,8 @@
       Array.prototype.forEach.call(el.querySelectorAll("[data-px],[data-pxn]"), function (x) { x.parentNode.removeChild(x); });
       var hb = document.querySelectorAll("#app .topbar .hb > *"), nv = document.querySelectorAll("#app .topbar nav > *, #app .topbar .kidnav > *"), first = r.firstChild, k;
       for (k = 0; k < hb.length; k++) { var c = hb[k].cloneNode(true); c.removeAttribute("id"); c.removeAttribute("data-act"); c.removeAttribute("data-arg"); c.setAttribute("data-px", k); c.className = "lp-chip2" + (hb[k].classList.contains("on") ? " on" : ""); r.insertBefore(c, first); }
-      for (k = 0; k < nv.length; k++) { var n = nv[k].cloneNode(true); n.removeAttribute("data-nav"); n.removeAttribute("data-act"); n.removeAttribute("data-arg"); n.setAttribute("data-pxn", k); n.setAttribute("type", "button"); n.className = nv[k].classList.contains("act") && el.classList.contains("docked") ? "act" : "";
-        if (k === 0) { var sp = n.querySelector("span"), lbl = LANG() === "ur" ? "میری جماعت" : "My class"; if (sp) sp.textContent = lbl; else n.textContent = lbl; var hm = m.querySelector('[data-go="lp-top"]'); if (hm && hm.nextSibling) m.insertBefore(n, hm.nextSibling); else m.appendChild(n); } else m.appendChild(n); }
+      for (k = 0; k < nv.length; k++) { var isStar = nv[k].getAttribute("data-nav") === "stars"; var n = nv[k].cloneNode(true); n.removeAttribute("data-nav"); n.removeAttribute("data-act"); n.removeAttribute("data-arg"); n.setAttribute("data-pxn", k); n.setAttribute("type", "button"); n.className = nv[k].classList.contains("act") && el.classList.contains("docked") ? "act" : "";
+        if (k === 0) { var sp = n.querySelector("span"), lbl = LANG() === "ur" ? "میری جماعت" : "My class"; if (sp) sp.textContent = lbl; else n.textContent = lbl; var hm = m.querySelector('[data-go="lp-top"]'); if (hm && hm.nextSibling) m.insertBefore(n, hm.nextSibling); else m.appendChild(n); } else if (isStar) { n.className = "lp-stars" + (nv[k].classList.contains("act") && el.classList.contains("docked") ? " act" : ""); r.insertBefore(n, r.firstChild); } else m.appendChild(n); }
       spy();
       sizeBar();
     }
