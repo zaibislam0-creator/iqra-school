@@ -1162,3 +1162,17 @@ html:has(#entry:not(.docked)),html:has(#entry:not(.docked)) body{overflow:hidden
 #entry.signed .lp-signin,#entry.signed .lp-hero,#entry.signed .lp-end{display:none}
 body:has(#entry.docked) .topbar{top:calc(var(--lpbar,56px) + 6px)}
 body:has(#entry.docked) .topbar .brand{display:none}
+/* top bar now carries the learning controls too; the app's own second header is hidden */
+body:has(#entry.docked) .topbar{display:none}
+#entry .lp-chip2{display:inline-flex;align-items:center;justify-content:center;min-width:40px;min-height:40px;padding:0 12px;border-radius:999px;border:1px solid rgba(207,227,212,.5);background:transparent;color:#e6f4e8;font:600 .85rem Inter,system-ui,sans-serif;cursor:pointer}
+#entry .lp-chip2 svg{width:20px;height:20px;fill:none;stroke:currentColor}
+#entry .lp-chip2:hover{background:rgba(207,227,212,.15)}
+#entry .lp-chip2 .gw{margin-inline-end:4px}
+#entry .lp-menu [data-pxn]{display:inline-flex;align-items:center;gap:6px}
+#entry .lp-menu [data-pxn] svg{width:18px;height:18px}
+#entry .lp-menu .act{background:#e6f4e8;color:#0d4a2e;border-radius:999px}
+#entry.docked .lp-menu{min-width:0;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+#entry.docked .lp-menu::-webkit-scrollbar{display:none}
+#entry.docked .lp-menu button{flex:none;white-space:nowrap}
+@media (max-width:1250px){#entry.docked .lp-brand b{display:none}}
+@media (max-width:640px){#entry.docked .lp-bar-in{flex-wrap:wrap}#entry.docked .lp-menu{flex:1 1 100%;order:3}}
