@@ -1090,3 +1090,6 @@ nav button.act,.kidnav button.act,.topbar .kidnav button.act{background:#0d4a2e;
 .hero3 h2,.hero3 p,.wordmark,.wordmark span{color:#fff}
 @media (min-width:760px){.topbar{background:#0d4a2e;border:0;box-shadow:none}.topbar nav,.topbar .kidnav{background:none;border:0;box-shadow:none}.topbar nav button,.topbar .kidnav button{color:#cfe5d5}.topbar nav button.act,.topbar .kidnav button.act{background:#fff;color:#0d4a2e}.topbar .brand h1::after{color:#cfe3d4}.topbar .brand-tag{color:#cfe5d5}}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#07261a;--card:#0d3a26;--line:#2a5a40;--g:#9fd8b0;--g2:#14452d;--ink:#e6f4e8;--mintbg:#0f3d27;--mintline:#2a5a40}:root:not([data-theme="light"]) body{background:#07261a;color:#e6f4e8}}
+
+/* header brand: only the gold IQRA logo, no extra wordmark or tagline */
+.brand-t,.brand-tag,.topbar .brand h1::after,.topbar .brand-tag{display:none!important}
