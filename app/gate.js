@@ -25,7 +25,8 @@ const loadGIS=()=>new Promise(r=>{if(window.google&&google.accounts&&google.acco
 async function gisInit(){if(gisOK)return true;if(!await loadGIS())return false;
  try{google.accounts.id.initialize({client_id:CID,use_fedcm_for_prompt:true,auto_select:false,cancel_on_tap_outside:false,callback:async r=>{try{await Au.signInWithCredential(auth,Au.GoogleAuthProvider.credential(r.credential))}catch(e){window.__iqEntry&&window.__iqEntry.ready(friendly(e))}}});gisOK=true}catch(e){return false}return true}
 const gisPrompt=()=>new Promise(r=>{try{google.accounts.id.prompt(n=>{if((n.isNotDisplayed&&n.isNotDisplayed())||(n.isSkippedMoment&&n.isSkippedMoment()))r('fallback');else if(n.isDismissedMoment&&n.isDismissedMoment())r('done')})}catch(e){r('fallback')}setTimeout(()=>r('done'),2500)});
-window.__iqSignIn=async()=>{if(await gisInit()){if(await gisPrompt()!=='fallback')return ''}
+const gisToken=()=>new Promise(res=>{try{const tc=google.accounts.oauth2.initTokenClient({client_id:CID,scope:'openid email profile',callback:async t=>{if(!t||!t.access_token){res(t&&t.error==='access_denied'?'':'x');return}try{await Au.signInWithCredential(auth,Au.GoogleAuthProvider.credential(null,t.access_token));res('')}catch(e){res(friendly(e))}},error_callback:e=>res(e&&(e.type==='popup_closed')?'':'x')});tc.requestAccessToken({prompt:'select_account'})}catch(e){res('x')}});
+window.__iqSignIn=async()=>{if(await gisInit()){if(await gisPrompt()!=='fallback')return '';const r=await gisToken();if(r!=='x')return r}
  try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider());return ''}catch(e){return friendly(e)}};
 window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try{const x={updated:Date.now()};if(p&&p.name)x.name=String(p.name).slice(0,80);if(p&&p.cls)x.cls=String(p.cls);await F.setDoc(F.doc(fs,'students',u.uid),x,{merge:true});return true}catch(e){return false}};
 function profileView(u,d){
