@@ -2,7 +2,7 @@
 
 Pakistani Curriculum. International Learning Standards.
 
-> IQRA Digital School (اقرا ڈیجیٹل اسکول) is a free-to-start online learning platform for Pakistani students from Playgroup to Grade 10, in Urdu and English. Mission: bring Pakistan's national curriculum and education online so learning is easy and reaches every kind of learner, building a bright, educated Pakistan.
+> IQRA Digital School (اقرا ڈیجیٹل اسکول) is a free-to-start online learning platform for Pakistani students from Prep (KG) to Grade 10, in Urdu and English. Mission: bring Pakistan's national curriculum and education online so learning is easy and reaches every kind of learner, building a bright, educated Pakistan.
 
 ## What it offers
 - Games, short lessons, notes, quizzes and books based on the national curriculum
