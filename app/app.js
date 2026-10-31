@@ -184,7 +184,7 @@
       navH += '<a class="navlink" href="/">' + esc(LANG() === "ur" ? "طلبہ کی سائٹ ↗" : "Student site ↗") + "</a></nav>";
     } else if (state.setup && kid) {
       navH += '<nav class="kidnav">';
-      [["learn", "home"], ["library", "lib"], ["tutor", "owl"], ["stars", "star"]].forEach(function (v) {
+      [["learn", "home"], ["stars", "star"]].forEach(function (v) {
         navH += '<button data-nav="' + v[0] + '" aria-label="' + esc(t(v[0] === "stars" ? "starsTab" : v[0] === "learn" ? "home" : v[0])) + '" class="' + (view === v[0] ? "act" : "") + '">' + svg(v[1], 34) + "<span>" + esc(t(v[0] === "stars" ? "starsTab" : v[0] === "learn" ? "home" : v[0])) + "</span></button>";
       });
       if (!isPlainStudent()) navH += '<button data-act="adult" aria-label="' + esc(t("grownups")) + '" class="' + (ADULT_VIEWS.indexOf(view) > -1 || view === "gate" ? "act" : "") + '">' + svg("lock", 34) + "<span>" + esc(t("grownups")) + "</span></button>";
