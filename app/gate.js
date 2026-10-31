@@ -45,10 +45,11 @@ window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try
  return true}catch(e){return false}};
 function profileView(u,d){
  leaveSplash();if(window.__iqEntry&&window.__iqEntry.busy)window.__iqEntry.busy(false);
- const cl=[['Play Group','پلے گروپ'],['Nursery','نرسری'],['KG','کے جی'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['10','10'],['F.A','ایف اے']];
+ const cl=[['KG','کے جی'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['10','10'],['F.A','ایف اے']];
  let local={};try{local=JSON.parse(localStorage.getItem('pds-state-v1'))||{}}catch(e){}
- let sel=d&&d.cls||(local.setup&&local.grade!==undefined?(Number(local.grade)>=11?'F.A':local.grade==='PG'?'Play Group':local.grade==='NU'?'Nursery':String(local.grade)):'');
+ let sel=d&&d.cls||(local.setup&&local.grade!==undefined?(Number(local.grade)>=11?'F.A':String(local.grade)):'');
  if(sel!=='F.A'){const fi=cl.findIndex(x=>x[0]==='F.A');if(fi>-1)cl.splice(fi,1)}
+ if(sel==='Play Group'||sel==='Nursery')cl.unshift([sel,sel==='Play Group'?'پلے گروپ':'نرسری']);
  let sbd=(d&&d.sboard)||(local.setup&&local.sboard)||'';const isSec=c=>c==='9'||c==='10';
  G.setAttribute('dir',LNG==='ur'?'rtl':'ltr');G.classList.add('ob-on');
  show('<div class="ob"><img class="ob-logo" src="/icon-192.png" width="64" height="64" alt="IQRA"><h2>'+esc(T('Welcome! Let’s set up the learner','خوش آمدید! آئیے طالب علم کی معلومات بھر لیں'))+'</h2><p class="ob-sub">'+esc(T('This takes under a minute. You can change the class any time from the top bar.','اس میں ایک منٹ سے کم لگتا ہے۔ جماعت آپ کسی بھی وقت اوپر والی بار سے بدل سکتے ہیں۔'))+'</p><p class="ob-acct">'+esc(T('Signed in as ','لاگ اِن: '))+'<b dir="ltr">'+esc(u.email||u.displayName||'')+'</b></p>'

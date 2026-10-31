@@ -414,7 +414,7 @@
   }
   function reqBanner() {
     var q = window.__iqReq; if (!q || (q.status !== "pending" && q.status !== "rejected")) return "";
-    var ur = LANG() === "ur", to = q.to === "Play Group" ? "Playgroup" : q.to;
+    var ur = LANG() === "ur", to = q.to;
     var msg = q.status === "pending"
       ? (ur ? "جماعت / بورڈ بدلنے کی درخواست ایڈمن کی منظوری کے انتظار میں ہے: " : "Your request to change class or board is waiting for admin approval: ") + to + (q.toBoard ? " (" + boardName(q.toBoard) + ")" : "")
       : (ur ? "جماعت / بورڈ بدلنے کی درخواست منظور نہیں ہوئی۔" : "Your class or board change request was not approved.");
@@ -2496,12 +2496,12 @@
     root.querySelectorAll("[data-sgrade]").forEach(function (b) { b.addEventListener("click", function () { readSetup(); state.grade = b.dataset.sgrade; render(); }); });
     root.querySelectorAll("[data-sboard]").forEach(function (b) { b.addEventListener("click", function () { if (view === "setup") readSetup(); state.sboard = b.dataset.sboard; save(); if (state.setup) persistProfile(); render(); }); });
     on("#sgo", function () { readSetup(); if (isSecG(state.grade) && !state.sboard) { var bm = $("#sbmsg"); if (bm) { bm.hidden = false; if (bm.scrollIntoView) bm.scrollIntoView({ block: "center" }); } return; } state.setup = true; state.profileAt = Date.now(); save(); persistProfile(); view = "learn"; render(); });
-  function persistProfile() { if (!window.__iqSaveProfile) return; var g = state.grade, n = gnum(g); var pr = window.__iqSaveProfile({ sboard: isSecG(g) ? (state.sboard || "") : "", name: state.name, cls: n >= 11 ? "F.A" : n === -2 ? "Play Group" : n === -1 ? "Nursery" : n === 0 ? "KG" : String(g) });
+  function persistProfile() { if (!window.__iqSaveProfile) return; var g = state.grade, n = gnum(g); var pr = window.__iqSaveProfile({ sboard: isSecG(g) ? (state.sboard || "") : "", name: state.name, cls: n >= 11 ? "F.A" : n === 0 ? (/^(Play Group|Nursery)$/.test((window.__iqProfile || {}).cls || "") ? window.__iqProfile.cls : "KG") : String(g) });
     if (pr && pr.then) pr.then(function (r) {
       if (r !== "requested") return;
       /* the official class is unchanged until an admin approves: show the official one again */
       var p = window.__iqProfile || {}, oc = String(p.cls || "");
-      state.grade = oc === "F.A" ? 11 : oc === "Play Group" ? "PG" : oc === "Nursery" ? "NU" : /^\d+$/.test(oc) ? Number(oc) : "KG";
+      state.grade = oc === "F.A" ? 11 : /^\d+$/.test(oc) ? Number(oc) : "KG";
       state.sboard = p.sboard || ""; save(); render();
     });
   }
@@ -2768,6 +2768,8 @@
     h += '<div class="card"><h3>' + esc(ur ? "موجودہ مواد کو نئے سیکیورٹی قواعد کے لیے تیار کریں" : "Prepare existing content for the new security rules") + '</h3><p class="small">' + esc(ur ? "یہ ایک بار چلائیں، نئے قواعد شائع کرنے سے پہلے۔ ہر باب، لیکچر اور وسیلے پر سامعین (aud) لکھا جاتا ہے۔ ابواب صرف تب شائع رہیں گے جب وہ چھپے ہوئے نہ ہوں اور تصدیق شدہ ہوں۔" : "Run this once, before publishing the new rules. It writes the audience (aud) on every chapter, lecture and resource. Chapters stay visible to students only if they are not hidden AND verified.") + '</p>';
     if (secMsg) h += '<p class="note" aria-live="polite">' + esc(secMsg) + "</p>";
     h += '<button type="button" class="btn' + (secArm ? "" : " alt") + '" data-act="secMigrate">' + esc(secArm ? (ur ? "دوبارہ دبائیں: تصدیق" : "Tap again to confirm") : (ur ? "تیار کریں" : "Prepare content")) + "</button></div>";
+    var legacyEY = teamS.filter(function (x) { return x.cls === "Play Group" || x.cls === "Nursery"; });
+    if (legacyEY.length) h += '<div class="card"><p class="note">' + esc((ur ? "پلے گروپ / نرسری میں درج طلبہ: " : "Students recorded in Playgroup / Nursery: ") + legacyEY.length + (ur ? "۔ ان کا ریکارڈ بدلا نہیں گیا؛ انہیں فی الحال کے جی (پریپ) کا مواد نظر آتا ہے۔" : ". Their records are unchanged; for now they see the KG (Prep) content.")) + "</p></div>";
     h += '<p class="small">' + (ur ? "کل لوگ: " : "People: ") + teamS.length + "</p>";
     if (!teamS.length) h += '<div class="card"><p class="small">' + (ur ? "ابھی کوئی نہیں۔" : "No one yet.") + "</p></div>";
     teamS.forEach(function (x) {
@@ -3413,7 +3415,7 @@
     if (el && !el.disabled) act(el.getAttribute("data-act"), el.getAttribute("data-arg"));
   });
   render();
-  (function go(n){ if(window.__iqReady||n>6000){ var p=window.__iqProfile; if(p && (!state.setup || (p.updated && p.updated > (state.profileAt || 0)))){ state.profileAt = p.updated || Date.now(); if(p.name) state.name=p.name; if(p.sboard) state.sboard=p.sboard; var g=String(p.cls||p.grade||""); state.grade=g==="F.A"?11:g==="Play Group"?"PG":g==="Nursery"?"NU":(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); } else setTimeout(function(){go(n+1)},100); })(0);
+  (function go(n){ if(window.__iqReady||n>6000){ var p=window.__iqProfile; if(p && (!state.setup || (p.updated && p.updated > (state.profileAt || 0)))){ state.profileAt = p.updated || Date.now(); if(p.name) state.name=p.name; if(p.sboard) state.sboard=p.sboard; var g=String(p.cls||p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); } else setTimeout(function(){go(n+1)},100); })(0);
   (function entryScreen() {
     if (ADMIN || STAFFPAGE || !window.IQRA_LOGO || !document.body) return;
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
@@ -3527,16 +3529,16 @@
           '<h3 class="lp-sub">' + esc(tx("The IQRA graduate", "اقرا کا طالب علم")) + "</h3>" +
           tags([["Curious and independent", "متجسس اور خود مختار"], ["Clear thinker", "واضح سوچ رکھنے والا"], ["Confident in Urdu and English", "اردو اور انگریزی میں پراعتماد"], ["Digitally capable", "ڈیجیٹل صلاحیت رکھنے والا"], ["Ethical and caring", "بااخلاق اور ہمدرد"], ["Ready for board exams", "بورڈ امتحانات کے لیے تیار"]]) +
           '<p class="lp-note">' + esc(tx("Our teaching approach is inspired by good international practice, such as inquiry-based and project-based learning, formative assessment and play-based early years. IQRA Digital School is not affiliated with, or accredited by, Cambridge, the IB or any foreign body.", "ہمارا تدریسی انداز بہترین عالمی طریقوں سے متاثر ہے، جیسے تحقیق اور پراجیکٹ پر مبنی تعلیم، مسلسل جانچ اور ابتدائی سالوں میں کھیل کے ذریعے سیکھنا۔ اقرا ڈیجیٹل اسکول کا کیمبرج، آئی بی یا کسی غیر ملکی ادارے سے الحاق یا ان کی منظوری نہیں ہے۔")) + "</p>") +
-        sec("lp-frame", tx("Our academic framework", "ہمارا تعلیمی ڈھانچہ"), tx("Four stages from Playgroup to Grade 10, each building on the one before.", "پلے گروپ سے جماعت 10 تک چار مراحل، ہر مرحلہ پچھلے پر قائم۔"),
+        sec("lp-frame", tx("Our academic framework", "ہمارا تعلیمی ڈھانچہ"), tx("Four stages from Prep (KG) to Grade 10, each building on the one before.", "پریپ (کے جی) سے جماعت 10 تک چار مراحل، ہر مرحلہ پچھلے پر قائم۔"),
           '<div class="lp-grid">' +
-          who("Early Years: Playgroup, Nursery, Prep", "ابتدائی سال: پلے گروپ، نرسری، پریپ", "Learning through play: letters and sounds, numbers, colours, shapes, stories, rhymes and movement. No exam pressure.", "کھیل کے ذریعے سیکھنا: حروف اور آوازیں، اعداد، رنگ، اشکال، کہانیاں، نظمیں اور حرکت۔ امتحان کا کوئی دباؤ نہیں۔") +
+          who("Early Years: Prep (KG)", "ابتدائی سال: پریپ (کے جی)", "Learning through play: letters and sounds, numbers, colours, shapes, stories, rhymes and movement. No exam pressure.", "کھیل کے ذریعے سیکھنا: حروف اور آوازیں، اعداد، رنگ، اشکال، کہانیاں، نظمیں اور حرکت۔ امتحان کا کوئی دباؤ نہیں۔") +
           who("Primary: Grades 1 to 5", "پرائمری: جماعت 1 سے 5", "Strong reading, writing and number foundations in Urdu and English, with science, Islamiat and general knowledge, and simple projects.", "اردو اور انگریزی میں پڑھنے، لکھنے اور حساب کی مضبوط بنیاد، سائنس، اسلامیات اور عمومی معلومات کے ساتھ، اور سادہ پراجیکٹس۔") +
           who("Middle: Grades 6 to 8", "مڈل: جماعت 6 سے 8", "Subjects deepen: science, social studies, Pakistan Studies and computer science, with investigation, discussion and short projects.", "مضامین گہرے ہوتے ہیں: سائنس، معاشرتی علوم، مطالعہ پاکستان اور کمپیوٹر سائنس، تحقیق، گفتگو اور مختصر پراجیکٹس کے ساتھ۔") +
           who("Secondary: Grades 9 and 10", "سیکنڈری: جماعت 9 اور 10", "Full preparation for the board examinations across the prescribed subjects, with problem-solving and research skills.", "مقررہ مضامین میں بورڈ امتحانات کی مکمل تیاری، مسئلہ حل کرنے اور تحقیق کی مہارتوں کے ساتھ۔") + "</div>" +
           '<p class="lp-note">' + esc(tx("Each board's prescribed textbooks and syllabus decide the exact subjects and chapters. Lesson content stays marked as pending review until a teacher has checked it against the official source.", "ہر بورڈ کی مقررہ نصابی کتب اور نصاب ہی درست مضامین اور ابواب طے کرتے ہیں۔ اسباق کا مواد اس وقت تک زیرِ جائزہ رہتا ہے جب تک استاد اسے سرکاری ماخذ سے نہ ملا لے۔")) + "</p>") +
         sec("lp-who", tx("Who IQRA Digital School is for", "اقرا ڈیجیٹل اسکول کس کے لیے ہے"), tx("One free place to learn, teach and follow progress.", "سیکھنے، سکھانے اور پیش رفت دیکھنے کے لیے ایک ہی مفت جگہ۔"),
           '<div class="lp-grid">' +
-          who("Students, Playgroup to Grade 10", "طلبہ، پلے گروپ سے جماعت 10 تک", "Learn with games, short lessons, notes and quizzes that follow the school syllabus.", "کھیلوں، مختصر اسباق، نوٹس اور کوئز کے ذریعے سیکھیں جو اسکول کے نصاب کے مطابق ہیں۔") +
+          who("Students, Prep (KG) to Grade 10", "طلبہ، پریپ (کے جی) سے جماعت 10 تک", "Learn with games, short lessons, notes and quizzes that follow the school syllabus.", "کھیلوں، مختصر اسباق، نوٹس اور کوئز کے ذریعے سیکھیں جو اسکول کے نصاب کے مطابق ہیں۔") +
           who("Parents", "والدین", "See what your child is studying and help them at home in Urdu or English.", "دیکھیں کہ آپ کا بچہ کیا پڑھ رہا ہے اور گھر پر اردو یا انگریزی میں اس کی مدد کریں۔") +
           who("Teachers", "اساتذہ", "Find lesson ideas, notes and practice material aligned with the national curriculum.", "قومی نصاب کے مطابق سبق کے خیالات، نوٹس اور مشق کا مواد حاصل کریں۔") +
           who("Self-learners", "خود سیکھنے والے", "Anyone in Pakistan who wants to learn at their own pace, on a phone or a computer.", "پاکستان میں ہر وہ شخص جو اپنی رفتار سے فون یا کمپیوٹر پر سیکھنا چاہے۔") + "</div>") +
@@ -3546,15 +3548,15 @@
           grp("Maths and Science", "ریاضی اور سائنس", [["Mathematics", "ریاضی"], ["General Science", "عمومی سائنس"], ["Physics", "طبیعیات"], ["Chemistry", "کیمیا"], ["Biology", "حیاتیات"], ["Computer Science", "کمپیوٹر سائنس"]]) +
           grp("Social studies and values", "معاشرتی علوم اور اقدار", [["Pakistan Studies", "مطالعہ پاکستان"], ["Social Studies", "معاشرتی علوم"], ["Islamiat", "اسلامیات"], ["Ethics", "اخلاقیات"], ["General Knowledge", "عمومی معلومات"]]) +
           grp("Life skills", "زندگی کی مہارتیں", [["Arts and Creativity", "فنون اور تخلیق"], ["Physical Education", "جسمانی تعلیم"], ["Financial Literacy", "مالی شعور"], ["Digital Literacy", "ڈیجیٹل خواندگی"], ["Environmental Awareness", "ماحولیاتی شعور"]]) +
-          grp("Stages", "مراحل", [["Early Years (Playgroup to Prep)", "ابتدائی سال (پلے گروپ سے پریپ)"], ["Primary (1 to 5)", "پرائمری (1 سے 5)"], ["Middle (6 to 8)", "مڈل (6 سے 8)"], ["Secondary (9 to 10)", "سیکنڈری (9 سے 10)"]]) +
+          grp("Stages", "مراحل", [["Early Years (Prep / KG)", "ابتدائی سال (پریپ / کے جی)"], ["Primary (1 to 5)", "پرائمری (1 سے 5)"], ["Middle (6 to 8)", "مڈل (6 سے 8)"], ["Secondary (9 to 10)", "سیکنڈری (9 سے 10)"]]) +
           "" + "</div>") +
         sec("lp-regions", tx("Across Pakistan", "پورے پاکستان میں"), tx("Built around the national curriculum and the textbooks of every province and region.", "قومی نصاب اور ہر صوبے اور علاقے کی نصابی کتب کی بنیاد پر۔"),
           tags([["Punjab", "پنجاب"], ["Sindh", "سندھ"], ["Khyber Pakhtunkhwa", "خیبر پختونخوا"], ["Balochistan", "بلوچستان"], ["Islamabad (Federal)", "اسلام آباد (وفاقی)"], ["Gilgit-Baltistan", "گلگت بلتستان"], ["Azad Jammu and Kashmir", "آزاد جموں و کشمیر"]])) +
         sec("lp-faq", tx("Frequently asked questions", "اکثر پوچھے جانے والے سوالات"), "",
           '<div class="lp-faqs">' +
-          faq("What is IQRA Digital School?", "اقرا ڈیجیٹل اسکول کیا ہے؟", "IQRA Digital School is a free-to-start online learning platform for Pakistani students from Playgroup to Grade 10. It offers games, lessons, notes, tests and books based on the national curriculum, in Urdu and English.", "اقرا ڈیجیٹل اسکول پاکستانی طلبہ کے لیے پلے گروپ سے جماعت 10 تک مفت شروع ہونے والا آن لائن تعلیمی پلیٹ فارم ہے۔ اس میں قومی نصاب کی بنیاد پر کھیل، اسباق، نوٹس، ٹیسٹ اور کتابیں اردو اور انگریزی میں ہیں۔") +
+          faq("What is IQRA Digital School?", "اقرا ڈیجیٹل اسکول کیا ہے؟", "IQRA Digital School is a free-to-start online learning platform for Pakistani students from Prep (KG) to Grade 10. It offers games, lessons, notes, tests and books based on the national curriculum, in Urdu and English.", "اقرا ڈیجیٹل اسکول پاکستانی طلبہ کے لیے پریپ (کے جی) سے جماعت 10 تک مفت شروع ہونے والا آن لائن تعلیمی پلیٹ فارم ہے۔ اس میں قومی نصاب کی بنیاد پر کھیل، اسباق، نوٹس، ٹیسٹ اور کتابیں اردو اور انگریزی میں ہیں۔") +
           faq("Is it free?", "کیا یہ مفت ہے؟", "Yes, you can start learning for free. Some publisher books linked in the Library may be paid and are marked clearly.", "جی ہاں، آپ مفت سیکھنا شروع کر سکتے ہیں۔ کتب خانے میں دیے گئے کچھ ناشرین کی کتابیں ادائیگی والی ہو سکتی ہیں اور واضح طور پر نشان زد ہیں۔") +
-          faq("Which classes and subjects are covered?", "کون سی جماعتیں اور مضامین شامل ہیں؟", "The platform is designed for Playgroup to Grade 10 with Urdu, English, Maths, Science, Islamiat, Pakistan Studies, Computer Science and more.", "یہ پلیٹ فارم پلے گروپ سے جماعت 10 تک کے لیے بنایا گیا ہے جس میں اردو، انگریزی، ریاضی، سائنس، اسلامیات، مطالعہ پاکستان، کمپیوٹر سائنس اور مزید شامل ہیں۔") +
+          faq("Which classes and subjects are covered?", "کون سی جماعتیں اور مضامین شامل ہیں؟", "The platform is designed for Prep (KG) to Grade 10 with Urdu, English, Maths, Science, Islamiat, Pakistan Studies, Computer Science and more.", "یہ پلیٹ فارم پریپ (کے جی) سے جماعت 10 تک کے لیے بنایا گیا ہے جس میں اردو، انگریزی، ریاضی، سائنس، اسلامیات، مطالعہ پاکستان، کمپیوٹر سائنس اور مزید شامل ہیں۔") +
           faq("Is it in Urdu or English?", "یہ اردو میں ہے یا انگریزی میں؟", "Both. Switch between Urdu and English at any time with the language button in the top bar.", "دونوں میں۔ اوپر والی بار میں زبان کے بٹن سے کسی بھی وقت اردو اور انگریزی کے درمیان بدل سکتے ہیں۔") +
           faq("How do I start?", "میں کیسے شروع کروں؟", "Press Sign in to study, sign in with Google, choose your class, and begin. You can also browse the Library, Boards, Notes and Past Papers without signing in.", "پڑھنے کے لیے سائن اِن دبائیں، گوگل سے لاگ اِن کریں، اپنی جماعت چنیں اور شروع کریں۔ کتب خانہ، بورڈز، نوٹس اور پچھلے پرچے آپ بغیر لاگ اِن کیے بھی دیکھ سکتے ہیں۔") + "</div>") +
         sec("lp-contact", tx("Contact us", "ہم سے رابطہ کریں"), tx("Questions, suggestions or a problem? Write to us.", "سوال، تجویز یا کوئی مسئلہ؟ ہمیں لکھیں۔"),
@@ -3572,12 +3574,12 @@
         free.forEach(function (x, n) { lg += '<button type="button" class="lp-card lp-free" data-free="' + n + '"><i>' + esc(lt(x.cls)) + " · " + esc(lt(x.subject)) + "</i><b>" + esc(lt(x.title)) + "</b>" + badge({}) + "<em>" + esc(tx("Read now", "ابھی پڑھیں")) + "</em></button>"; });
       }
       if (!lg) lg = soon(typeSel === "paid" ? tx("Paid books are on the way", "ادائیگی والی کتابیں جلد آ رہی ہیں") : tx("Library books are on the way", "کتب خانے کی کتابیں جلد آ رہی ہیں"));
-      /* Classes: four divisions, Playgroup to Grade 10 (Pakistani curriculum first, international teaching methods as enrichment) */
+      /* Classes: four divisions, Prep (KG) to Grade 10 (Pakistani curriculum first, international teaching methods as enrichment) */
       var DIVS = [
-        { id: "early", n: 1, ic: '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/>', en: "Early Years", ur: "ابتدائی سال", re: "Playgroup to Prep", ru: "پلے گروپ سے پریپ",
+        { id: "early", n: 1, ic: '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/>', en: "Early Years", ur: "ابتدائی سال", re: "Prep (KG)", ru: "پریپ (کے جی)",
           ie: "Learning through play: sounds, letters, numbers, colours, stories and rhymes, with no exams.", iu: "کھیل کے ذریعے سیکھنا: آوازیں، حروف، اعداد، رنگ، کہانیاں اور نظمیں، بغیر امتحان کے۔",
           oe: ["Recognise letters, sounds and numbers", "Build speaking, listening and motor skills", "Grow social and emotional confidence"], ou: ["حروف، آوازیں اور اعداد پہچاننا", "بولنے، سننے اور ہاتھ کی مہارتیں", "سماجی اور جذباتی اعتماد"],
-          cl: [["PG", "Playgroup", "پلے گروپ", 1], ["NU", "Nursery", "نرسری", 1], ["KG", "Prep", "پریپ (کے جی)", 1]] },
+          cl: [["KG", "Prep (KG)", "پریپ (کے جی)", 1]] },
         { id: "primary", n: 2, ic: '<path d="M4 5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2z"/><path d="M4 20a2 2 0 0 1 2-2h13"/>', en: "Primary School", ur: "پرائمری اسکول", re: "Grades 1 to 5", ru: "جماعت 1 سے 5",
           ie: "Strong foundations in reading, writing and number in Urdu and English, with science, Islamiat and general knowledge.", iu: "اردو اور انگریزی میں پڑھنے، لکھنے اور حساب کی مضبوط بنیاد، سائنس، اسلامیات اور عمومی معلومات کے ساتھ۔",
           oe: ["Read and write fluently", "Think with numbers", "Ask questions and explore"], ou: ["روانی سے پڑھنا اور لکھنا", "اعداد کے ساتھ سوچنا", "سوال پوچھنا اور کھوج لگانا"],
@@ -3597,7 +3599,7 @@
       var dsel = DIVS.filter(function (d) { return d.id === divSel; })[0], dpick = "";
       if (dsel) {
         dpick = '<h3 class="lp-sub">' + esc(tx(dsel.en, dsel.ur)) + '</h3><div class="lp-chips" role="group" aria-label="' + esc(tx("Choose your class", "اپنی جماعت چنیں")) + '">' + dsel.cl.map(function (c) { return '<button type="button" class="lp-chip" data-class="' + c[0] + '" aria-pressed="false"' + (c[3] ? "" : " disabled") + ">" + esc(tx(c[1], c[2]) + (c[3] ? "" : tx(" (soon)", " (جلد)"))) + "</button>"; }).join("") + "</div>" +
-          '<p class="lp-note">' + esc(signed ? tx("Choose a class to open its subjects.", "اپنی جماعت کے مضامین کھولنے کے لیے جماعت چنیں۔") : tx("Choose a class and sign in with Google to start studying.", "جماعت چنیں اور پڑھائی شروع کرنے کے لیے گوگل سے سائن اِن کریں۔")) + (dsel.id === "early" ? " " + esc(tx("Playgroup and Nursery lessons will appear once verified.", "پلے گروپ اور نرسری کے اسباق تصدیق کے بعد یہاں آئیں گے۔")) : "") + (dsel.id === "secondary" ? " " + esc(tx("Grade 9 and 10 students choose Punjab Board or Federal Board.", "نویں اور دسویں جماعت کے طلبہ پنجاب بورڈ یا وفاقی بورڈ چنتے ہیں۔")) : "") + "</p>";
+          '<p class="lp-note">' + esc(signed ? tx("Choose a class to open its subjects.", "اپنی جماعت کے مضامین کھولنے کے لیے جماعت چنیں۔") : tx("Choose a class and sign in with Google to start studying.", "جماعت چنیں اور پڑھائی شروع کرنے کے لیے گوگل سے سائن اِن کریں۔")) + (dsel.id === "secondary" ? " " + esc(tx("Grade 9 and 10 students choose Punjab Board or Federal Board.", "نویں اور دسویں جماعت کے طلبہ پنجاب بورڈ یا وفاقی بورڈ چنتے ہیں۔")) : "") + "</p>";
       }
       h += sec("lp-classes", tx("Explore Your Learning Journey", "اپنے سیکھنے کا سفر دریافت کریں"), tx("Discover a better way to learn with Pakistani curriculum and international-standard teaching.", "پاکستانی نصاب اور بین الاقوامی معیار کی تدریس کے ساتھ سیکھنے کا بہتر طریقہ دریافت کریں۔"), '<div class="lp-grid lp-divs">' + dcards + "</div>" + dpick);
       h += sec("lp-lib", tx("Library", "کتب خانہ"), tx("Books for everyone, beyond the school syllabus: general reading, Urdu literature, stories and more. Syllabus books are under Boards.", "ہر کسی کے لیے کتابیں، نصاب سے ہٹ کر: عمومی مطالعہ، اردو ادب، کہانیاں اور مزید۔ نصابی کتابیں بورڈز میں ہیں۔"), chipsT + chipsC + '<div class="lp-grid">' + lg + "</div>");

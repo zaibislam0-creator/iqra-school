@@ -30,8 +30,8 @@ service cloud.firestore {
     function isStaff() { return isAdmin() || isTeacher(); }
 
     // ------------------------------------------------------------------ vocab
-    function classIds() { return ['PG', 'NU', 'KG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']; }       // grade strings used by content
-    function profileClasses() { return ['Play Group', 'Nursery', 'KG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']; } // students/<uid>.cls (new students)
+    function classIds() { return ['KG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']; }       // grade strings used by content
+    function profileClasses() { return ['KG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']; } // students/<uid>.cls (new students)
     function boards() { return ['punjab', 'federal']; }
     function isSecCls(c) { return c in ['9', '10']; }
 

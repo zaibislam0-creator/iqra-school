@@ -61,7 +61,9 @@ await t("legacy F.A student can still edit personal details", () => assertSuccee
 await t("legacy F.A student cannot change class", () => assertFails(updateDoc(doc(as("sfa"), "students/sfa"), { cls: "10", updated: now + 1 })));
 
 console.log("Student: first sign-up");
-await t("new student can choose Play Group", () => assertSucceeds(setDoc(doc(as("n1", { email: "n1@x.com" }), "students/n1"), { name: "N", cls: "Play Group", email: "n1@x.com", updated: now })));
+await t("new student can choose KG (Prep)", () => assertSucceeds(setDoc(doc(as("n1", { email: "n1@x.com" }), "students/n1"), { name: "N", cls: "KG", email: "n1@x.com", updated: now })));
+await t("new student can no longer choose Play Group or Nursery", async () => { await assertFails(setDoc(doc(as("n1"), "students/n1"), { name: "N", cls: "Play Group", updated: now })); await assertFails(setDoc(doc(as("n1"), "students/n1"), { name: "N", cls: "Nursery", updated: now })); });
+await t("an existing Play Group record is kept and its owner can still edit personal details", async () => { await env.withSecurityRulesDisabled(async (c) => { await setDoc(doc(c.firestore(), "students/spg"), { name: "PG", cls: "Play Group", email: "", updated: now }); }); await assertSucceeds(updateDoc(doc(as("spg"), "students/spg"), { name: "PG2", updated: now + 1 })); await assertFails(updateDoc(doc(as("spg"), "students/spg"), { cls: "KG", updated: now + 2 })); });
 await t("new student cannot choose F.A", () => assertFails(setDoc(doc(as("n1"), "students/n1"), { name: "N", cls: "F.A", updated: now })));
 await t("new student cannot choose an invented class", () => assertFails(setDoc(doc(as("n1"), "students/n1"), { name: "N", cls: "Grade 12", updated: now })));
 await t("Grade 9 sign-up needs a board", () => assertFails(setDoc(doc(as("n1"), "students/n1"), { name: "N", cls: "9", updated: now })));

@@ -19,6 +19,6 @@ await t("Grade 9 -> change board = request", async () => { const o = await run({
 await t("legacy Grade 9 without a board may set it once", async () => { const o = await run({ cls: "9" }, { name: "A", cls: "9", sboard: "punjab" }); assert.equal(o.r, true); assert.equal(o.writes[0][1].sboard, "punjab"); assert.equal(o.writes.length, 1); });
 await t("Grade 3 -> Grade 10 needs a board in the request", async () => { const o = await run({ cls: "3" }, { name: "A", cls: "10", sboard: "federal" }); assert.equal(o.writes[1][1].to, "10"); assert.equal(o.writes[1][1].toBoard, "federal"); });
 await t("class 4 request never carries a board", async () => { const o = await run({ cls: "9", sboard: "punjab" }, { name: "A", cls: "4", sboard: "punjab" }); assert.equal(o.writes[1][1].toBoard, ""); });
-await t("no profile yet (first sign-up) -> class written once", async () => { const o = await run({}, { name: "A", cls: "Nursery" }); assert.equal(o.r, true); assert.equal(o.writes[0][1].cls, "Nursery"); });
+await t("no profile yet (first sign-up) -> class written once", async () => { const o = await run({}, { name: "A", cls: "KG" }); assert.equal(o.r, true); assert.equal(o.writes[0][1].cls, "KG"); });
 await t("legacy F.A student editing only the name -> no request", async () => { const o = await run({ cls: "F.A" }, { name: "A", cls: "F.A" }); assert.equal(o.r, true); assert.equal(o.writes.length, 1); });
 console.log("\n" + ok + " passed");
