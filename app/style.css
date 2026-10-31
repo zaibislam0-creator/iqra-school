@@ -1096,3 +1096,20 @@ nav button.act,.kidnav button.act,.topbar .kidnav button.act{background:#0d4a2e;
 
 /* Today's Play card keeps its original warm orange gradient */
 .kgmix{background:linear-gradient(135deg,#ffb347,#ff7e5f);box-shadow:0 8px 22px rgba(255,126,95,.35)}
+
+/* ===== Home logo: crisp vector, gold gradient, soft glow, slow float, shimmer, right-to-left reveal ===== */
+.lp-mark{position:relative;display:block;height:auto;background:none;border-radius:0;box-shadow:none;filter:none;-webkit-mask-image:none;mask-image:none;width:min(44vw,170px)}
+.lp-mark svg{display:block;width:100%;height:auto;overflow:visible;transform:translate(var(--px,0),var(--py,0));transition:transform .35s ease-out}
+.lp-mark::before{content:"";position:absolute;inset:-14%;z-index:-1;border-radius:50%;background:radial-gradient(closest-side,rgba(214,170,60,.20),rgba(214,170,60,0) 70%)}
+.lp-sheen{mix-blend-mode:soft-light}
+@media (min-width:760px){.lp-mark{width:clamp(220px,24vw,320px)}}
+@media (prefers-reduced-motion:no-preference){
+  .lp-mark{animation:lpFloat 8s ease-in-out infinite}
+  .lp-mark::before{animation:lpGlow 6s ease-in-out infinite}
+  .lp-mark svg{animation:lpWrite 1.7s cubic-bezier(.22,.7,.2,1) both}
+  .lp-sheen{animation:lpSheen 7s ease-in-out 1.8s infinite;transform:translateX(-300px) skewX(-18deg)}
+}
+@keyframes lpFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes lpGlow{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+@keyframes lpWrite{from{opacity:0;clip-path:inset(0 0 0 100%)}to{opacity:1;clip-path:inset(0 0 0 0)}}
+@keyframes lpSheen{0%{transform:translateX(-300px) skewX(-18deg)}38%,100%{transform:translateX(1250px) skewX(-18deg)}}
