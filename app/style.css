@@ -1159,7 +1159,7 @@ html:has(#entry:not(.docked)),html:has(#entry:not(.docked)) body{overflow:hidden
 #entry.docked{position:sticky;top:0;inset:auto;height:auto;overflow:visible;background:transparent;z-index:50;transition:none}
 #entry.docked>:not(.lp-bar){display:none}
 #entry.docked .lp-strip,#entry.docked .entry-lang{display:none}
-#entry.signed .lp-signin,#entry.signed .lp-hero,#entry.signed .lp-end{display:none}
+#entry.signed .lp-signin{display:none}
 body:has(#entry.docked) .topbar{top:calc(var(--lpbar,56px) + 6px)}
 body:has(#entry.docked) .topbar .brand{display:none}
 /* top bar now carries the learning controls too; the app's own second header is hidden */
