@@ -1660,6 +1660,7 @@
       case "staffTab": staffTab = arg; render(); break;
       case "teamSet": teamSet(arg); break;
       case "teamClasses": teamClasses(arg); break;
+      case "tagBoard": tagBoard(arg); break;
       case "migrate": cloudMigrate(); break;
       case "lecNew": lecMsg = ""; tf = newTF(); render(); break;
       case "lecCancel": tf = null; render(); break;
@@ -2309,10 +2310,39 @@
     bookStore.forEach(function (b) { cls[String(b.grade)] = 1; b.lessons.forEach(function (l) { ch++; if (l.hidden) hid++; if (statusOf(l) !== "verified") pend++; }); });
     return { classes: Object.keys(cls).length, chapters: ch, hidden: hid, pending: pend };
   }
+  /* Grade 9-10 items created before boards existed have no board; staff tag them here so students can see them under the right board only */
+  function untaggedCard() {
+    if (!isTeacher()) return "";
+    var ur = LANG() === "ur", rows = [];
+    bookStore.forEach(function (b) { if (isSecG(b.grade) && !(b.sboard || (b.lessons[0] && (b.lessons[0].sboard || (b.lessons[0].meta && b.lessons[0].meta.sboard))))) rows.push(["book", b.id, b.name, b.grade]); });
+    resDocs.forEach(function (x) { if (isSecG(x.d.grade) && !x.d.sboard && canEditRes(x)) rows.push(["res", x.id, x.d.title, x.d.grade]); });
+    if (!rows.length) return "";
+    var h = '<section class="card"><h3>' + esc(ur ? "بورڈ کے بغیر مواد (نویں / دسویں)" : "Grade 9–10 items without a board") + '</h3><p class="small">' + esc(ur ? "جب تک بورڈ نہ چنا جائے یہ مواد طلبہ کو نظر نہیں آتا۔" : "Students cannot see these until a board is chosen.") + "</p>";
+    rows.forEach(function (r) {
+      var key = r[0] + "|" + r[1];
+      h += '<div class="teamrow"><div class="teaminfo"><b>' + esc(r[2]) + "</b> · " + esc(gradeLabel(r[3])) + '</div><select data-tbsel="' + esc(key) + '" aria-label="' + esc(rt("fboard")) + '"><option value="">—</option>';
+      (D.secBoards || []).forEach(function (b) { h += '<option value="' + b.id + '">' + esc(ur ? b.ur : b.en) + "</option>"; });
+      h += '</select><button type="button" class="btn alt" data-act="tagBoard" data-arg="' + esc(key) + '">' + esc(ur ? "بورڈ لگائیں" : "Set board") + "</button></div>";
+    });
+    return h + "</section>";
+  }
+  function tagBoard(arg) {
+    var p = String(arg).split("|"), kind = p[0], id = p.slice(1).join("|"), sel = root.querySelector('[data-tbsel="' + arg.replace(/"/g, "") + '"]'), bd = sel && sel.value;
+    if (!bd) { bookMsg = rt("needBoard"); render(); return; }
+    if (kind === "book") {
+      var b = bookStore.filter(function (x) { return x.id === id; })[0]; if (!b) return;
+      b.sboard = bd; b.lessons.forEach(function (l) { l.sboard = bd; l.meta = l.meta || {}; l.meta.sboard = bd; });
+      saveBooks(); cloudPushBook(b);
+    } else if (kind === "res" && cloud.db) {
+      cloud.db.collection("resources").doc(id).update({ sboard: bd, updated: Date.now() }).catch(cloudFail);
+      var x = resById(id); if (x) x.d.sboard = bd;
+    }
+    bookMsg = ""; render();
+  }
   function addBookView() {
     if (draft) return draftView();
     if (upGrade === null) {
-      var h = "<h2>" + esc(st3("pickClass")) + '</h2><p class="small">' + esc(st3("pickClassHint")) + "</p>";
+      var h = "<h2>" + esc(st3("pickClass")) + '</h2><p class="small">' + esc(st3("pickClassHint")) + "</p>" + untaggedCard();
       activeLevels().forEach(function (lv, li) {
         h += '<section class="card"><h3><span class="catdot c' + "ABCDE".charAt(li) + '">' + "ABCDE".charAt(li) + "</span> " + esc(L(lv)) + '</h3><div class="classgrid">';
         D.grades.forEach(function (g) {
