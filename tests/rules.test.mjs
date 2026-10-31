@@ -3,6 +3,7 @@ import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebas
 import { readFileSync } from "node:fs";
 import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, addDoc } from "firebase/firestore";
 
+process.on("unhandledRejection", (e) => { console.log("::error title=unhandled::" + String(e && e.message).replace(/[\r\n%]/g, " ").slice(0, 300)); process.exit(2); });
 const env = await initializeTestEnvironment({ projectId: "demo-iqra", firestore: { rules: readFileSync(new URL("../firestore.rules", import.meta.url), "utf8"), host: "127.0.0.1", port: 8080 } });
 const OWNER = { email: "zaibislam0@gmail.com", email_verified: true, firebase: { sign_in_provider: "google.com" } };
 const as = (uid, claims = {}) => env.authenticatedContext(uid, claims).firestore();
@@ -34,7 +35,7 @@ async function seed() {
   });
 }
 let pass = 0, fail = 0;
-async function t(name, fn) { try { await seed(); await fn(); pass++; console.log("  ok   " + name); } catch (e) { fail++; console.log("  FAIL " + name + "\n       " + String(e && e.message).split("\n")[0]); } }
+async function t(name, fn) { try { await seed(); await fn(); pass++; console.log("  ok   " + name); } catch (e) { fail++; const m = String(e && e.message).split("\n")[0]; console.log("  FAIL " + name + "\n       " + m); if (process.env.GITHUB_ACTIONS) console.log("::error title=" + name.replace(/[:,]/g, " ") + "::" + m.replace(/[\r\n%]/g, " ").slice(0, 300)); } }
 const pub = (db, aud) => getDocs(query(collection(db, "resources"), where("published", "==", true), where("aud", "==", aud)));
 
 console.log("Signed-out visitor");
