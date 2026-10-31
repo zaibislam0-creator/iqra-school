@@ -62,7 +62,7 @@
   function t(k) { return UI[LANG()][k] || k; }
   function L(o) { return o[LANG()] || o.en; }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
-  function gnum(g) { return g === "KG" ? 0 : Number(g); }
+  function gnum(g) { return g === "PG" ? -2 : g === "NU" ? -1 : g === "KG" ? 0 : Number(g); }
   function provLabel(id) { var p = D.provinces.filter(function (x) { return x.id === id; })[0]; return p ? L(p) : ""; }
   function boardsFor() { return D.boards[state.province] || D.boards.pakistan; }
   function metaOf(l) {
@@ -210,22 +210,22 @@
   }
   function homeView() {
     var nm = state.name ? " " + state.name : "";
-    var h = staffBarHTML() + announceHTML() + '<div class="homegrid"><section class="hero2"><h2>' + esc(t("greetA") + nm) + "</h2><p>" + esc(t("heroS")) + '</p><button class="bigbtn" data-nav="learn">' + esc(t("homeStart")) + '</button></section>';
+    var h = (isSecG(state.grade) ? secBoardPicker() : "") + staffBarHTML() + announceHTML() + '<div class="homegrid"><section class="hero2"><h2>' + esc(t("greetA") + nm) + "</h2><p>" + esc(t("heroS")) + '</p><button class="bigbtn" data-nav="learn">' + esc(t("homeStart")) + '</button></section>';
     h += subjectsFor(state.grade).some(function (x) { return lessonsFor(x.id, state.grade).length; }) ? missionCard() : "<div></div>";
     h += "</div>";
     h += '<div class="htiles">';
     [["book", "heroT1"], ["owl", "heroT2"], ["star", "heroT3"]].forEach(function (x) { h += "<div>" + svg(x[0], 34) + "<span>" + esc(t(x[1])) + "</span></div>"; });
     return h + '</div><p class="homeclass"><button class="link" data-act="go" data-arg="setup">' + esc(t("edit")) + "</button></p>";
   }
-  function shortGrade(g){ var n=gnum(g); if(n>=11) return "F.A "+(n-10); if(String(g)==="KG"||n<=0) return LANG()==="ur"?"کے جی":"KG"; return String(n); }
+  function shortGrade(g){ var n=gnum(g); if(n>=11) return "F.A "+(n-10); if(n===-2) return LANG()==="ur"?"پلے گروپ":"Playgroup"; if(n===-1) return LANG()==="ur"?"نرسری":"Nursery"; if(String(g)==="KG"||n===0) return LANG()==="ur"?"پریپ (کے جی)":"Prep (KG)"; return String(n); }
   function setupView() {
     var h = (state.setup ? '<div class="setupone">' : '<div class="setupgrid">' + welcomeHero()) + '<section class="card setup3">' + (state.setup ? '<button type="button" class="chip setupback" data-act="go" data-arg="learn">' + esc(LANG() === "ur" ? "← واپس" : "← Back") + "</button>" : "") + '<h2 class="setup3-h">' + esc(state.setup ? (LANG() === "ur" ? "جماعت اور پروفائل بدلیں" : "Change class and profile") : st3("setupTitle")) + "</h2>";
     h += '<div class="step"><span class="stepno" aria-hidden="true">1</span><label for="sname">' + esc(st3("yourName")) + '</label></div>';
     h += '<input id="sname" class="nameinp" autocomplete="given-name" placeholder="' + esc(st3("namePh")) + '" value="' + esc(state.name) + '">';
     h += '<div class="step"><span class="stepno" aria-hidden="true">2</span><span class="steplbl" id="gradelbl">' + esc(st3("yourClass")) + "</span></div>";
     h += '<div class="gpick" role="group" aria-labelledby="gradelbl">';
-    D.levels.forEach(function (lv, li) {
-      h += '<div class="gcat c' + "ABC".charAt(li) + '"><div class="gcat-h"><b aria-hidden="true">' + "ABC".charAt(li) + "</b><span>" + esc(L(lv)) + '</span></div><div class="gchips">';
+    activeLevels().forEach(function (lv, li) {
+      h += '<div class="gcat c' + "ABCDE".charAt(li) + '"><div class="gcat-h"><b aria-hidden="true">' + "ABCDE".charAt(li) + "</b><span>" + esc(L(lv)) + '</span></div><div class="gchips">';
       D.grades.forEach(function (g) { var n = gnum(g); if (n >= lv.min && n <= lv.max) { var on = String(state.grade) === String(g); h += '<button type="button" class="gchip' + (on ? " on" : "") + '" data-sgrade="' + g + '" aria-pressed="' + on + '">' + esc(shortGrade(g)) + "</button>"; } });
       h += "</div></div>";
     });
@@ -233,6 +233,7 @@
     h += '<select id="sgrade" hidden aria-hidden="true" tabindex="-1">';
     D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(state.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
     h += "</select>";
+    if (isSecG(state.grade)) h += secBoardPicker();
     h += '<details class="more"' + (gnum(state.grade) >= 11 ? " open" : "") + "><summary>" + esc(t("moreOpts")) + "</summary>";
     h += '<label>' + esc(t("province")) + '<select id="sprov">';
     D.provinces.forEach(function (p) { h += '<option value="' + p.id + '"' + (state.province === p.id ? " selected" : "") + ">" + esc(L(p)) + "</option>"; });
@@ -397,6 +398,21 @@
     return h + "</div></section>";
   }
 
+  /* the F.A level is kept only so existing F.A students and content stay reachable; it is not offered to new students */
+  function activeLevels() { var keep = gnum(state.grade) >= 11 || (typeof bookStore !== "undefined" && bookStore.some(function (b) { return gnum(b.grade) >= 11; })); return D.levels.filter(function (lv) { return !lv.legacy || keep; }); }
+  /* Grades 9 and 10: every item belongs to exactly one board (Punjab or Federal). Items are never shown across boards. */
+  function isSecG(g) { var n = gnum(g); return n === 9 || n === 10; }
+  function boardName(id) { var b = (D.secBoards || []).filter(function (x) { return x.id === id; })[0]; return b ? (LANG() === "ur" ? b.ur : b.en) : ""; }
+  function boardOk(tag, g) { if (!isSecG(g)) return true; if (tag) return state.sboard ? tag === state.sboard : isTeacher(); return isTeacher(); }
+  function secBoardPicker() {
+    var ur = LANG() === "ur", h = '<div class="card secboard" role="group" aria-labelledby="sbl"><h3 id="sbl">' + (ur ? "اپنا بورڈ چنیں" : "Choose your board") + '</h3><p class="small">' + (ur ? "نویں اور دسویں جماعت میں ہر بورڈ کے مضامین، ابواب اور امتحانات الگ ہیں۔ آپ کو صرف اپنے بورڈ کا مواد نظر آئے گا۔" : "In Grades 9 and 10 each board has its own subjects, chapters and assessments. You will see only your board's material.") + '</p><div class="gchips">';
+    (D.secBoards || []).forEach(function (b) { var on = state.sboard === b.id; h += '<button type="button" class="gchip' + (on ? " on" : "") + '" data-sboard="' + b.id + '" aria-pressed="' + on + '">' + esc(ur ? b.ur : b.en) + "</button>"; });
+    h += "</div>";
+    var cur = (D.secBoards || []).filter(function (b) { return b.id === state.sboard; })[0];
+    if (cur && cur.status === "pending") h += '<p class="note">' + esc(ur ? "اس بورڈ کا نصاب اور کتابیں جانچی جا رہی ہیں۔ تصدیق کے بعد مضامین اور ابواب یہاں نظر آئیں گے۔" : "This board's syllabus and textbooks are being verified. Subjects and chapters will appear here once approved.") + "</p>";
+    return h + '<p class="note warnnote" id="sbmsg" role="alert" hidden>' + esc(ur ? "آگے بڑھنے کے لیے اپنا بورڈ چنیں۔" : "Please choose your board to continue.") + "</p></div>";
+  }
+  function myClassOk(g) { var c = cloud.classes; return !c || !c.length || cloud.role === "admin" || c.indexOf(String(g)) > -1; }
   function levelOf(g) { var n = gnum(g); return D.levels.filter(function (lv) { return n >= lv.min && n <= lv.max; })[0]; }
   function subjectsFor(g) {
     var n = gnum(g);
@@ -405,9 +421,11 @@
       var ids = D.faCompulsory.concat(path.subjects, D.faExtras);
       return D.subjects.filter(function (s) { return ids.indexOf(s.id) > -1; });
     }
-    return D.subjects.filter(function (s) { return n >= s.min && n <= s.max; });
+    var base = D.subjects.filter(function (s) { return n >= s.min && n <= s.max; });
+    if (isSecG(g) && state.sboard) { var bd = (D.secBoards || []).filter(function (b) { return b.id === state.sboard; })[0]; if (bd && bd.subjects && bd.subjects[n]) bd.subjects[n].forEach(function (x) { base.push(Object.assign({ min: n, max: n }, x)); }); }
+    return base;
   }
-  function lessonsFor(sid, g) { var n = gnum(g); return D.lessons.filter(function (l) { return l.subject === sid && n >= l.min && n <= l.max && !(l.hidden && !isStaff()); }); }
+  function lessonsFor(sid, g) { var n = gnum(g); return D.lessons.filter(function (l) { return l.subject === sid && n >= l.min && n <= l.max && !(l.hidden && !isStaff()) && boardOk(l.sboard || (l.meta && l.meta.sboard), g); }); }
 
   function syllabusCard(sid, gr) {
     if (gr === undefined) gr = state.grade; var G = gr;
@@ -432,7 +450,7 @@
   function learnView() {
     if (kidUI() || !openLesson) return kidHome();
     if (openLesson) return lessonView(openLesson);
-    var h = (curSubject ? "" : homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + missionCard() + '<h3 class="subhd" id="subjects">' + esc(t("subjectsHd")) + "</h3>") + '<p class="note">' + esc(t("sample")) + "</p>";
+    var h = (curSubject || !isSecG(state.grade) ? "" : secBoardPicker()) + (curSubject ? "" : homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + missionCard() + '<h3 class="subhd" id="subjects">' + esc(t("subjectsHd")) + "</h3>") + '<p class="note">' + esc(t("sample")) + "</p>";
     if (curSubject) {
       var ls = lessonsFor(curSubject, state.grade);
       var s = D.subjects.filter(function (x) { return x.id === curSubject; })[0];
@@ -1135,10 +1153,10 @@
     var greet = sess.moodMsg || (t("greetA") + name + "! " + t("greetB"));
     var subs = subjectsFor(state.grade).filter(function (x) { return !kidUI() || lessonsFor(x.id, state.grade).length || resFor(x.id, state.grade).length || canRes(); });
     if (!subs.length) {
-      return homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + uploadCard() + '<div class="card pager"><p class="bigtext">' + esc(t("soon")) + '</p><button class="bigbtn" data-act="go" data-arg="character">' + svg("heart", 30) + " " + esc(t("stories")) + "</button></div>";
+      return (isSecG(state.grade) ? secBoardPicker() : "") + homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + uploadCard() + '<div class="card pager"><p class="bigtext">' + esc(t("soon")) + '</p><button class="bigbtn" data-act="go" data-arg="character">' + svg("heart", 30) + " " + esc(t("stories")) + "</button></div>";
     }
     var cur = curSubject && subs.some(function (x) { return x.id === curSubject; }) ? curSubject : subs[0].id;
-    var h = (gnum(state.grade) === 0 ? "" : kidBanner(greet)) + (gnum(state.grade) === 0 && kgSec ? "" : staffBarHTML()) + announceHTML();
+    var h = (isSecG(state.grade) ? secBoardPicker() : "") + (gnum(state.grade) === 0 ? "" : kidBanner(greet)) + (gnum(state.grade) === 0 && kgSec ? "" : staffBarHTML()) + announceHTML();
     if (gnum(state.grade) === 0) return h + kgHome();
     if (subs.length > 1) {
       h += '<div class="ksubpills" role="tablist">';
@@ -1629,7 +1647,7 @@
     var l, q, ok, g;
     switch (name) {
       case "cat":
-        var lvv = D.levels[Number(arg)]; readSetupLite(); state.grade = lvv.min === 0 ? "KG" : String(lvv.min); state.board = state.board; render(); break;
+        var lvv = D.levels[Number(arg)]; readSetupLite(); state.grade = lvv.min === -2 ? "PG" : lvv.min === 0 ? "KG" : String(lvv.min); state.board = state.board; render(); break;
       case "expClips": exportClips(); break;
       case "expPack": exportPack(); break;
       case "packLoadBtn": var pt = root.querySelector("#pktext"); if (pt && pt.value.trim()) importPackText(pt.value); break;
@@ -1641,6 +1659,7 @@
       case "viewAs": cloud.viewAs = arg; if (arg === "student" && (view === "staff" || view === "teacher")) view = "learn"; render(); break;
       case "staffTab": staffTab = arg; render(); break;
       case "teamSet": teamSet(arg); break;
+      case "teamClasses": teamClasses(arg); break;
       case "migrate": cloudMigrate(); break;
       case "lecNew": lecMsg = ""; tf = newTF(); render(); break;
       case "lecCancel": tf = null; render(); break;
@@ -1906,7 +1925,7 @@
     }).filter(function (c) { return c.sents.length > 0; });
   }
   var upGrade = null, upSubj = "", advTab = "";
-  function gradeLabel(g) { var n = gnum(g); return n === 0 ? (LANG() === "ur" ? "کے جی" : "KG") : n >= 11 ? (LANG() === "ur" ? "ایف اے سال " : "F.A Year ") + (n - 10) : (LANG() === "ur" ? "جماعت " : "Class ") + g; }
+  function gradeLabel(g) { var n = gnum(g); return n === -2 ? (LANG() === "ur" ? "پلے گروپ" : "Playgroup") : n === -1 ? (LANG() === "ur" ? "نرسری" : "Nursery") : n === 0 ? (LANG() === "ur" ? "پریپ (کے جی)" : "Prep (KG)") : n >= 11 ? (LANG() === "ur" ? "ایف اے سال " : "F.A Year ") + (n - 10) : (LANG() === "ur" ? "جماعت " : "Class ") + g; }
   function gradeCounts(g) {
     var n = gnum(g), up = 0, nb = 0;
     bookStore.forEach(function (b) { if (String(b.grade) === String(g)) { up += b.lessons.length; nb++; } });
@@ -2137,6 +2156,7 @@
     var out = LIB_STARTER.slice();
     getLib().forEach(function (x) { out.push(x); });
     bookStore.forEach(function (b) {
+      if (!boardOk(b.sboard || (b.lessons[0] && (b.lessons[0].sboard || (b.lessons[0].meta && b.lessons[0].meta.sboard))), b.grade)) return;
       var ls = b.lessons.filter(function (l) { return !(l.hidden && !isStaff()); }); if (!ls.length) return;
       ls = ls.slice(); chSort(ls);
       out.push({ id: "app-" + b.id, title: b.name, author: "IQRA", cat: "textbook", grade: String(b.grade), lang: LANG() === "ur" ? "ur" : "en", app: true, first: ls[0].id, n: ls.length, verified: ls.every(function (l) { return statusOf(l) === "verified"; }), note: "" });
@@ -2293,8 +2313,8 @@
     if (draft) return draftView();
     if (upGrade === null) {
       var h = "<h2>" + esc(st3("pickClass")) + '</h2><p class="small">' + esc(st3("pickClassHint")) + "</p>";
-      D.levels.forEach(function (lv, li) {
-        h += '<section class="card"><h3><span class="catdot c' + "ABC".charAt(li) + '">' + "ABC".charAt(li) + "</span> " + esc(L(lv)) + '</h3><div class="classgrid">';
+      activeLevels().forEach(function (lv, li) {
+        h += '<section class="card"><h3><span class="catdot c' + "ABCDE".charAt(li) + '">' + "ABCDE".charAt(li) + "</span> " + esc(L(lv)) + '</h3><div class="classgrid">';
         D.grades.forEach(function (g) {
           var n = gnum(g); if (n < lv.min || n > lv.max) return;
           var c = gradeCounts(g), hn = 0, pn = 0;
@@ -2328,6 +2348,7 @@
     h += '</select></label><input type="hidden" id="bgrade" value="' + esc(g) + '"><label>' + esc(t("province2")) + '<select id="bprov">';
     D.provinces.forEach(function (p) { h += '<option value="' + p.id + '"' + (state.province === p.id ? " selected" : "") + ">" + esc(L(p)) + "</option>"; });
     h += '</select></label><label>' + esc(t("board")) + '<input id="bboard" value="' + esc(state.board || "") + '"></label>';
+    if (isSecG(g)) { h += "<label>" + esc(rt("fboard")) + '<select id="bsboard"><option value="">—</option>'; (D.secBoards || []).forEach(function (b) { h += '<option value="' + b.id + '"' + (state.sboard === b.id ? " selected" : "") + ">" + esc(LANG() === "ur" ? b.ur : b.en) + "</option>"; }); h += "</select></label>"; }
     h += "<label>" + esc(t("textbook")) + '<input id="btb"></label><label>' + esc(t("year")) + '<input id="byr" placeholder="2026-27"></label>';
     h += '<button class="btn" id="bgo">' + esc(t("readPdf")) + '</button><p id="bmsg" class="small" aria-live="polite">' + esc(bookMsg) + '</p><p class="note">' + esc(t("bookNote")) + "</p></div>";
     }
@@ -2370,13 +2391,13 @@
       if (kb) c.keep = kb.checked; if (tt) c.title = tt.value.trim() || c.title;
       if (!c.keep) return;
       lessons.push({
-        id: "up-" + id + "-" + (lessons.length + 1), subject: f.subject, min: g, max: g, topic: "chapter", uploaded: true, unit: {},
+        id: "up-" + id + "-" + (lessons.length + 1), subject: f.subject, min: g, max: g, topic: "chapter", uploaded: true, unit: {}, sboard: f.sboard || undefined,
         title: { en: c.title, ur: c.title }, body: { en: c.sents.join(" "), ur: c.sents.join(" ") }, quiz: c.quiz,
-        meta: { province: f.province, board: f.board, year: f.year, version: "", textbook: f.textbook, chapter: c.title, outcomes: "", source: "Uploaded PDF: " + draft.name, status: "pending" }
+        meta: { sboard: f.sboard || undefined, province: f.province, board: f.board, year: f.year, version: "", textbook: f.textbook, chapter: c.title, outcomes: "", source: "Uploaded PDF: " + draft.name, status: "pending" }
       });
     });
     if (!lessons.length) { bookMsg = t("nothingKept"); draft = null; return; }
-    bookStore.push({ id: id, name: draft.name, subject: f.subject, grade: f.grade, lessons: lessons });
+    bookStore.push({ id: id, name: draft.name, subject: f.subject, grade: f.grade, sboard: f.sboard || undefined, lessons: lessons });
     if (!saveBooks()) { bookStore.pop(); bookMsg = t("storageFull"); draft = null; return; }
     lessons.forEach(function (l) { D.lessons.push(l); });
     cloudPushBook(bookStore[bookStore.length - 1]);
@@ -2385,7 +2406,8 @@
   function startBookRead() {
     var fi = root.querySelector("#bfile"), file = fi && fi.files && fi.files[0];
     if (!file) { bookMsg = t("pickFile"); render(); return; }
-    var form = { subject: root.querySelector("#bsubj").value, grade: root.querySelector("#bgrade").value, province: root.querySelector("#bprov").value, board: root.querySelector("#bboard").value.trim(), textbook: root.querySelector("#btb").value.trim(), year: root.querySelector("#byr").value.trim() };
+    var form = { subject: root.querySelector("#bsubj").value, grade: root.querySelector("#bgrade").value, province: root.querySelector("#bprov").value, board: root.querySelector("#bboard").value.trim(), sboard: (root.querySelector("#bsboard") || {}).value || "", textbook: root.querySelector("#btb").value.trim(), year: root.querySelector("#byr").value.trim() };
+    if (isSecG(form.grade) && !form.sboard) { bookMsg = rt("needBoard"); render(); return; }
     var msg = root.querySelector("#bmsg"); if (msg) msg.textContent = t("reading");
     file.arrayBuffer().then(function (buf) {
       return extractPages(buf, function (p, n) { var m = root.querySelector("#bmsg"); if (m) m.textContent = t("reading") + " " + p + "/" + n; });
@@ -2424,8 +2446,9 @@
     var lad = $("#libaddf"); if (lad) lad.addEventListener("submit", function (e) { e.preventDefault(); libSave(); render(); });
     root.querySelectorAll("[data-chtitle]").forEach(function (i) { i.addEventListener("change", function () { chRename(i.dataset.chtitle, i.value); }); });
     root.querySelectorAll("[data-sgrade]").forEach(function (b) { b.addEventListener("click", function () { readSetup(); state.grade = b.dataset.sgrade; render(); }); });
-    on("#sgo", function () { readSetup(); state.setup = true; state.profileAt = Date.now(); save(); persistProfile(); view = "learn"; render(); });
-  function persistProfile() { if (!window.__iqSaveProfile) return; var g = state.grade, n = gnum(g); window.__iqSaveProfile({ name: state.name, cls: n >= 11 ? "F.A" : (String(g) === "KG" || n <= 0 ? "KG" : String(g)) }); }
+    root.querySelectorAll("[data-sboard]").forEach(function (b) { b.addEventListener("click", function () { if (view === "setup") readSetup(); state.sboard = b.dataset.sboard; save(); if (state.setup) persistProfile(); render(); }); });
+    on("#sgo", function () { readSetup(); if (isSecG(state.grade) && !state.sboard) { var bm = $("#sbmsg"); if (bm) { bm.hidden = false; if (bm.scrollIntoView) bm.scrollIntoView({ block: "center" }); } return; } state.setup = true; state.profileAt = Date.now(); save(); persistProfile(); view = "learn"; render(); });
+  function persistProfile() { if (!window.__iqSaveProfile) return; var g = state.grade, n = gnum(g); window.__iqSaveProfile({ sboard: isSecG(g) ? (state.sboard || "") : "", name: state.name, cls: n >= 11 ? "F.A" : n === -2 ? "Play Group" : n === -1 ? "Nursery" : n === 0 ? "KG" : String(g) }); }
     on("#resetup", function () { view = "setup"; render(); });
     root.querySelectorAll("[data-nav]").forEach(function (b) { b.addEventListener("click", function () { view = b.dataset.nav; examSub = ""; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; openLesson = null; openStory = null; curSubject = null; render(); }); });
     root.querySelectorAll("[data-sub]").forEach(function (b) { b.addEventListener("click", function () { curSubject = b.dataset.sub; render(); }); });
@@ -2618,6 +2641,7 @@
         cloud.db = db; cloud.uid = x[3] || null;
         cloud.role = (x[0] || x[1]) ? "admin" : (x[2] === true ? "teacher" : "student");
         cloud.on = true;
+        try { if (cloud.uid && cloud.role === "teacher") db.collection("roles").doc(cloud.uid).get().then(function (d) { var v = d && (d.data ? d.data() : d); cloud.classes = (v && v.classes) || []; render(); }).catch(function () {}); } catch (e) {}
         var er = function (e) { cloudFail(e); };
         db.collection("chapters").onSnapshot(applyChapters, er);
         db.collection("lectures").onSnapshot(applyLectures, er);
@@ -2637,7 +2661,7 @@
     return h + "</div>";
   }
   // ---- team: list signed-in users, make teachers ----
-  var teamS = [], teamR = {}, teamOn = false, teamMsg = "";
+  var teamC = {}, teamS = [], teamR = {}, teamOn = false, teamMsg = "";
   function teamStart() {
     if (teamOn || !cloud.db) return; teamOn = true;
     cloud.db.collection("students").onSnapshot(function (sn) {
@@ -2645,7 +2669,7 @@
       if (view === "staff" && staffTab === "team") render();
     }, function (e) { teamOn = false; teamMsg = String(e && (e.code || e.message) || e); cloudFail(e); });
     cloud.db.collection("roles").onSnapshot(function (sn) {
-      teamR = {}; sn.docs.forEach(function (d) { var x = d.data() || {}; teamR[d.id] = x.role || ""; });
+      teamR = {}; sn.docs.forEach(function (d) { var x = d.data() || {}; teamR[d.id] = x.role || ""; teamC[d.id] = x.classes || []; });
       if (view === "staff" && staffTab === "team") render();
     }, function (e) { cloudFail(e); });
   }
@@ -2662,9 +2686,20 @@
       if (!isOwner && r !== "admin") h += r === "teacher"
         ? '<button class="btn alt" data-act="teamSet" data-arg="' + esc(x.uid) + '|student">' + (ur ? "استاد ہٹائیں" : "Remove teacher") + "</button>"
         : '<button class="btn" data-act="teamSet" data-arg="' + esc(x.uid) + '|teacher">' + (ur ? "استاد بنائیں" : "Make teacher") + "</button>";
+      if (r === "teacher") {
+        var mine = teamC[x.uid] || [];
+        h += '<details class="teamcls"><summary>' + esc(ur ? "تفویض کردہ جماعتیں: " : "Assigned classes: ") + esc(mine.length ? mine.map(function (c) { return shortGrade(c); }).join(", ") : (ur ? "تمام" : "all")) + '</summary><div class="gchips">';
+        D.grades.filter(function (g) { return gnum(g) <= 10; }).forEach(function (g) { h += '<label class="inl"><input type="checkbox" data-tcls="' + esc(x.uid) + '" value="' + g + '"' + (mine.indexOf(String(g)) > -1 ? " checked" : "") + "> " + esc(shortGrade(g)) + "</label>"; });
+        h += '</div><p class="small">' + esc(ur ? "کوئی جماعت نہ چنیں تو استاد تمام جماعتوں میں کام کر سکتا ہے۔" : "Leave all unticked to allow every class.") + '</p><button type="button" class="btn alt" data-act="teamClasses" data-arg="' + esc(x.uid) + '">' + esc(ur ? "جماعتیں محفوظ کریں" : "Save classes") + "</button></details>";
+      }
       h += "</div>";
     });
     return h;
+  }
+  function teamClasses(uid) {
+    if (!uid || !cloud.db) return;
+    var cs = Array.prototype.map.call(root.querySelectorAll('[data-tcls]'), function (e) { return e.getAttribute("data-tcls") === uid && e.checked ? e.value : null; }).filter(Boolean);
+    cloud.db.collection("roles").doc(uid).set({ role: "teacher", by: cloud.uid, at: Date.now(), classes: cs }).then(function () { teamMsg = ""; render(); }).catch(function (e) { teamMsg = String(e && (e.code || e.message) || e); cloudFail(e); render(); });
   }
   function teamSet(arg) {
     var p = String(arg).split("|"), uid = p[0], role = p[1]; if (!uid || !cloud.db) return;
@@ -2787,7 +2822,7 @@
       fqs: "Questions", fqsHint: "One question per line: Question | A | B | C | D | right letter (A, B, C or D). 2 to 4 options.",
       fstext: "English text of the chapter (for the AI helper)", aiBtn: "Write Urdu guide with AI", fsum: "Urdu summary (one point per line)",
       fwords: "Word meanings: English = اردو (one per line)", ftips: "Study tips in Urdu (one per line)", fbook: "Linked book (optional)", none2: "None",
-      needTitle: "Please write a title.", needSrc: "Please upload a file or paste a link.", needHttps: "The link must start with https://",
+      needTitle: "Please write a title.", fboard: "Board (required for Grades 9 and 10)", needBoard: "Please choose the board for this Grade 9 or 10 item.", notYourClass: "This class is not assigned to you.", needSrc: "Please upload a file or paste a link.", needHttps: "The link must start with https://",
       needQs: "No valid questions found. Check the format.", needSum: "Please write the Urdu summary.", saved: "Saved.", tooBig: "This file is too big. Please make it smaller, or paste a link instead.",
       uploading: "Uploading...", uploaded: "File uploaded.", upFail: "Upload failed", making: "Making the book from your photos...", mixFiles: "Choose one PDF, or only photos of the pages.", badImg: "This photo could not be read. Use JPG, PNG or WebP.", fuploadBook: "Or upload a PDF, or photos of the pages (admin only)", aiNo: "The AI helper is not available here. Please write the guide by hand.",
       aiWorking: "Writing the Urdu guide... this can take a minute.", aiDone: "Draft ready. Please read and fix it, then publish.", aiFail: "The AI helper could not finish. You can write it by hand.",
@@ -2805,7 +2840,7 @@
       fqs: "سوالات", fqsHint: "ہر لائن میں ایک سوال: سوال | A | B | C | D | صحیح حرف (A, B, C یا D)۔ 2 سے 4 آپشن۔",
       fstext: "باب کا انگریزی متن (اے آئی مددگار کے لیے)", aiBtn: "اے آئی سے اردو رہنمائی لکھوائیں", fsum: "اردو خلاصہ (ہر لائن میں ایک نکتہ)",
       fwords: "الفاظ کے معنی: English = اردو (ہر لائن میں ایک)", ftips: "اردو میں پڑھنے کے مشورے (ہر لائن میں ایک)", fbook: "متعلقہ کتاب (اختیاری)", none2: "کوئی نہیں",
-      needTitle: "براہ کرم عنوان لکھیں۔", needSrc: "براہ کرم فائل اپ لوڈ کریں یا لنک لگائیں۔", needHttps: "لنک https:// سے شروع ہونا چاہیے۔",
+      needTitle: "براہ کرم عنوان لکھیں۔", fboard: "بورڈ (نویں اور دسویں کے لیے لازمی)", needBoard: "براہ کرم نویں یا دسویں کے اس مواد کا بورڈ چنیں۔", notYourClass: "یہ جماعت آپ کو تفویض نہیں کی گئی۔", needSrc: "براہ کرم فائل اپ لوڈ کریں یا لنک لگائیں۔", needHttps: "لنک https:// سے شروع ہونا چاہیے۔",
       needQs: "کوئی درست سوال نہیں ملا۔ فارمیٹ دیکھ لیں۔", needSum: "براہ کرم اردو خلاصہ لکھیں۔", saved: "محفوظ ہو گیا۔", tooBig: "یہ فائل بہت بڑی ہے۔ براہ کرم اسے چھوٹا کریں یا لنک لگائیں۔",
       uploading: "اپ لوڈ ہو رہی ہے...", uploaded: "فائل اپ لوڈ ہو گئی۔", upFail: "اپ لوڈ نہیں ہو سکی", making: "تصاویر سے کتاب بن رہی ہے...", mixFiles: "ایک پی ڈی ایف چنیں، یا صرف صفحات کی تصاویر۔", badImg: "یہ تصویر پڑھی نہیں جا سکی۔ جے پی جی، پی این جی یا ویب پی استعمال کریں۔", fuploadBook: "یا پی ڈی ایف، یا صفحات کی تصاویر اپ لوڈ کریں (صرف ایڈمن)", aiNo: "یہاں اے آئی مددگار دستیاب نہیں۔ براہ کرم رہنمائی خود لکھیں۔",
       aiWorking: "اردو رہنمائی لکھی جا رہی ہے... ایک منٹ لگ سکتا ہے۔", aiDone: "مسودہ تیار ہے۔ براہ کرم پڑھ کر درست کریں، پھر شائع کریں۔", aiFail: "اے آئی مددگار مکمل نہیں کر سکا۔ آپ خود لکھ سکتے ہیں۔",
@@ -2824,7 +2859,7 @@
   function canEditRes(x) { return canRes() && (effRole() === "admin" || (x.d.author && x.d.author === cloud.uid)); }
   function resVisible(x) { return !!x.d.published || canEditRes(x); }
   function resFor(sid, g, type) {
-    return BUILTIN_RES.concat(resDocs).filter(function (x) { return x.d.subject === sid && String(x.d.grade) === String(g) && (!type || x.d.type === type) && resVisible(x); })
+    return BUILTIN_RES.concat(resDocs).filter(function (x) { return x.d.subject === sid && String(x.d.grade) === String(g) && (!type || x.d.type === type) && resVisible(x) && boardOk(x.d.sboard, g); })
       .sort(function (a, b) { return (a.d.updated || 0) - (b.d.updated || 0); });
   }
   function resById(id) { return BUILTIN_RES.concat(resDocs).filter(function (x) { return x.id === id; })[0]; }
@@ -2989,13 +3024,13 @@
   }
 
   // ---- teacher/admin form ----
-  function newRF(type, sid, g) { return { id: "", type: type, grade: String(g), subject: sid, title: "", desc: "", link: "", file: null, en: false, qtext: "", bookId: "", stext: "", summary: "", words: "", tips: "", pub: type !== "guide", ai: false, busy: "" }; }
+  function newRF(type, sid, g) { return { id: "", type: type, grade: String(g), subject: sid, title: "", desc: "", link: "", file: null, en: false, qtext: "", bookId: "", stext: "", summary: "", words: "", tips: "", pub: type !== "guide", ai: false, busy: "", sboard: state.sboard || "" }; }
   function readRF() {
     if (!resForm) return;
     var f = resForm;
     function v(id) { var e = root.querySelector(id); return e ? e.value : null; }
     function c(id) { var e = root.querySelector(id); return e ? e.checked : null; }
-    var m = { "#rfgrade": "grade", "#rfsubj": "subject", "#rftitle": "title", "#rfdesc": "desc", "#rflink": "link", "#rfqs": "qtext", "#rfbook": "bookId", "#rfstext": "stext", "#rfsum": "summary", "#rfwords": "words", "#rftips": "tips" };
+    var m = { "#rfgrade": "grade", "#rfsubj": "subject", "#rftitle": "title", "#rfdesc": "desc", "#rflink": "link", "#rfqs": "qtext", "#rfbook": "bookId", "#rfstext": "stext", "#rfsum": "summary", "#rfwords": "words", "#rftips": "tips", "#rfsboard": "sboard" };
     Object.keys(m).forEach(function (k) { var x = v(k); if (x !== null) f[m[k]] = x; });
     var en = c("#rfen"); if (en !== null) f.en = en;
     var pb = c("#rfpub"); if (pb !== null) f.pub = pb;
@@ -3008,7 +3043,7 @@
       h += "<label>" + esc(rt("ftype")) + '<select id="rftype">';
       RES_TYPES.forEach(function (k) { h += '<option value="' + k + '"' + (f.type === k ? " selected" : "") + ">" + esc(rt(k)) + "</option>"; });
       h += "</select></label><label>" + esc(rt("fgrade")) + '<select id="rfgrade">';
-      D.grades.forEach(function (g) { h += '<option value="' + g + '"' + (String(f.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
+      D.grades.forEach(function (g) { if (!myClassOk(g) && String(f.grade) !== String(g)) return; h += '<option value="' + g + '"' + (String(f.grade) === String(g) ? " selected" : "") + ">" + esc(gradeLabel(g)) + "</option>"; });
       h += "</select></label><label>" + esc(rt("fsubj")) + '<select id="rfsubj">';
       subs.forEach(function (x) { h += '<option value="' + x.id + '"' + (f.subject === x.id ? " selected" : "") + ">" + esc(L(x)) + "</option>"; });
     } else {
@@ -3036,6 +3071,7 @@
       h += "<label>" + esc(rt("fwords")) + '<textarea id="rfwords" rows="5" dir="auto">' + esc(f.words) + "</textarea></label>";
       h += "<label>" + esc(rt("ftips")) + '<textarea id="rftips" rows="4" dir="rtl" lang="ur">' + esc(f.tips) + "</textarea></label>";
     }
+    if (isSecG(f.grade)) { h += "<label>" + esc(rt("fboard")) + '<select id="rfsboard"><option value="">—</option>'; (D.secBoards || []).forEach(function (b) { h += '<option value="' + b.id + '"' + (f.sboard === b.id ? " selected" : "") + ">" + esc(LANG() === "ur" ? b.ur : b.en) + "</option>"; }); h += "</select></label>"; }
     h += '<label class="inl"><input type="checkbox" id="rfpub"' + (f.pub ? " checked" : "") + "> " + esc(rt("fpub")) + "</label>";
     return h + '<div class="actions"><button type="button" class="btn" data-act="resSave"' + (f.busy ? " disabled" : "") + ">" + esc(rt("save")) + '</button><button type="button" class="btn alt" data-act="resCancel">' + esc(rt("cancel")) + "</button></div></div>";
   }
@@ -3044,7 +3080,10 @@
     readRF();
     var f = resForm, ex = f.id ? resById(f.id) : null;
     if (!f.title.trim()) return resMsgShow("needTitle");
+    if (isSecG(f.grade) && !f.sboard) return resMsgShow("needBoard");
+    if (!myClassOk(f.grade)) return resMsgShow("notYourClass");
     var doc = { type: f.type, grade: String(f.grade), subject: f.subject, title: f.title.trim(), desc: (f.desc || "").trim(), published: !!f.pub, author: ex && ex.d.author ? ex.d.author : cloud.uid, updated: Date.now() };
+    if (isSecG(f.grade)) doc.sboard = f.sboard;
     if (f.type === "video" || f.type === "note" || f.type === "book" || f.type === "paper") {
       var link = (f.link || "").trim();
       if (f.file) doc.src = { kind: "asset", id: f.file.id, url: f.file.url, name: f.file.name || "" };
@@ -3192,7 +3231,7 @@
     window.claude.use("sample").then(function (sample) {
       if (!sample) return resMsgShow("aiNo");
       f.busy = "ai"; resMsgShow("aiWorking");
-      var gl = String(f.grade) === "KG" ? "KG (kindergarten)" : "Class " + f.grade;
+      var gl = gnum(f.grade) <= 0 ? gradeLabel(f.grade) : "Class " + f.grade;
       var prompt = "You are helping a Pakistani teacher prepare an Urdu study guide for students of " + gl + ", for the chapter text below, which is written in English.\n" +
         "Write ONLY from the chapter text. Do not add facts that are not in it.\n" +
         "Return JSON only, with this exact shape: {\"summary\":[...],\"words\":[{\"en\":\"...\",\"ur\":\"...\"}],\"tips\":[...]}\n" +
@@ -3218,7 +3257,7 @@
       case "resEdit":
         var x = resById(arg); if (!x) break;
         var d = x.d, s = d.src || {};
-        resForm = { id: x.id, type: d.type, grade: String(d.grade), subject: d.subject, title: d.title || "", desc: d.desc || "", link: s.kind === "asset" ? "" : (s.url || ""), file: s.kind === "asset" ? { id: s.id, url: s.url, name: s.name } : null, en: !!d.en, qtext: d.qtext || "", bookId: d.bookId || "", stext: "", summary: d.summary || "", words: d.words || "", tips: d.tips || "", pub: !!d.published, ai: !!d.ai, busy: "" };
+        resForm = { id: x.id, sboard: d.sboard || "", type: d.type, grade: String(d.grade), subject: d.subject, title: d.title || "", desc: d.desc || "", link: s.kind === "asset" ? "" : (s.url || ""), file: s.kind === "asset" ? { id: s.id, url: s.url, name: s.name } : null, en: !!d.en, qtext: d.qtext || "", bookId: d.bookId || "", stext: "", summary: d.summary || "", words: d.words || "", tips: d.tips || "", pub: !!d.published, ai: !!d.ai, busy: "" };
         resMsg = ""; render(); break;
       case "resCancel": resForm = null; resMsg = ""; render(); break;
       case "resSave": resSave(); break;
@@ -3254,7 +3293,7 @@
     if (el && !el.disabled) act(el.getAttribute("data-act"), el.getAttribute("data-arg"));
   });
   render();
-  (function go(n){ if(window.__iqReady||n>6000){ var p=window.__iqProfile; if(p && (!state.setup || (p.updated && p.updated > (state.profileAt || 0)))){ state.profileAt = p.updated || Date.now(); if(p.name) state.name=p.name; var g=String(p.cls||p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); } else setTimeout(function(){go(n+1)},100); })(0);
+  (function go(n){ if(window.__iqReady||n>6000){ var p=window.__iqProfile; if(p && (!state.setup || (p.updated && p.updated > (state.profileAt || 0)))){ state.profileAt = p.updated || Date.now(); if(p.name) state.name=p.name; if(p.sboard) state.sboard=p.sboard; var g=String(p.cls||p.grade||""); state.grade=g==="F.A"?11:g==="Play Group"?"PG":g==="Nursery"?"NU":(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); } else setTimeout(function(){go(n+1)},100); })(0);
   (function entryScreen() {
     if (ADMIN || STAFFPAGE || !window.IQRA_LOGO || !document.body) return;
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
@@ -3418,7 +3457,7 @@
         { id: "early", n: 1, ic: '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/>', en: "Early Years", ur: "ابتدائی سال", re: "Playgroup to Prep", ru: "پلے گروپ سے پریپ",
           ie: "Learning through play: sounds, letters, numbers, colours, stories and rhymes, with no exams.", iu: "کھیل کے ذریعے سیکھنا: آوازیں، حروف، اعداد، رنگ، کہانیاں اور نظمیں، بغیر امتحان کے۔",
           oe: ["Recognise letters, sounds and numbers", "Build speaking, listening and motor skills", "Grow social and emotional confidence"], ou: ["حروف، آوازیں اور اعداد پہچاننا", "بولنے، سننے اور ہاتھ کی مہارتیں", "سماجی اور جذباتی اعتماد"],
-          cl: [["PG", "Playgroup", "پلے گروپ", 0], ["NU", "Nursery", "نرسری", 0], ["KG", "Prep", "پریپ (کے جی)", 1]] },
+          cl: [["PG", "Playgroup", "پلے گروپ", 1], ["NU", "Nursery", "نرسری", 1], ["KG", "Prep", "پریپ (کے جی)", 1]] },
         { id: "primary", n: 2, ic: '<path d="M4 5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2z"/><path d="M4 20a2 2 0 0 1 2-2h13"/>', en: "Primary School", ur: "پرائمری اسکول", re: "Grades 1 to 5", ru: "جماعت 1 سے 5",
           ie: "Strong foundations in reading, writing and number in Urdu and English, with science, Islamiat and general knowledge.", iu: "اردو اور انگریزی میں پڑھنے، لکھنے اور حساب کی مضبوط بنیاد، سائنس، اسلامیات اور عمومی معلومات کے ساتھ۔",
           oe: ["Read and write fluently", "Think with numbers", "Ask questions and explore"], ou: ["روانی سے پڑھنا اور لکھنا", "اعداد کے ساتھ سوچنا", "سوال پوچھنا اور کھوج لگانا"],
@@ -3438,7 +3477,7 @@
       var dsel = DIVS.filter(function (d) { return d.id === divSel; })[0], dpick = "";
       if (dsel) {
         dpick = '<h3 class="lp-sub">' + esc(tx(dsel.en, dsel.ur)) + '</h3><div class="lp-chips" role="group" aria-label="' + esc(tx("Choose your class", "اپنی جماعت چنیں")) + '">' + dsel.cl.map(function (c) { return '<button type="button" class="lp-chip" data-class="' + c[0] + '" aria-pressed="false"' + (c[3] ? "" : " disabled") + ">" + esc(tx(c[1], c[2]) + (c[3] ? "" : tx(" (soon)", " (جلد)"))) + "</button>"; }).join("") + "</div>" +
-          '<p class="lp-note">' + esc(signed ? tx("Choose a class to open its subjects.", "اپنی جماعت کے مضامین کھولنے کے لیے جماعت چنیں۔") : tx("Choose a class and sign in with Google to start studying.", "جماعت چنیں اور پڑھائی شروع کرنے کے لیے گوگل سے سائن اِن کریں۔")) + (dsel.id === "early" ? " " + esc(tx("Playgroup and Nursery lessons are on the way.", "پلے گروپ اور نرسری کے اسباق جلد آ رہے ہیں۔")) : "") + "</p>";
+          '<p class="lp-note">' + esc(signed ? tx("Choose a class to open its subjects.", "اپنی جماعت کے مضامین کھولنے کے لیے جماعت چنیں۔") : tx("Choose a class and sign in with Google to start studying.", "جماعت چنیں اور پڑھائی شروع کرنے کے لیے گوگل سے سائن اِن کریں۔")) + (dsel.id === "early" ? " " + esc(tx("Playgroup and Nursery lessons will appear once verified.", "پلے گروپ اور نرسری کے اسباق تصدیق کے بعد یہاں آئیں گے۔")) : "") + (dsel.id === "secondary" ? " " + esc(tx("Grade 9 and 10 students choose Punjab Board or Federal Board.", "نویں اور دسویں جماعت کے طلبہ پنجاب بورڈ یا وفاقی بورڈ چنتے ہیں۔")) : "") + "</p>";
       }
       h += sec("lp-classes", tx("Explore Your Learning Journey", "اپنے سیکھنے کا سفر دریافت کریں"), tx("Discover a better way to learn with Pakistani curriculum and international-standard teaching.", "پاکستانی نصاب اور بین الاقوامی معیار کی تدریس کے ساتھ سیکھنے کا بہتر طریقہ دریافت کریں۔"), '<div class="lp-grid lp-divs">' + dcards + "</div>" + dpick);
       h += sec("lp-lib", tx("Library", "کتب خانہ"), tx("Books for everyone, beyond the school syllabus: general reading, Urdu literature, stories and more. Syllabus books are under Boards.", "ہر کسی کے لیے کتابیں، نصاب سے ہٹ کر: عمومی مطالعہ، اردو ادب، کہانیاں اور مزید۔ نصابی کتابیں بورڈز میں ہیں۔"), chipsT + chipsC + '<div class="lp-grid">' + lg + "</div>");

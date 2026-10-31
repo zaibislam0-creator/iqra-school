@@ -28,12 +28,13 @@ const gisPrompt=()=>new Promise(r=>{try{google.accounts.id.prompt(n=>{if((n.isNo
 const gisToken=()=>new Promise(res=>{try{const tc=google.accounts.oauth2.initTokenClient({client_id:CID,scope:'openid email profile',callback:async t=>{if(!t||!t.access_token){res(t&&t.error==='access_denied'?'':'x');return}try{await Au.signInWithCredential(auth,Au.GoogleAuthProvider.credential(null,t.access_token));res('')}catch(e){res(friendly(e))}},error_callback:e=>res(e&&(e.type==='popup_closed')?'':'x')});tc.requestAccessToken({prompt:'select_account'})}catch(e){res('x')}});
 window.__iqSignIn=async()=>{if(await gisInit()){if(await gisPrompt()!=='fallback')return '';const r=await gisToken();if(r!=='x')return r}
  try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider());return ''}catch(e){return friendly(e)}};
-window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try{const x={updated:Date.now()};if(p&&p.name)x.name=String(p.name).slice(0,80);if(p&&p.cls)x.cls=String(p.cls);await F.setDoc(F.doc(fs,'students',u.uid),x,{merge:true});return true}catch(e){return false}};
+window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try{const x={updated:Date.now()};if(p&&p.name)x.name=String(p.name).slice(0,80);if(p&&p.cls)x.cls=String(p.cls);if(p&&p.sboard)x.sboard=String(p.sboard);await F.setDoc(F.doc(fs,'students',u.uid),x,{merge:true});return true}catch(e){return false}};
 function profileView(u,d){
  leaveSplash();if(window.__iqEntry&&window.__iqEntry.busy)window.__iqEntry.busy(false);
  const cl=[['Play Group','پلے گروپ'],['Nursery','نرسری'],['KG','کے جی'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['10','10'],['F.A','ایف اے']];
  let local={};try{local=JSON.parse(localStorage.getItem('pds-state-v1'))||{}}catch(e){}
- let sel=d&&d.cls||(local.setup&&local.grade!==undefined?(Number(local.grade)>=11?'F.A':String(local.grade)):'');
+ let sel=d&&d.cls||(local.setup&&local.grade!==undefined?(Number(local.grade)>=11?'F.A':local.grade==='PG'?'Play Group':local.grade==='NU'?'Nursery':String(local.grade)):'');
+ if(sel!=='F.A'){const fi=cl.findIndex(x=>x[0]==='F.A');if(fi>-1)cl.splice(fi,1)}
  G.setAttribute('dir',LNG==='ur'?'rtl':'ltr');G.classList.add('ob-on');
  show('<div class="ob"><img class="ob-logo" src="/icon-192.png" width="64" height="64" alt="IQRA"><h2>'+esc(T('Welcome! Let’s set up the learner','خوش آمدید! آئیے طالب علم کی معلومات بھر لیں'))+'</h2><p class="ob-sub">'+esc(T('This takes under a minute. You can change the class any time from the top bar.','اس میں ایک منٹ سے کم لگتا ہے۔ جماعت آپ کسی بھی وقت اوپر والی بار سے بدل سکتے ہیں۔'))+'</p><p class="ob-acct">'+esc(T('Signed in as ','لاگ اِن: '))+'<b dir="ltr">'+esc(u.email||u.displayName||'')+'</b></p>'
  +'<label class="ob-f"><span>'+esc(T('Student name','طالب علم کا نام'))+'</span><input id="pn" autocomplete="given-name" value="'+esc(d?.name||u.displayName||'')+'"></label>'
