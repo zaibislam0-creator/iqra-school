@@ -1,0 +1,54 @@
+rules_version = '2';
+// IQRA: complete recommended Firestore rules (written from what the site code actually reads and writes).
+// Real admin protection lives HERE, not in the browser. Publish in Firebase console -> Firestore Database -> Rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    // owner = your Google account, and Google must have verified the e-mail
+    function isOwner() {
+      return signedIn()
+        && request.auth.token.email == 'zaibislam0@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+    function roleDoc() { return get(/databases/$(database)/documents/roles/$(request.auth.uid)); }
+    function isTeacher() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/roles/$(request.auth.uid))
+        && roleDoc().data.role == 'teacher';
+    }
+    function isStaff() { return isOwner() || isTeacher(); }
+    // a teacher may change only what they wrote themselves; the owner may change anything
+    function mine() { return isTeacher() && resource.data.get('author', '') == request.auth.uid; }
+
+    // roles: a user may read only their own role; ONLY the owner can give or take roles (stops self-promotion)
+    match /roles/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isOwner());
+      allow create, update: if isOwner() && request.resource.data.role in ['teacher', 'admin'];
+      allow delete: if isOwner();
+    }
+
+    // students: private details (phone, city). Each child sees and edits only their own; only the owner can list everyone.
+    match /students/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isOwner());
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'cls', 'city', 'phone', 'email', 'updated'])
+        && request.resource.data.get('email', '') in ['', request.auth.token.email];
+      allow delete: if isOwner();
+    }
+
+    // learning content: any signed-in user can read, only staff can change
+    match /chapters/{id} { allow read: if signedIn(); allow create: if isStaff(); allow update, delete: if isOwner() || isTeacher(); }
+    match /meta/{id}     { allow read: if signedIn(); allow write: if isStaff(); }
+    match /clips/{id}    { allow read: if signedIn(); allow write: if isStaff(); }
+    match /lectures/{id}  { allow read: if signedIn(); allow create: if isStaff(); allow update, delete: if isOwner() || mine(); }
+    match /resources/{id} { allow read: if signedIn(); allow create: if isStaff(); allow update, delete: if isOwner() || mine(); }
+
+    // translation service (written only by Cloud Functions, which bypass these rules)
+    match /translations/{id}     { allow read: if signedIn(); allow write: if false; }
+    match /translationUsage/{id} { allow read, write: if false; }
+
+    // everything else is closed
+    match /{document=**} { allow read, write: if false; }
+  }
+}
