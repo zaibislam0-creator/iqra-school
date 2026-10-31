@@ -219,7 +219,7 @@
   }
   function shortGrade(g){ var n=gnum(g); if(n>=11) return "F.A "+(n-10); if(String(g)==="KG"||n<=0) return LANG()==="ur"?"کے جی":"KG"; return String(n); }
   function setupView() {
-    var h = (state.setup ? '<div class="setupone">' : '<div class="setupgrid">' + welcomeHero()) + '<section class="card setup3"><h2 class="setup3-h">' + esc(state.setup ? t("welcome") : st3("setupTitle")) + "</h2>";
+    var h = (state.setup ? '<div class="setupone">' : '<div class="setupgrid">' + welcomeHero()) + '<section class="card setup3">' + (state.setup ? '<button type="button" class="chip setupback" data-act="go" data-arg="learn">' + esc(LANG() === "ur" ? "← واپس" : "← Back") + "</button>" : "") + '<h2 class="setup3-h">' + esc(state.setup ? (LANG() === "ur" ? "جماعت اور پروفائل بدلیں" : "Change class and profile") : st3("setupTitle")) + "</h2>";
     h += '<div class="step"><span class="stepno" aria-hidden="true">1</span><label for="sname">' + esc(st3("yourName")) + '</label></div>';
     h += '<input id="sname" class="nameinp" autocomplete="given-name" placeholder="' + esc(st3("namePh")) + '" value="' + esc(state.name) + '">';
     h += '<div class="step"><span class="stepno" aria-hidden="true">2</span><span class="steplbl" id="gradelbl">' + esc(st3("yourClass")) + "</span></div>";
@@ -243,7 +243,7 @@
       h += "</select></label>";
     }
     h += "<label>" + esc(t("readq")) + '<select id="sread">' + readOptions() + "</select></label></details>";
-    h += '<button class="bigbtn gobtn" id="sgo">' + esc(t("start")) + "</button></section></div>";
+    h += '<button class="bigbtn gobtn" id="sgo">' + esc(state.setup ? (LANG() === "ur" ? "محفوظ کریں اور جاری رکھیں" : "Save and continue") : t("start")) + "</button></section></div>";
     return h;
   }
   var ST3 = {
@@ -2346,7 +2346,8 @@
     var lad = $("#libaddf"); if (lad) lad.addEventListener("submit", function (e) { e.preventDefault(); libSave(); render(); });
     root.querySelectorAll("[data-chtitle]").forEach(function (i) { i.addEventListener("change", function () { chRename(i.dataset.chtitle, i.value); }); });
     root.querySelectorAll("[data-sgrade]").forEach(function (b) { b.addEventListener("click", function () { readSetup(); state.grade = b.dataset.sgrade; render(); }); });
-    on("#sgo", function () { readSetup(); state.setup = true; save(); view = "learn"; render(); });
+    on("#sgo", function () { readSetup(); state.setup = true; state.profileAt = Date.now(); save(); persistProfile(); view = "learn"; render(); });
+  function persistProfile() { if (!window.__iqSaveProfile) return; var g = state.grade, n = gnum(g); window.__iqSaveProfile({ name: state.name, cls: n >= 11 ? "F.A" : (String(g) === "KG" || n <= 0 ? "KG" : String(g)) }); }
     on("#resetup", function () { view = "setup"; render(); });
     root.querySelectorAll("[data-nav]").forEach(function (b) { b.addEventListener("click", function () { view = b.dataset.nav; examSub = ""; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; openLesson = null; openStory = null; curSubject = null; render(); }); });
     root.querySelectorAll("[data-sub]").forEach(function (b) { b.addEventListener("click", function () { curSubject = b.dataset.sub; render(); }); });
@@ -3156,7 +3157,7 @@
     if (el && !el.disabled) act(el.getAttribute("data-act"), el.getAttribute("data-arg"));
   });
   render();
-  (function go(n){ if(window.__iqReady||n>6000){ var p=window.__iqProfile; if(p){ if(p.name) state.name=p.name; var g=String(p.cls||p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); } else setTimeout(function(){go(n+1)},100); })(0);
+  (function go(n){ if(window.__iqReady||n>6000){ var p=window.__iqProfile; if(p && (!state.setup || (p.updated && p.updated > (state.profileAt || 0)))){ state.profileAt = p.updated || Date.now(); if(p.name) state.name=p.name; var g=String(p.cls||p.grade||""); state.grade=g==="F.A"?11:(/^\d+$/.test(g)?Number(g):"KG"); state.setup=true; state.view="learn"; save(); render(); } initCloud(); setTimeout(function(){window.scrollTo(0,0)},50); } else setTimeout(function(){go(n+1)},100); })(0);
   (function entryScreen() {
     if (ADMIN || STAFFPAGE || !window.IQRA_LOGO || !document.body) return;
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
@@ -3219,13 +3220,24 @@
     });
     (function () { var ap = document.getElementById("app"), q = 0; if (ap && window.MutationObserver) new MutationObserver(function () { if (q) return; q = requestAnimationFrame(function () { q = 0; sync(); }); }).observe(ap, { childList: true }); })();
     function browseEntry() { el.classList.remove("docked"); setTimeout(sync, 0); var ap = document.getElementById("app"); if (ap) { ap.setAttribute("inert", ""); ap.setAttribute("aria-hidden", "true"); } }
-    var isReady = false, errMsg = "", freeOpen = null, boardSel = "all", clsSel = 0, typeSel = "all"; /* freeOpen = { item, i } while a free lesson is being read */
+    var signing = false, authBusy = false, busyMsg = "", isReady = false, errMsg = "", freeOpen = null, boardSel = "all", clsSel = 0, typeSel = "all"; /* freeOpen = { item, i } while a free lesson is being read */
     function ext(u) { return /^https:\/\/[^\s"<>]+$/i.test(u || "") ? u : ""; }
+    /* sign-in progress: only the buttons change, so the page does not flicker or replay its animations */
+    function syncBusy() {
+      var on = signing || authBusy, ur = LANG() === "ur", T = function (en, u) { return ur ? u : en; };
+      Array.prototype.forEach.call(el.querySelectorAll("[data-enter]"), function (b) {
+        var big = b.classList.contains("entry-go");
+        b.disabled = on || !isReady; b.classList.toggle("busy", on); if (on) b.setAttribute("aria-busy", "true"); else b.removeAttribute("aria-busy");
+        if (big) b.innerHTML = (on ? '<i class="spin" aria-hidden="true"></i>' : GSVG) + "<span>" + esc(on ? (busyMsg || T("Signing you in\u2026", "لاگ اِن ہو رہا ہے…")) : T("Sign in to study", "پڑھنے کے لیے سائن اِن کریں")) + "</span>";
+        else b.innerHTML = (on ? '<i class="spin" aria-hidden="true"></i>' : "") + esc(T("Sign in", "سائن اِن"));
+      });
+      var er = el.querySelector(".entry-err"); if (er) er.textContent = errMsg;
+    }
     function paint() {
       var ur = LANG() === "ur";
       el.setAttribute("dir", ur ? "rtl" : "ltr");
       var tx = function (en, u) { return ur ? u : en; };
-      var cta = function (cls) { if (signed) return '<button class="entry-go ' + (cls || "") + '" data-myclass type="button"><span>' + esc(tx("Open my class", "میری جماعت کھولیں")) + "</span></button>"; return '<button class="entry-go ' + (cls || "") + '" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + GSVG + "<span>" + esc(tx("Sign in to study", "پڑھنے کے لیے سائن اِن کریں")) + "</span></button>"; };
+      var cta = function (cls) { if (!signed && (signing || authBusy)) return '<button class="entry-go ' + (cls || "") + ' busy" type="button" disabled aria-busy="true"><i class="spin" aria-hidden="true"></i><span>' + esc(busyMsg || tx("Signing you in\u2026", "لاگ اِن ہو رہا ہے…")) + "</span></button>"; if (signed) return '<button class="entry-go ' + (cls || "") + '" data-myclass type="button"><span>' + esc(tx("Open my class", "میری جماعت کھولیں")) + "</span></button>"; return '<button class="entry-go ' + (cls || "") + '" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + GSVG + "<span>" + esc(tx("Sign in to study", "پڑھنے کے لیے سائن اِن کریں")) + "</span></button>"; };
       var libs = LIB_STARTER.filter(function (x) { return ext(x.url); }), docs = (D.sources || []).filter(function (x) { return ext(x.url); }).slice(0, 4), free = Array.isArray(window.IQRA_FREE) ? window.IQRA_FREE : [];
       var boards = Array.isArray(window.IQRA_BOARDS) ? window.IQRA_BOARDS : [], books = (Array.isArray(window.IQRA_BOOKS) ? window.IQRA_BOOKS : []).filter(function (x) { return ext(x.url) && (boardSel === "all" || x.board === boardSel) && (!clsSel || Number(x.cls) === clsSel) && typeOk(x); });
       var sec = function (id, title, lead, body) { return '<section class="lp-sec" id="' + id + '"><div class="lp-sec-h"><h2>' + esc(title) + "</h2><p>" + esc(lead) + '</p></div><div class="lp-sec-b">' + body + "</div></section>"; };
@@ -3237,7 +3249,7 @@
       function smoothB() { return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; }
       var menuItems = [["lp-top", tx("Home", "ہوم")], ["lp-lib", tx("Library", "کتب خانہ")], ["lp-boards", tx("Boards", "بورڈز")], ["lp-notes", tx("Notes", "نوٹس")], ["lp-papers", tx("Past Papers", "پچھلے پرچے")]];
       var boardPills = '<div class="lp-strip" role="group" aria-label="' + esc(tx("Choose your board", "اپنا بورڈ چنیں")) + '"><div class="lp-strip-in"><span class="lp-strip-l">' + esc(tx("Your board", "اپنا بورڈ")) + '</span><button type="button" class="lp-pill" data-board="all" aria-pressed="' + (boardSel === "all") + '">' + esc(tx("All", "سب")) + "</button>" + boards.map(function (b) { return '<button type="button" class="lp-pill" data-board="' + esc(b.id) + '" aria-pressed="' + (boardSel === b.id) + '">' + esc(lt(b.short || b.name)) + "</button>"; }).join("") + "</div></div>";
-      var h = '<div class="lp-bar" role="banner"><div class="lp-bar-in"><span class="lp-brand">' + (window.IQRA_ORB ? '<img src="' + window.IQRA_ORB + '" alt="" width="34" height="34">' : "") + "<b>" + esc(tx("IQRA Digital School", "اقرا ڈیجیٹل اسکول")) + '</b></span><div class="lp-menu" role="navigation" aria-label="' + esc(tx("Explore", "دریافت کریں")) + '">' + menuItems.map(function (m) { return '<button type="button" data-go="' + m[0] + '">' + esc(m[1]) + "</button>"; }).join("") + '</div><span class="lp-bar-r"><button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><button class="lp-signin" data-enter type="button"' + (isReady ? "" : " disabled") + ">" + esc(tx("Sign in", "سائن اِن")) + "</button></span></div>" + boardPills + "</div>";
+      var h = '<div class="lp-bar" role="banner"><div class="lp-bar-in"><span class="lp-brand">' + (window.IQRA_ORB ? '<img src="' + window.IQRA_ORB + '" alt="" width="34" height="34">' : "") + "<b>" + esc(tx("IQRA Digital School", "اقرا ڈیجیٹل اسکول")) + '</b></span><div class="lp-menu" role="navigation" aria-label="' + esc(tx("Explore", "دریافت کریں")) + '">' + menuItems.map(function (m) { return '<button type="button" data-go="' + m[0] + '">' + esc(m[1]) + "</button>"; }).join("") + '</div><span class="lp-bar-r"><button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><button class="lp-signin' + (signing || authBusy ? " busy" : "") + '" data-enter type="button"' + (isReady && !signing && !authBusy ? "" : " disabled") + ">" + (signing || authBusy ? '<i class="spin" aria-hidden="true"></i>' : "") + esc(tx("Sign in", "سائن اِن")) + "</button></span></div>" + boardPills + "</div>";
       h += '<section class="lp-hero"><div class="lp-hero-in"><div class="lp-copy"><h1>' + esc(tx("Learn the Pakistani way", "اپنے نصاب کے ساتھ سیکھیں")) + '</h1><p class="lp-lead">' + esc(tx("Games, notes, tests and books for Pakistani children, built on the national curriculum and available in Urdu and English.", "پاکستانی بچوں کے لیے کھیل، نوٹس، ٹیسٹ اور کتابیں، قومی نصاب کی بنیاد پر، اردو اور انگریزی میں۔")) + '</p><div class="lp-actions">' + cta("lp-cta") + '<button type="button" class="lp-link" data-go="lp-lib">' + esc(tx("Browse library", "کتب خانہ دیکھیں")) + '</button></div><p class="entry-err" aria-live="polite">' + esc(errMsg) + '</p></div>' + markSvg() + '</div><ul class="lp-points"><li>' + esc(tx("Urdu and English", "اردو اور انگریزی")) + "</li><li>" + esc(tx("Follows the national curriculum", "قومی نصاب کے مطابق")) + "</li><li>" + esc(tx("Free to start", "مفت شروع کریں")) + "</li></ul></section>";
       /* mission, audience, what we teach, boards, FAQ: real text on the page so search engines and AI assistants can read and recommend it */
       var tags = function (arr) { return '<ul class="lp-tags">' + arr.map(function (x) { return "<li>" + esc(tx(x[0], x[1])) + "</li>"; }).join("") + "</ul>"; };
@@ -3310,7 +3322,7 @@
       Array.prototype.forEach.call(el.querySelectorAll("[data-enter]"), function (b) {
         b.onclick = async function () {
           if (!window.__iqSignIn) return;
-          errMsg = ""; var m = await window.__iqSignIn(); if (m) { errMsg = m; paint(); }
+          if (signing || authBusy) return; errMsg = ""; signing = true; busyMsg = tx("Opening Google\u2026", "گوگل کھل رہا ہے…"); syncBusy(); var m = await window.__iqSignIn(); signing = false; if (m) errMsg = m; syncBusy();
         };
       });
       Array.prototype.forEach.call(el.querySelectorAll("[data-board]"), function (b) {
@@ -3332,6 +3344,7 @@
     }
     window.__iqEntry = {
       active: true,
+      busy: function (on, msg) { authBusy = !!on; busyMsg = on ? (msg || "") : ""; if (!signed) syncBusy(); },
       ready: function (msg) { isReady = true; errMsg = msg || ""; paint(); var b = el.querySelector(".lp-cta"); if (b && b.focus) b.focus({ preventScroll: true }); },
       remove: function () {
         window.__iqEntry.active = false; signed = true;
