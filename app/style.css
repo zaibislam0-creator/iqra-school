@@ -1286,3 +1286,4 @@ html.iq-resume,html.iq-resume body{overflow:hidden}
 .lp-contact{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center}
 .lp-mail{display:inline-block;padding:12px 20px;border-radius:999px;background:#0d4a2e;color:#fff;font-weight:700;text-decoration:none;word-break:break-all}
 .lp-priv{color:#0d4a2e;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+#entry .lp-strip{display:none!important}
