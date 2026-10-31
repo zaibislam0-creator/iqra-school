@@ -1281,7 +1281,7 @@ html.iq-resume,html.iq-resume body{overflow:hidden}
 /* one page at a time: Home shows the landing text; each top-bar button shows only its own section */
 #entry[data-view="lp-top"] .lp-body{display:none}
 #entry[data-view]:not([data-view="lp-top"]) .lp-hero,#entry[data-view]:not([data-view="lp-top"]) .lp-about,#entry[data-view]:not([data-view="lp-top"]) .lp-end{display:none}
-#entry[data-view="lp-lib"] .lp-body .lp-sec:not(#lp-lib),#entry[data-view="lp-boards"] .lp-body .lp-sec:not(#lp-boards),#entry[data-view="lp-notes"] .lp-body .lp-sec:not(#lp-notes),#entry[data-view="lp-papers"] .lp-body .lp-sec:not(#lp-papers){display:none}
+#entry[data-view="lp-lib"] .lp-body .lp-sec:not(#lp-lib),#entry[data-view="lp-boards"] .lp-body .lp-sec:not(#lp-boards),#entry[data-view="lp-notes"] .lp-body .lp-sec:not(#lp-notes),#entry[data-view="lp-classes"] .lp-body .lp-sec:not(#lp-classes),#entry[data-view="lp-papers"] .lp-body .lp-sec:not(#lp-papers){display:none}
 #entry[data-view]:not([data-view="lp-top"]) .lp-body{min-height:70vh}
 .lp-contact{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center}
 .lp-mail{display:inline-block;padding:12px 20px;border-radius:999px;background:#0d4a2e;color:#fff;font-weight:700;text-decoration:none;word-break:break-all}
@@ -1382,3 +1382,13 @@ html.adm .bigbtn.gobtn2{border-radius:12px;min-height:48px}
 #entry[dir=rtl] .lp-tag{letter-spacing:0;line-height:2}
 .lp-note{margin:18px 0 0;color:#3d5a49;font-size:.92rem;line-height:1.8;max-width:70ch}
 #entry[dir=rtl] .lp-note{line-height:2.1}
+
+.lp-div{align-items:flex-start;gap:6px}
+.lp-div-ic{display:inline-flex;width:46px;height:46px;border-radius:14px;align-items:center;justify-content:center;background:#e6f4e8;color:#0d4a2e}
+.lp-d1{background:#f1faf3}.lp-d2{background:#e6f4e8}.lp-d3{background:#d9eddf}.lp-d4{background:#cbe5d3}
+.lp-obj{margin:6px 0 10px;padding-inline-start:18px;color:#3d5a49;font-size:.9rem;line-height:1.8}
+.lp-btn{margin-top:auto;border:0;border-radius:999px;padding:10px 20px;background:#0d4a2e;color:#fff;font:600 .92rem inherit;font-family:inherit;cursor:pointer}
+.lp-btn:hover,.lp-btn[aria-expanded=true]{background:#14613c}
+.lp-chip[disabled]{opacity:.5;cursor:default}
+@media (prefers-reduced-motion:no-preference){.lp-divs .lp-card{animation:lpRise .5s ease both}.lp-divs .lp-card:nth-child(2){animation-delay:.06s}.lp-divs .lp-card:nth-child(3){animation-delay:.12s}.lp-divs .lp-card:nth-child(4){animation-delay:.18s}}
+@keyframes lpRise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}

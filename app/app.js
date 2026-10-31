@@ -3316,7 +3316,7 @@
     (function () { var ap = document.getElementById("app"), q = 0; if (ap && window.MutationObserver) new MutationObserver(function () { if (q) return; q = requestAnimationFrame(function () { q = 0; sync(); }); }).observe(ap, { childList: true }); })();
     function browseEntry() { el.classList.remove("docked"); setTimeout(sync, 0); var ap = document.getElementById("app"); if (ap) { ap.setAttribute("inert", ""); ap.setAttribute("aria-hidden", "true"); } }
     var view = "lp-top"; function setView(v) { view = v; el.setAttribute("data-view", v); }
-    var signing = false, authBusy = false, busyMsg = "", isReady = false, errMsg = "", freeOpen = null, boardSel = "all", clsSel = 0, typeSel = "all"; /* freeOpen = { item, i } while a free lesson is being read */
+    var signing = false, authBusy = false, busyMsg = "", isReady = false, errMsg = "", freeOpen = null, boardSel = "all", clsSel = 0, typeSel = "all", divSel = ""; /* freeOpen = { item, i } while a free lesson is being read */
     function ext(u) { return /^https:\/\/[^\s"<>]+$/i.test(u || "") ? u : ""; }
     /* sign-in progress: only the buttons change, so the page does not flicker or replay its animations */
     function syncBusy() {
@@ -3343,7 +3343,7 @@
       function typeOk(x) { return typeSel === "all" || (typeSel === "paid") === isPaid(x); }
       function badge(x) { var p = isPaid(x); return '<small class="lp-badge' + (p ? " paid" : "") + '">' + esc(p ? tx("Paid", "ادائیگی والی") : tx("Free", "مفت")) + "</small>"; }
       function smoothB() { return window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"; }
-      var menuItems = [["lp-top", tx("Home", "ہوم")], ["lp-lib", tx("Library", "کتب خانہ")], ["lp-boards", tx("Boards", "بورڈز")], ["lp-notes", tx("Notes", "نوٹس")], ["lp-papers", tx("Past Papers", "پچھلے پرچے")]];
+      var menuItems = [["lp-top", tx("Home", "ہوم")], ["lp-classes", tx("Classes", "کلاسز")], ["lp-lib", tx("Library", "کتب خانہ")], ["lp-boards", tx("Boards", "بورڈز")], ["lp-notes", tx("Notes", "نوٹس")], ["lp-papers", tx("Past Papers", "پچھلے پرچے")]];
       var boardPills = '<div class="lp-strip" role="group" aria-label="' + esc(tx("Choose your board", "اپنا بورڈ چنیں")) + '"><div class="lp-strip-in"><span class="lp-strip-l">' + esc(tx("Your board", "اپنا بورڈ")) + '</span><button type="button" class="lp-pill" data-board="all" aria-pressed="' + (boardSel === "all") + '">' + esc(tx("All", "سب")) + "</button>" + boards.map(function (b) { return '<button type="button" class="lp-pill" data-board="' + esc(b.id) + '" aria-pressed="' + (boardSel === b.id) + '">' + esc(lt(b.short || b.name)) + "</button>"; }).join("") + "</div></div>";
       var h = '<div class="lp-bar" role="banner"><div class="lp-bar-in"><span class="lp-brand">' + (window.IQRA_ORB ? '<img src="' + window.IQRA_ORB + '" alt="" width="34" height="34">' : "") + "<b>" + esc(tx("IQRA Digital School", "اقرا ڈیجیٹل اسکول")) + '</b></span><div class="lp-menu" role="navigation" aria-label="' + esc(tx("Explore", "دریافت کریں")) + '">' + menuItems.map(function (m) { return '<button type="button" data-go="' + m[0] + '">' + esc(m[1]) + "</button>"; }).join("") + '</div><span class="lp-bar-r"><button class="entry-lang" data-elang type="button">' + esc(t("lang")) + '</button><button class="lp-signin' + (signing || authBusy ? " busy" : "") + '" data-enter type="button"' + (isReady && !signing && !authBusy ? "" : " disabled") + ">" + (signing || authBusy ? '<i class="spin" aria-hidden="true"></i>' : "") + esc(tx("Sign in", "سائن اِن")) + "</button></span></div>" + boardPills + "</div>";
       h += '<section class="lp-hero"><div class="lp-hero-in"><div class="lp-copy"><h1>' + esc(tx("Learn the Pakistani way", "اپنے نصاب کے ساتھ سیکھیں")) + '</h1><p class="lp-tag">' + esc(tx("Pakistani Curriculum. International Learning Standards.", "پاکستانی نصاب۔ عالمی معیارِ تعلیم۔")) + '</p><p class="lp-lead">' + esc(tx("Games, notes, tests and books for Pakistani children, built on the national curriculum and available in Urdu and English.", "پاکستانی بچوں کے لیے کھیل، نوٹس، ٹیسٹ اور کتابیں، قومی نصاب کی بنیاد پر، اردو اور انگریزی میں۔")) + '</p><div class="lp-actions">' + cta("lp-cta") + '<button type="button" class="lp-link" data-go="lp-lib">' + esc(tx("Browse library", "کتب خانہ دیکھیں")) + '</button></div><p class="entry-err" aria-live="polite">' + esc(errMsg) + '</p></div>' + markSvg() + '</div><ul class="lp-points"><li>' + esc(tx("Urdu and English", "اردو اور انگریزی")) + "</li><li>" + esc(tx("Follows the national curriculum", "قومی نصاب کے مطابق")) + "</li><li>" + esc(tx("Free to start", "مفت شروع کریں")) + "</li></ul></section>";
@@ -3374,7 +3374,7 @@
           who("Primary: Grades 1 to 5", "پرائمری: جماعت 1 سے 5", "Strong reading, writing and number foundations in Urdu and English, with science, Islamiat and general knowledge, and simple projects.", "اردو اور انگریزی میں پڑھنے، لکھنے اور حساب کی مضبوط بنیاد، سائنس، اسلامیات اور عمومی معلومات کے ساتھ، اور سادہ پراجیکٹس۔") +
           who("Middle: Grades 6 to 8", "مڈل: جماعت 6 سے 8", "Subjects deepen: science, social studies, Pakistan Studies and computer science, with investigation, discussion and short projects.", "مضامین گہرے ہوتے ہیں: سائنس، معاشرتی علوم، مطالعہ پاکستان اور کمپیوٹر سائنس، تحقیق، گفتگو اور مختصر پراجیکٹس کے ساتھ۔") +
           who("Secondary: Grades 9 and 10", "سیکنڈری: جماعت 9 اور 10", "Full preparation for the board examinations across the prescribed subjects, with problem-solving and research skills.", "مقررہ مضامین میں بورڈ امتحانات کی مکمل تیاری، مسئلہ حل کرنے اور تحقیق کی مہارتوں کے ساتھ۔") + "</div>" +
-          '<p class="lp-note">' + esc(tx("Each board's prescribed textbooks and syllabus decide the exact subjects and chapters. Lesson content stays marked as pending review until a teacher has checked it against the official source. F.A / Intermediate will follow in a later phase.", "ہر بورڈ کی مقررہ نصابی کتب اور نصاب ہی درست مضامین اور ابواب طے کرتے ہیں۔ اسباق کا مواد اس وقت تک زیرِ جائزہ رہتا ہے جب تک استاد اسے سرکاری ماخذ سے نہ ملا لے۔ ایف اے / انٹرمیڈیٹ بعد کے مرحلے میں آئے گا۔")) + "</p>") +
+          '<p class="lp-note">' + esc(tx("Each board's prescribed textbooks and syllabus decide the exact subjects and chapters. Lesson content stays marked as pending review until a teacher has checked it against the official source.", "ہر بورڈ کی مقررہ نصابی کتب اور نصاب ہی درست مضامین اور ابواب طے کرتے ہیں۔ اسباق کا مواد اس وقت تک زیرِ جائزہ رہتا ہے جب تک استاد اسے سرکاری ماخذ سے نہ ملا لے۔")) + "</p>") +
         sec("lp-who", tx("Who IQRA Digital School is for", "اقرا ڈیجیٹل اسکول کس کے لیے ہے"), tx("One free place to learn, teach and follow progress.", "سیکھنے، سکھانے اور پیش رفت دیکھنے کے لیے ایک ہی مفت جگہ۔"),
           '<div class="lp-grid">' +
           who("Students, Playgroup to Grade 10", "طلبہ، پلے گروپ سے جماعت 10 تک", "Learn with games, short lessons, notes and quizzes that follow the school syllabus.", "کھیلوں، مختصر اسباق، نوٹس اور کوئز کے ذریعے سیکھیں جو اسکول کے نصاب کے مطابق ہیں۔") +
@@ -3388,14 +3388,14 @@
           grp("Social studies and values", "معاشرتی علوم اور اقدار", [["Pakistan Studies", "مطالعہ پاکستان"], ["Social Studies", "معاشرتی علوم"], ["Islamiat", "اسلامیات"], ["Ethics", "اخلاقیات"], ["General Knowledge", "عمومی معلومات"]]) +
           grp("Life skills", "زندگی کی مہارتیں", [["Arts and Creativity", "فنون اور تخلیق"], ["Physical Education", "جسمانی تعلیم"], ["Financial Literacy", "مالی شعور"], ["Digital Literacy", "ڈیجیٹل خواندگی"], ["Environmental Awareness", "ماحولیاتی شعور"]]) +
           grp("Stages", "مراحل", [["Early Years (Playgroup to Prep)", "ابتدائی سال (پلے گروپ سے پریپ)"], ["Primary (1 to 5)", "پرائمری (1 سے 5)"], ["Middle (6 to 8)", "مڈل (6 سے 8)"], ["Secondary (9 to 10)", "سیکنڈری (9 سے 10)"]]) +
-          grp("Coming next", "آگے آنے والا", [["F.A / Intermediate (11 to 12)", "ایف اے / انٹرمیڈیٹ (11 سے 12)"]]) + "</div>") +
+          "" + "</div>") +
         sec("lp-regions", tx("Across Pakistan", "پورے پاکستان میں"), tx("Built around the national curriculum and the textbooks of every province and region.", "قومی نصاب اور ہر صوبے اور علاقے کی نصابی کتب کی بنیاد پر۔"),
           tags([["Punjab", "پنجاب"], ["Sindh", "سندھ"], ["Khyber Pakhtunkhwa", "خیبر پختونخوا"], ["Balochistan", "بلوچستان"], ["Islamabad (Federal)", "اسلام آباد (وفاقی)"], ["Gilgit-Baltistan", "گلگت بلتستان"], ["Azad Jammu and Kashmir", "آزاد جموں و کشمیر"]])) +
         sec("lp-faq", tx("Frequently asked questions", "اکثر پوچھے جانے والے سوالات"), "",
           '<div class="lp-faqs">' +
           faq("What is IQRA Digital School?", "اقرا ڈیجیٹل اسکول کیا ہے؟", "IQRA Digital School is a free-to-start online learning platform for Pakistani students from Playgroup to Grade 10. It offers games, lessons, notes, tests and books based on the national curriculum, in Urdu and English.", "اقرا ڈیجیٹل اسکول پاکستانی طلبہ کے لیے پلے گروپ سے جماعت 10 تک مفت شروع ہونے والا آن لائن تعلیمی پلیٹ فارم ہے۔ اس میں قومی نصاب کی بنیاد پر کھیل، اسباق، نوٹس، ٹیسٹ اور کتابیں اردو اور انگریزی میں ہیں۔") +
           faq("Is it free?", "کیا یہ مفت ہے؟", "Yes, you can start learning for free. Some publisher books linked in the Library may be paid and are marked clearly.", "جی ہاں، آپ مفت سیکھنا شروع کر سکتے ہیں۔ کتب خانے میں دیے گئے کچھ ناشرین کی کتابیں ادائیگی والی ہو سکتی ہیں اور واضح طور پر نشان زد ہیں۔") +
-          faq("Which classes and subjects are covered?", "کون سی جماعتیں اور مضامین شامل ہیں؟", "The platform is designed for Playgroup to Grade 10 (F.A will follow) with Urdu, English, Maths, Science, Islamiat, Pakistan Studies, Computer Science and more.", "یہ پلیٹ فارم پلے گروپ سے جماعت 10 تک (ایف اے بعد میں) کے لیے بنایا گیا ہے جس میں اردو، انگریزی، ریاضی، سائنس، اسلامیات، مطالعہ پاکستان، کمپیوٹر سائنس اور مزید شامل ہیں۔") +
+          faq("Which classes and subjects are covered?", "کون سی جماعتیں اور مضامین شامل ہیں؟", "The platform is designed for Playgroup to Grade 10 with Urdu, English, Maths, Science, Islamiat, Pakistan Studies, Computer Science and more.", "یہ پلیٹ فارم پلے گروپ سے جماعت 10 تک کے لیے بنایا گیا ہے جس میں اردو، انگریزی، ریاضی، سائنس، اسلامیات، مطالعہ پاکستان، کمپیوٹر سائنس اور مزید شامل ہیں۔") +
           faq("Is it in Urdu or English?", "یہ اردو میں ہے یا انگریزی میں؟", "Both. Switch between Urdu and English at any time with the language button in the top bar.", "دونوں میں۔ اوپر والی بار میں زبان کے بٹن سے کسی بھی وقت اردو اور انگریزی کے درمیان بدل سکتے ہیں۔") +
           faq("How do I start?", "میں کیسے شروع کروں؟", "Press Sign in to study, sign in with Google, choose your class, and begin. You can also browse the Library, Boards, Notes and Past Papers without signing in.", "پڑھنے کے لیے سائن اِن دبائیں، گوگل سے لاگ اِن کریں، اپنی جماعت چنیں اور شروع کریں۔ کتب خانہ، بورڈز، نوٹس اور پچھلے پرچے آپ بغیر لاگ اِن کیے بھی دیکھ سکتے ہیں۔") + "</div>") +
         sec("lp-contact", tx("Contact us", "ہم سے رابطہ کریں"), tx("Questions, suggestions or a problem? Write to us.", "سوال، تجویز یا کوئی مسئلہ؟ ہمیں لکھیں۔"),
@@ -3404,7 +3404,7 @@
       h += '<main class="lp-body"><div class="lp-wrap">';
       var chipsT = '<div class="lp-chips" role="group" aria-label="' + esc(tx("Type", "قسم")) + '">' + [["all", tx("All", "سب")], ["free", tx("Free", "مفت")], ["paid", tx("Paid", "ادائیگی والی")]].map(function (q) { return '<button type="button" class="lp-chip" data-type="' + q[0] + '" aria-pressed="' + (typeSel === q[0]) + '">' + esc(q[1]) + "</button>"; }).join("") + "</div>";
       var chipsC = '<div class="lp-chips" role="group" aria-label="' + esc(tx("Class", "جماعت")) + '"><button type="button" class="lp-chip" data-cls="0" aria-pressed="' + (!clsSel) + '">' + esc(tx("All classes", "تمام جماعتیں")) + "</button>";
-      for (var ci = 1; ci <= 12; ci++) chipsC += '<button type="button" class="lp-chip" data-cls="' + ci + '" aria-pressed="' + (clsSel === ci) + '">' + ci + "</button>";
+      for (var ci = 1; ci <= 10; ci++) chipsC += '<button type="button" class="lp-chip" data-cls="' + ci + '" aria-pressed="' + (clsSel === ci) + '">' + ci + "</button>";
       chipsC += "</div>";
       var lg = "";
       books.forEach(function (x) { lg += linkCard(x, tx("Open book", "کتاب کھولیں"), true); });
@@ -3413,6 +3413,34 @@
         free.forEach(function (x, n) { lg += '<button type="button" class="lp-card lp-free" data-free="' + n + '"><i>' + esc(lt(x.cls)) + " · " + esc(lt(x.subject)) + "</i><b>" + esc(lt(x.title)) + "</b>" + badge({}) + "<em>" + esc(tx("Read now", "ابھی پڑھیں")) + "</em></button>"; });
       }
       if (!lg) lg = soon(typeSel === "paid" ? tx("Paid books are on the way", "ادائیگی والی کتابیں جلد آ رہی ہیں") : tx("Library books are on the way", "کتب خانے کی کتابیں جلد آ رہی ہیں"));
+      /* Classes: four divisions, Playgroup to Grade 10 (Pakistani curriculum first, international teaching methods as enrichment) */
+      var DIVS = [
+        { id: "early", n: 1, ic: '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/>', en: "Early Years", ur: "ابتدائی سال", re: "Playgroup to Prep", ru: "پلے گروپ سے پریپ",
+          ie: "Learning through play: sounds, letters, numbers, colours, stories and rhymes, with no exams.", iu: "کھیل کے ذریعے سیکھنا: آوازیں، حروف، اعداد، رنگ، کہانیاں اور نظمیں، بغیر امتحان کے۔",
+          oe: ["Recognise letters, sounds and numbers", "Build speaking, listening and motor skills", "Grow social and emotional confidence"], ou: ["حروف، آوازیں اور اعداد پہچاننا", "بولنے، سننے اور ہاتھ کی مہارتیں", "سماجی اور جذباتی اعتماد"],
+          cl: [["PG", "Playgroup", "پلے گروپ", 0], ["NU", "Nursery", "نرسری", 0], ["KG", "Prep", "پریپ (کے جی)", 1]] },
+        { id: "primary", n: 2, ic: '<path d="M4 5a2 2 0 0 1 2-2h13v15H6a2 2 0 0 0-2 2z"/><path d="M4 20a2 2 0 0 1 2-2h13"/>', en: "Primary School", ur: "پرائمری اسکول", re: "Grades 1 to 5", ru: "جماعت 1 سے 5",
+          ie: "Strong foundations in reading, writing and number in Urdu and English, with science, Islamiat and general knowledge.", iu: "اردو اور انگریزی میں پڑھنے، لکھنے اور حساب کی مضبوط بنیاد، سائنس، اسلامیات اور عمومی معلومات کے ساتھ۔",
+          oe: ["Read and write fluently", "Think with numbers", "Ask questions and explore"], ou: ["روانی سے پڑھنا اور لکھنا", "اعداد کے ساتھ سوچنا", "سوال پوچھنا اور کھوج لگانا"],
+          cl: [["1", "Grade 1", "جماعت 1", 1], ["2", "Grade 2", "جماعت 2", 1], ["3", "Grade 3", "جماعت 3", 1], ["4", "Grade 4", "جماعت 4", 1], ["5", "Grade 5", "جماعت 5", 1]] },
+        { id: "middle", n: 3, ic: '<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/>', en: "Middle School", ur: "مڈل اسکول", re: "Grades 6 to 8", ru: "جماعت 6 سے 8",
+          ie: "Subjects deepen with investigation, research and projects, preparing for board work.", iu: "تحقیق، جستجو اور پراجیکٹس کے ساتھ مضامین گہرے ہوتے ہیں اور بورڈ کی تیاری شروع ہوتی ہے۔",
+          oe: ["Investigate and explain ideas", "Research and present findings", "Use digital tools responsibly"], ou: ["خیالات کی تحقیق اور وضاحت", "تحقیق کر کے نتائج پیش کرنا", "ڈیجیٹل ذرائع کا ذمہ دارانہ استعمال"],
+          cl: [["6", "Grade 6", "جماعت 6", 1], ["7", "Grade 7", "جماعت 7", 1], ["8", "Grade 8", "جماعت 8", 1]] },
+        { id: "secondary", n: 4, ic: '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>', en: "Secondary School", ur: "سیکنڈری اسکول", re: "Grades 9 and 10", ru: "جماعت 9 اور 10",
+          ie: "Full preparation for the board examinations, with conceptual understanding and practice.", iu: "تصورات کی سمجھ اور مشق کے ساتھ بورڈ امتحانات کی مکمل تیاری۔",
+          oe: ["Cover the prescribed textbooks", "Practise board-style questions", "Revise with confidence"], ou: ["مقررہ نصابی کتب مکمل کرنا", "بورڈ کے انداز کے سوالات کی مشق", "اعتماد کے ساتھ دہرائی"],
+          cl: [["9", "Grade 9", "جماعت 9", 1], ["10", "Grade 10", "جماعت 10", 1]] }
+      ];
+      var dcards = DIVS.map(function (d) {
+        return '<div class="lp-card lp-div lp-d' + d.n + '"><span class="lp-div-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + d.ic + "</svg></span><i>" + esc(tx(d.re, d.ru)) + "</i><b>" + esc(tx(d.en, d.ur)) + "</b><span>" + esc(tx(d.ie, d.iu)) + '</span><ul class="lp-obj">' + (ur ? d.ou : d.oe).map(function (o) { return "<li>" + esc(o) + "</li>"; }).join("") + '</ul><button type="button" class="lp-btn" data-div="' + d.id + '" aria-expanded="' + (divSel === d.id) + '">' + esc(tx("Explore Classes", "کلاسز دیکھیں")) + "</button></div>";
+      }).join("");
+      var dsel = DIVS.filter(function (d) { return d.id === divSel; })[0], dpick = "";
+      if (dsel) {
+        dpick = '<h3 class="lp-sub">' + esc(tx(dsel.en, dsel.ur)) + '</h3><div class="lp-chips" role="group" aria-label="' + esc(tx("Choose your class", "اپنی جماعت چنیں")) + '">' + dsel.cl.map(function (c) { return '<button type="button" class="lp-chip" data-class="' + c[0] + '" aria-pressed="false"' + (c[3] ? "" : " disabled") + ">" + esc(tx(c[1], c[2]) + (c[3] ? "" : tx(" (soon)", " (جلد)"))) + "</button>"; }).join("") + "</div>" +
+          '<p class="lp-note">' + esc(signed ? tx("Choose a class to open its subjects.", "اپنی جماعت کے مضامین کھولنے کے لیے جماعت چنیں۔") : tx("Choose a class and sign in with Google to start studying.", "جماعت چنیں اور پڑھائی شروع کرنے کے لیے گوگل سے سائن اِن کریں۔")) + (dsel.id === "early" ? " " + esc(tx("Playgroup and Nursery lessons are on the way.", "پلے گروپ اور نرسری کے اسباق جلد آ رہے ہیں۔")) : "") + "</p>";
+      }
+      h += sec("lp-classes", tx("Explore Your Learning Journey", "اپنے سیکھنے کا سفر دریافت کریں"), tx("Discover a better way to learn with Pakistani curriculum and international-standard teaching.", "پاکستانی نصاب اور بین الاقوامی معیار کی تدریس کے ساتھ سیکھنے کا بہتر طریقہ دریافت کریں۔"), '<div class="lp-grid lp-divs">' + dcards + "</div>" + dpick);
       h += sec("lp-lib", tx("Library", "کتب خانہ"), tx("Books for everyone, beyond the school syllabus: general reading, Urdu literature, stories and more. Syllabus books are under Boards.", "ہر کسی کے لیے کتابیں، نصاب سے ہٹ کر: عمومی مطالعہ، اردو ادب، کہانیاں اور مزید۔ نصابی کتابیں بورڈز میں ہیں۔"), chipsT + chipsC + '<div class="lp-grid">' + lg + "</div>");
       var bg = ""; boards.forEach(function (b) { bg += '<button type="button" class="lp-card lp-free" data-board="' + esc(b.id) + '"><i>' + esc(b.code || "") + "</i><b>" + esc(lt(b.name)) + "</b><em>" + esc(tx("See books", "کتابیں دیکھیں")) + "</em></button>"; });
       var dg = ""; docs.forEach(function (x) { dg += '<a class="lp-card" dir="ltr" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer"><b>' + esc(x.title) + "</b><span>" + esc((x.authority || "").split(",")[0]) + "</span><em>" + esc(tx("Open official document", "سرکاری دستاویز کھولیں")) + "</em></a>"; });
@@ -3461,6 +3489,16 @@
         b.onclick = function () { typeSel = b.getAttribute("data-type"); paint(); var f = el.querySelector('.lp-chips [data-type="' + typeSel + '"]'); if (f && f.focus) f.focus({ preventScroll: true }); };
       });
       Array.prototype.forEach.call(el.querySelectorAll("[data-cls]"), function (b) { b.onclick = function () { clsSel = Number(b.getAttribute("data-cls")); paint(); }; });
+      Array.prototype.forEach.call(el.querySelectorAll("[data-div]"), function (b) {
+        b.onclick = function () { var v = b.getAttribute("data-div"); divSel = divSel === v ? "" : v; paint(); var sub = el.querySelector("#lp-classes .lp-sub"); if (sub && sub.scrollIntoView) sub.scrollIntoView({ block: "nearest" }); };
+      });
+      Array.prototype.forEach.call(el.querySelectorAll("[data-class]"), function (b) {
+        b.onclick = function () {
+          var g = b.getAttribute("data-class");
+          if (!signed) { var en = el.querySelector("[data-enter]"); if (en) en.click(); return; }
+          state.grade = g; save(); dockEntry(); render(); window.scrollTo(0, 0);
+        };
+      });
       Array.prototype.forEach.call(el.querySelectorAll("[data-go]"), function (b) {
         b.onclick = function () { var gid = b.getAttribute("data-go"); if (signed && el.classList.contains("docked")) { browseEntry(); sizeBar(); } setView(gid); if (el.scrollTo) el.scrollTo({ top: 0 }); else el.scrollTop = 0; spy(); };
       });
