@@ -1339,6 +1339,14 @@
   function emoOrImg(v) { return /^img:[a-z_]+$/.test(v) ? '<img src="img/kg/' + v.slice(4) + '.webp" alt="" width="96" height="96" decoding="async">' : esc(v); }
   var sndEl = null;
   function playSnd(u) { try { if (sndEl) sndEl.pause(); sndEl = new Audio(u); sndEl.play().catch(function () {}); } catch (e) {} }
+  var ENG_IMG = null;
+  function engFor(key) {
+    if (!ENG_IMG) {
+      ENG_IMG = {};
+      D.lessons.forEach(function (x) { (x.rounds || []).forEach(function (r) { (r.c || []).forEach(function (c) { if (c && typeof c[0] === "string" && typeof c[1] === "string" && /^[A-Za-z][A-Za-z '\-]*$/.test(c[1]) && !ENG_IMG[c[0]]) ENG_IMG[c[0]] = c[1]; }); }); });
+    }
+    return ENG_IMG[key] || "";
+  }
   function gameView(l) {
     var g = gameRun;
     if (!g) return "";
@@ -1358,7 +1366,7 @@
     h += '<div class="dots">' + g.rounds.map(function (x, i) { return '<i class="' + (i <= g.i ? "on" : "") + '"></i>'; }).join("") + '</div><div class="picchoices">';
     r.c.forEach(function (c, j) {
       var cls = g.status !== "ask" && g.picked === j ? (g.status === "right" ? " right" : " wrong") : "";
-      h += '<button class="picbtn' + cls + '" data-act="gPick" data-arg="' + j + '"' + (g.status === "right" ? " disabled" : "") + '><span class="emo" aria-hidden="true">' + emoOrImg(c[0]) + "</span><span>" + esc(c[1]) + "</span></button>";
+      h += '<button class="picbtn' + cls + '" data-act="gPick" data-arg="' + j + '"' + (g.status === "right" ? " disabled" : "") + '><span class="emo" aria-hidden="true">' + emoOrImg(c[0]) + "</span><span>" + esc(c[1]) + (LANG() !== "ur" && /[\u0600-\u06FF]/.test(c[1]) && engFor(c[0]) ? '<small class="gloss">' + esc(engFor(c[0])) + "</small>" : "") + "</span></button>";
     });
     h += "</div>";
     if (g.status === "wrong") h += '<p class="bigtext small">' + esc(t("nice")) + '</p><div class="actions"><button class="bigbtn" data-act="gRetry">' + esc(t("tryAgain")) + "</button></div>";
