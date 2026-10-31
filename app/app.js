@@ -3160,7 +3160,7 @@
   (function entryScreen() {
     if (ADMIN || STAFFPAGE || !window.IQRA_LOGO || !document.body) return;
     try { document.documentElement.style.setProperty("--logo", "url(" + window.IQRA_LOGO + ")"); } catch (e) {}
-    var el = document.createElement("div"); el.id = "entry";
+    var el = document.createElement("div"); el.id = "entry"; el.setAttribute("role","dialog"); el.setAttribute("aria-modal","true"); el.setAttribute("aria-label","IQRA"); (function(){var ap=document.getElementById("app"); if(ap){ap.setAttribute("inert",""); ap.setAttribute("aria-hidden","true");}})();
     function markSvg() {
       var d = window.IQRA_MARK_D;
       if (!d) return '<img class="lp-logo" src="' + window.IQRA_LOGO + '" alt="IQRA">';
@@ -3225,7 +3225,7 @@
         var arr = (Array.isArray(window[g[1]]) ? window[g[1]] : []).filter(function (x) { return ext(x.url); }), gg = "";
         arr.forEach(function (x) { gg += linkCard(x, g[5]); });
         if (!arr.length) gg += soon(g[4]);
-        h += sec(g[0], g[2], g[3], '<div class="lp-grid">' + gg + "</div>");
+        h += sec(g[0], g[2], arr.length ? g[3] : (g[0] === "lp-notes" ? tx("Class notes will appear here soon.", "جماعت کے نوٹس جلد یہاں ملیں گے۔") : tx("Past papers will appear here soon.", "پچھلے پرچے جلد یہاں ملیں گے۔")), '<div class="lp-grid">' + gg + "</div>");
       });
       h += '</div></main><section class="lp-end"><div class="lp-wrap"><h2>' + esc(tx("Ready to start?", "شروع کرنے کے لیے تیار؟")) + "</h2>" + cta("lp-cta") + "</div></section>";
       if (freeOpen) {
@@ -3265,7 +3265,7 @@
     window.__iqEntry = {
       active: true,
       ready: function (msg) { isReady = true; errMsg = msg || ""; paint(); var b = el.querySelector(".lp-cta"); if (b && b.focus) b.focus({ preventScroll: true }); },
-      remove: function () { window.__iqEntry.active = false; el.classList.add("out"); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500); }
+      remove: function () { window.__iqEntry.active = false; (function(){var ap=document.getElementById("app"); if(ap){ap.removeAttribute("inert"); ap.removeAttribute("aria-hidden");}})(); el.classList.add("out"); setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, 500); }
     };
     paint(); document.body.appendChild(el);
   })();

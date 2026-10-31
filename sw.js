@@ -1,6 +1,6 @@
 /* IQRA service worker: keeps pictures, audio and the PDF reader available on weak connections.
    The page itself is always fetched from the network first, so updates appear immediately. */
-const CACHE = 'iqra-static-v11';
+const CACHE = 'iqra-static-v12';
 const STATIC = /^\/(img|audio|lib|notes|books)\//;
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -28,9 +28,11 @@ self.addEventListener('fetch', e => {
   }
 
   if (STATIC.test(url.pathname)) {
+    if (req.headers.has('range')) return; /* PDF pages arrive in small ranges straight from the network */
     e.respondWith(caches.match(req).then(hit => {
       const net = fetch(req).then(res => {
-        if (res.ok && res.status === 200) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
+        const size = Number(res.headers.get('content-length') || 0); /* never store huge books: a phone should not keep 70 MB */
+        if (res.ok && res.status === 200 && size < 8 * 1048576) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
         return res;
       }).catch(() => hit);
       return hit || net;

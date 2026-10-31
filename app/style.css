@@ -1116,3 +1116,41 @@ nav button.act,.kidnav button.act,.topbar .kidnav button.act{background:#0d4a2e;
 
 /* one scrollbar only: while the public home screen is open it scrolls by itself, the page behind stays still */
 html:has(#entry),html:has(#entry) body{overflow:hidden!important;height:100%}
+
+/* ===== audit fixes ===== */
+/* dark mode: deep-green text must become light mint on dark cards */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tx:#e6f4e8;--tx2:#9fd8b0}}
+:root[data-theme="dark"]{--tx:#e6f4e8;--tx2:#9fd8b0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(.pathtop,.pathttl,.pathnow,.starbig,.starbig span,.starscard .starbig span,.morebox>summary,.roadmap>summary,.libgroup,.kgback,.rd2-done .okmsg,.streakline,.streakline b){color:var(--tx)!important}:root:not([data-theme="light"]) .pathnow{color:var(--tx2)!important}:root:not([data-theme="light"]) .kgpic{filter:none}:root:not([data-theme="light"]) .kgtile{background:var(--card)}}
+:root[data-theme="dark"] :is(.pathtop,.pathttl,.pathnow,.starbig,.starbig span,.starscard .starbig span,.morebox>summary,.roadmap>summary,.libgroup,.kgback,.rd2-done .okmsg,.streakline,.streakline b){color:var(--tx)!important}
+:root[data-theme="dark"] .pathnow{color:var(--tx2)!important}
+:root[data-theme="dark"] .kgtile{background:var(--card)}
+
+/* orange play card: dark green text, readable; centred and not over-wide */
+.kgmix{max-width:720px;margin-inline:auto}
+.kgmix,.kgmix b,.kgmix em{color:#093a23}
+.kgmix em{opacity:1}
+
+/* logo plates: no ring/background around the gold mark */
+.mlogo img,.owlogo,.kb-orb img,.kb-orb svg,.brand-logo{background:transparent!important;border:0!important;border-radius:0;object-fit:contain}
+.kb-orb{background:transparent;box-shadow:none;padding:0}
+
+/* phones */
+@media (max-width:480px){
+  .kbanner{flex-wrap:wrap;gap:6px 10px}
+  .kbanner .kb-text{flex:1 1 100%;order:3;font-size:1.15rem;line-height:1.9}
+  .kb-orb{width:56px;height:56px;margin-inline-end:0}
+  .kb-orb::after{display:none}
+  .kidnav button{min-width:44px;min-height:44px}
+  .kidnav button.act{white-space:normal;line-height:1.25;overflow:visible;text-overflow:clip;max-width:none}
+  .lp-strip{position:static}
+  .lp-bar{position:static}
+}
+.btn,.bigbtn,button.chip,.chip{min-height:44px}
+.streakline{color:#1d6a42}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kgtile,:root:not([data-theme="light"]) .kgtile b,:root:not([data-theme="light"]) .kgtile small{color:var(--tx)!important}}
+:root[data-theme="dark"] .kgtile,:root[data-theme="dark"] .kgtile b,:root[data-theme="dark"] .kgtile small{color:var(--tx)!important}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kgtile{background:var(--card)!important;border-color:var(--line)!important}}
+:root[data-theme="dark"] .kgtile{background:var(--card)!important;border-color:var(--line)!important}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .kgsec,:root:not([data-theme="light"]) .kgsec small{background:var(--card)!important;color:var(--tx)!important}}
+:root[data-theme="dark"] .kgsec,:root[data-theme="dark"] .kgsec small{background:var(--card)!important;color:var(--tx)!important}
