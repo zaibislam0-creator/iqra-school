@@ -1220,7 +1220,7 @@
     { id: "numbers", icon: "🔢", t: { en: "Counting and Maths", ur: "گنتی اور حساب" }, ids: "m-count-1 pp-m-find15 pp-m-count15 m-after-0 m-before-0 m-missing-0 pp-m-back5 pp-m-find610 pp-m-count610 m-cnt10-0 m-bigger-0 pp-m-ten pp-m-between pp-m-morelss pp-m-oddeven pp-m-add m-double-0 pp-m-sub m-takeaway-0 pp-u-numbers pp-m-money pp-m-ordinal" },
     { id: "shapes", icon: "🔺", t: { en: "Shapes and Size", ur: "شکلیں اور سائز" }, ids: "pp-m-shapes t-shape-0 pp-m-size pp-m-hardsoft pp-m-position m-pattern-0" },
     { id: "think", icon: "🧩", t: { en: "Think and Pick", ur: "سوچو اور چنو" }, ids: "u-group-0 e-group-0 u-odd-0 e-odd-0" },
-    { id: "world", icon: "🌍", t: { en: "My World", ur: "میری دنیا" }, ids: "pp-u-feel pp-u-manners pp-e-polite pp-u-plural pp-e-body pp-e-days pp-m-days pp-m-daynight pp-m-time pp-e-hotcold pp-e-seasons pp-e-prof pp-e-living pp-e-food pp-e-natural pp-e-citizen" }
+    { id: "world", icon: "🌍", t: { en: "My World", ur: "میری دنیا" }, ids: "pp-u-feel pp-u-manners pp-e-polite pp-u-plural pp-e-body pp-e-bodypics pp-e-days pp-m-days pp-m-daynight pp-m-time pp-e-hotcold pp-e-seasons pp-e-prof pp-e-living pp-e-food pp-e-natural pp-e-citizen" }
   ];
   function kgAll() {
     var out = [];
