@@ -1711,6 +1711,7 @@
   }
   function act(name, arg) {
     if (name.indexOf("res") === 0) { resAct(name, arg); return; }
+    if (name !== "c1Clean") c1Arm = false;
     if (ef && name !== "upClass" && name !== "upBack") readEF();
     if (libDraft && (view === "library" || (STAFFPAGE && staffTab === "library"))) readLibDraft();
     var l, q, ok, g;
@@ -1755,7 +1756,8 @@
       case "delbookArm": if (armedDel === "book:" + arg) { armedDel = ""; act("delbook", arg); return; } armedDel = "book:" + arg; render(); break;
       case "bookMove": armedDel = ""; var mvSel = root.querySelector("#mv-" + arg); if (mvSel) bookMoveTo(arg, mvSel.value); render(); break;
       case "upClass": ef = null; efMsg = ""; upGrade = arg; upSubj = ""; advTab = ""; bookMsg = ""; render(); break;
-      case "upBack": ef = null; upGrade = null; bookMsg = ""; render(); break;
+      case "upBack": ef = null; upGrade = null; bookMsg = ""; c1Msg = ""; render(); break;
+      case "c1Clean": if (!isStaff()) break; if (!c1Arm) { c1Arm = true; c1Msg = ""; render(); break; } c1Arm = false; c1Clean(); render(); break;
       case "advTab": advTab = advTab === arg ? "" : arg; render(); break;
       case "upSubj": upSubj = arg; render(); var uf = root.querySelector("#subhub"); if (uf && uf.scrollIntoView) uf.scrollIntoView({ block: "start" }); break;
       case "bcancel": draft = null; bookMsg = ""; render(); break;
@@ -2409,6 +2411,34 @@
     }
     bookMsg = ""; render();
   }
+  // ---- Admin only: clear everything uploaded earlier for Class 1 (resources, typed/uploaded chapters). Two taps; the admin presses it. ----
+  var c1Arm = false, c1Msg = "";
+  function c1Items() {
+    var ids = [];
+    bookStore.forEach(function (b) { if (String(b.grade) === "1") b.lessons.forEach(function (l) { ids.push(l.id); }); });
+    return { res: resDocs.filter(function (x) { return String(x.d.grade) === "1"; }), lessons: ids };
+  }
+  function c1CleanCard() {
+    if (!isStaff()) return "";
+    var ur = LANG() === "ur", it = c1Items(), n = it.res.length + it.lessons.length;
+    var h = '<section class="card c1clean"><h3>' + esc(ur ? "جماعت اول کا پرانا مواد صاف کریں" : "Clear old Class 1 content") + "</h3>";
+    h += '<p class="small">' + esc(ur
+      ? "اس وقت جماعت اول میں " + it.res.length + " فائلیں/ٹیسٹ/ویڈیوز اور " + it.lessons.length + " ابواب اپ لوڈ شدہ ہیں۔ یہ بٹن ان سب کو ہمیشہ کے لیے مٹا دیتا ہے۔ پھر سے واپس نہیں آ سکتیں۔"
+      : "Class 1 currently has " + it.res.length + " books, notes, tests, videos or guides and " + it.lessons.length + " uploaded chapters. This button deletes all of them for good. They cannot be brought back.") + "</p>";
+    if (c1Msg) h += '<p class="note" aria-live="polite">' + esc(c1Msg) + "</p>";
+    if (n) h += '<button type="button" class="btn' + (c1Arm ? " danger" : " alt") + '" data-act="c1Clean">' + esc(c1Arm
+      ? (ur ? "دوبارہ دبائیں: " + n + " چیزیں ہمیشہ کے لیے مٹ جائیں گی" : "Tap again to delete all " + n + " items for good")
+      : (ur ? "جماعت اول کا سب پرانا مواد مٹائیں" : "Delete all old Class 1 content")) + "</button>";
+    else if (!c1Msg) h += '<p class="okmsg">' + esc(ur ? "جماعت اول میں کوئی پرانا اپ لوڈ شدہ مواد نہیں ہے۔" : "There is no old uploaded content in Class 1.") + "</p>";
+    return h + "</section>";
+  }
+  function c1Clean() {
+    var ur = LANG() === "ur", it = c1Items();
+    it.res.forEach(function (x) { if (canEditRes(x)) cloud.db.collection("resources").doc(x.id).delete().catch(function (e) { cloudFail(e); }); });
+    it.lessons.forEach(function (id) { chDelete(id); });
+    var n = it.res.length + it.lessons.length;
+    c1Msg = ur ? n + " چیزیں مٹانے کے لیے بھیج دی گئیں۔ چند لمحوں میں فہرست خالی ہو جائے گی۔" : n + " items sent for deletion. The list will be empty in a moment.";
+  }
   function addBookView() {
     if (draft) return draftView();
     if (upGrade === null) {
@@ -2428,6 +2458,7 @@
     }
     var g = upGrade, subs = classSubjects(g);
     var h = '<button class="link" data-act="upBack">‹ ' + esc(t("allClasses")) + "</button><h2>" + esc(gradeLabel(g)) + "</h2>";
+    if (String(g) === "1") h += c1CleanCard();
     h += '<section class="card"><h3>' + esc(st3("pickSub")) + '</h3><div class="subpick">';
     subs.forEach(function (sj) { h += '<button type="button" class="chip' + (upSubj === sj.id ? " on" : "") + '" data-act="upSubj" data-arg="' + sj.id + '">' + esc(L(sj)) + "</button>"; });
     h += "</div>" + (upSubj ? "" : '<p class="small">' + esc(st3("pickSubHint")) + "</p>") + "</section>";
