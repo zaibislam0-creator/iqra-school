@@ -14,10 +14,10 @@ const ERR={'auth/popup-blocked':['Your browser blocked the Google window. Please
 const friendly=e=>{const c=(e&&e.code)||String(e||'');if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return '';const m=ERR[c];return m?T(m[0],m[1]):T('Sign-in did not complete. Please try again.','لاگ اِن مکمل نہیں ہوا۔ براہِ کرم دوبارہ کوشش کریں۔')};
 if(!SP())show('<h1>IQRA</h1><p>Loading...</p>');
 try{
-/* Load Firebase from Google first (reachable almost everywhere), then from jsDelivr; give up after 12 s per source so the page never hangs. */
+/* Load Firebase from Google first (reachable almost everywhere), then from jsDelivr; give up on the first after 25 s (slow phones need time); the last one is waited for. */
 const SRCS=[n=>'https://www.gstatic.com/firebasejs/10.12.5/firebase-'+n+'.js',n=>'https://cdn.jsdelivr.net/npm/firebase@10.12.5/'+n+'/+esm'];
 const within=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
-async function loadFb(){let err;for(const f of SRCS){try{return await within(Promise.all(['app','auth','firestore'].map(n=>import(f(n)))),12000)}catch(e){err=e}}throw err}
+async function loadFb(){let err;for(let i=0;i<SRCS.length;i++){const p=Promise.all(['app','auth','firestore'].map(n=>import(SRCS[i](n))));try{return await(i<SRCS.length-1?within(p,25000):p)}catch(e){err=e}}throw err}
 const [A,Au,F]=await loadFb();
 const app=A.initializeApp(cfg),auth=Au.getAuth(app),fs=F.getFirestore(app);
 let role='student',uid=null,started=false;
