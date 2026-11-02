@@ -53,7 +53,7 @@
   function load() {
     try { return JSON.parse(localStorage.getItem(KEY)) || defaults(); } catch (e) { return defaults(); }
   }
-  function defaults() { return { lang: "ur", low: false, setup: false, name: "", province: "pakistan", pathway: "premed", board: "", version: "SNC 2020", meta: {}, classNotes: {}, grade: 3, progress: {}, studied: {}, bookSeen: {}, maps: [], read: "auto", voice: true, stars: 0 }; }
+  function defaults() { return { lang: ((navigator.language || "").toLowerCase().indexOf("ur") === 0 ? "ur" : "en"), low: false, setup: false, name: "", province: "pakistan", pathway: "premed", board: "", version: "SNC 2020", meta: {}, classNotes: {}, grade: 3, progress: {}, studied: {}, bookSeen: {}, maps: [], read: "auto", voice: true, stars: 0 }; }
   function save() { state.maps = adminMaps; try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   function kidCtx() { return !!(state.setup && kidUI() && ["setup", "gate", "exam", "progress", "admin", "settings", "adult", "addbook", "voice"].indexOf(view) < 0); }
   var forceUr = false;

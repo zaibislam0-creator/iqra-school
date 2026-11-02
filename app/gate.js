@@ -8,14 +8,17 @@ const SP=()=>window.__iqEntry&&window.__iqEntry.active;
 const RES=document.documentElement.classList;
 function leaveSplash(){if(!RES.contains('iq-resume'))return;RES.add('iq-leave');setTimeout(()=>RES.remove('iq-resume','iq-leave'),380)}
 setTimeout(leaveSplash,9000);
-let LNG='ur';try{LNG=(JSON.parse(localStorage.getItem('pds-state-v1'))||{}).lang==='en'?'en':'ur'}catch(e){}
+let LNG=(navigator.language||'').toLowerCase().startsWith('ur')?'ur':'en';try{const l=(JSON.parse(localStorage.getItem('pds-state-v1'))||{}).lang;if(l==='en'||l==='ur')LNG=l}catch(e){}
 const T=(en,ur)=>LNG==='ur'?ur:en;
 const ERR={'auth/popup-blocked':['Your browser blocked the Google window. Please allow pop-ups for this site and try again.','براؤزر نے گوگل کی ونڈو روک دی۔ براہِ کرم اس سائٹ کے لیے پاپ اپ کی اجازت دیں اور دوبارہ کوشش کریں۔'],'auth/network-request-failed':['No internet connection. Please check your connection and try again.','انٹرنیٹ نہیں ہے۔ براہِ کرم کنکشن دیکھ کر دوبارہ کوشش کریں۔'],'auth/unauthorized-domain':['Sign-in is not allowed from this address.','اس ایڈریس سے لاگ اِن کی اجازت نہیں ہے۔'],'auth/too-many-requests':['Too many attempts. Please wait a little and try again.','بہت زیادہ کوششیں ہو گئیں۔ تھوڑا انتظار کر کے دوبارہ کوشش کریں۔']};
 const friendly=e=>{const c=(e&&e.code)||String(e||'');if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return '';const m=ERR[c];return m?T(m[0],m[1]):T('Sign-in did not complete. Please try again.','لاگ اِن مکمل نہیں ہوا۔ براہِ کرم دوبارہ کوشش کریں۔')};
 if(!SP())show('<h1>IQRA</h1><p>Loading...</p>');
 try{
-const B='https://cdn.jsdelivr.net/npm/firebase@10.12.5/';
-const [A,Au,F]=await Promise.all([import(B+'app/+esm'),import(B+'auth/+esm'),import(B+'firestore/+esm')]);
+/* Load Firebase from Google first (reachable almost everywhere), then from jsDelivr; give up after 12 s per source so the page never hangs. */
+const SRCS=[n=>'https://www.gstatic.com/firebasejs/10.12.5/firebase-'+n+'.js',n=>'https://cdn.jsdelivr.net/npm/firebase@10.12.5/'+n+'/+esm'];
+const within=(p,ms)=>Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),ms))]);
+async function loadFb(){let err;for(const f of SRCS){try{return await within(Promise.all(['app','auth','firestore'].map(n=>import(f(n)))),12000)}catch(e){err=e}}throw err}
+const [A,Au,F]=await loadFb();
 const app=A.initializeApp(cfg),auth=Au.getAuth(app),fs=F.getFirestore(app);
 let role='student',uid=null,started=false;
 function loginView(msg){if(SP()){G.style.display='none';window.__iqEntry.ready(msg);return}show('<div class="lg">ا</div><h1>IQRA</h1><p class="tag">Learn more, be more · سیکھیں، آگے بڑھیں</p><ul><li>Pakistan syllabus, KG to F.A</li><li>Videos, books, games and tests</li><li>Urdu and English, parents can follow along</li></ul><button class="gb" id="gb"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.3 5.7c4.3-4 6.7-9.9 6.7-17.1z"/><path fill="#FBBC05" d="M10.5 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.1.8-4.6l-7.9-6.2A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.9 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>Continue with Google</button><p class="er" id="er" aria-live="polite">'+esc(msg||'')+'</p>');
@@ -79,4 +82,4 @@ Au.onAuthStateChanged(auth,async u=>{if(!u){try{localStorage.removeItem('iq-sess
  if(window.IQRA_STAFF_PAGE&&role==='student'){location.replace('/');return} /* anyone who is not staff is sent away without seeing anything */
  let d=null;try{const s=await F.getDoc(F.doc(fs,'students',u.uid));d=s.exists()?s.data():null}catch(e){}
  if(window.IQRA_STAFF_PAGE||(d&&d.name)){window.__iqProfile=d||{};begin(u)}else profileView(u,d)});
-}catch(e){leaveSplash();show('<h1>IQRA</h1><p class="er">Could not load sign-in: '+esc(e.message||e)+'</p>')}
+}catch(e){leaveSplash();if(SP()){G.style.display='none';window.__iqEntry.ready(T('Sign-in could not load. Please check your internet and refresh the page.','لاگ اِن لوڈ نہیں ہو سکا۔ براہِ کرم انٹرنیٹ دیکھیں اور صفحہ دوبارہ کھولیں۔'))}else show('<h1>IQRA</h1><p class="er">Could not load sign-in: '+esc(e.message||e)+'</p>')}
