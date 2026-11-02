@@ -1264,7 +1264,7 @@
     var ord = (KG_ORDER[sid] || "").split(" "), done = state.kgdone || [], skip = state.kgskip || [];
     var arr = list.slice().sort(function (a, b) { var x = ord.indexOf(a.id), y = ord.indexOf(b.id); return (x < 0 ? 999 : x) - (y < 0 ? 999 : y); });
     var open = arr.filter(function (l) { return done.indexOf(l.id) < 0; }), pend = open.filter(function (l) { return skip.indexOf(l.id) < 0; });
-    var cur = pend[0] || open[0], h = '<div class="kgdots">';
+    var cur = pend[0]; if (!cur) { var kp = -1; open.forEach(function (l, i) { if (l.id === state.kgpos) kp = i; }); cur = open[(kp + 1) % open.length]; } /* everything skipped once: keep rotating so Next never gets stuck */ var h = '<div class="kgdots">';
     arr.forEach(function (l) { h += '<i class="' + (done.indexOf(l.id) > -1 ? "on" : cur && l.id === cur.id ? "now" : "") + '"></i>'; });
     h += "</div>";
     if (!cur) return h + '<div class="kgdone"><span>🌟</span><b>' + esc(LANG() === "ur" ? "شاباش! سب کھیل مکمل" : "Well done! All finished") + '</b><button type="button" class="kgskip" data-act="kgReset" data-arg="' + esc(sid) + '">↻</button></div>';
@@ -1789,7 +1789,7 @@
       case "kgSec": kgSec = arg; render(); window.scrollTo(0, 0); break;
       case "kgBack": kgSec = null; render(); window.scrollTo(0, 0); break;
       case "kgPrev": state.kgdone = (state.kgdone || []).filter(function (x) { return x !== arg; }); state.kgskip = (state.kgskip || []).filter(function (x) { return x !== arg; }); save(); render(); break;
-      case "kgSkip": state.kgskip = (state.kgskip || []).concat([arg]); save(); render(); break;
+      case "kgSkip": state.kgpos = arg; state.kgskip = (state.kgskip || []).concat([arg]); save(); render(); break;
       case "kgReset": state.kgdone = (state.kgdone || []).filter(function (x) { return !(KG_ORDER[arg] || "").split(" ").some(function (y) { return y === x; }); }); state.kgskip = []; save(); render(); break;
       case "closeLesson": openLesson = null; quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; render(); setTimeout(function () { var m = document.querySelector(".mission .mstep:not(.ok)") || document.querySelector(".mission"); if (m && m.scrollIntoView) m.scrollIntoView({ block: "center", behavior: "smooth" }); }, 60); break;
       case "next": l = curLesson(); if (l) { lessonStep = Math.min(lessonStep + 1, lessonCards(l).length); render(); var cs = lessonCards(l); if (autoVoice() && cs[lessonStep]) speak(cs[lessonStep].text); } break;
