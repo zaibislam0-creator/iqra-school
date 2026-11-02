@@ -11,7 +11,7 @@ setTimeout(leaveSplash,9000);
 let LNG=(navigator.language||'').toLowerCase().startsWith('ur')?'ur':'en';try{const l=(JSON.parse(localStorage.getItem('pds-state-v1'))||{}).lang;if(l==='en'||l==='ur')LNG=l}catch(e){}
 const T=(en,ur)=>LNG==='ur'?ur:en;
 const ERR={'auth/popup-blocked':['Your browser blocked the Google window. Please allow pop-ups for this site and try again.','براؤزر نے گوگل کی ونڈو روک دی۔ براہِ کرم اس سائٹ کے لیے پاپ اپ کی اجازت دیں اور دوبارہ کوشش کریں۔'],'auth/network-request-failed':['No internet connection. Please check your connection and try again.','انٹرنیٹ نہیں ہے۔ براہِ کرم کنکشن دیکھ کر دوبارہ کوشش کریں۔'],'auth/unauthorized-domain':['Sign-in is not allowed from this address.','اس ایڈریس سے لاگ اِن کی اجازت نہیں ہے۔'],'auth/too-many-requests':['Too many attempts. Please wait a little and try again.','بہت زیادہ کوششیں ہو گئیں۔ تھوڑا انتظار کر کے دوبارہ کوشش کریں۔']};
-const friendly=e=>{const c=(e&&e.code)||String(e||'');if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return '';const m=ERR[c];return m?T(m[0],m[1]):T('Sign-in did not complete. Please try again.','لاگ اِن مکمل نہیں ہوا۔ براہِ کرم دوبارہ کوشش کریں۔')};
+const friendly=e=>{const c=(e&&e.code)||String(e||'');if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return '';const m=ERR[c];return m?T(m[0],m[1]):T('Sign-in did not complete. Please try again.','لاگ اِن مکمل نہیں ہوا۔ براہِ کرم دوبارہ کوشش کریں۔')+' ('+c.replace('auth/','')+')'};
 if(!SP())show('<h1>IQRA</h1><p>Loading...</p>');
 try{
 /* Load Firebase from Google first (reachable almost everywhere), then from jsDelivr; give up on the first after 25 s (slow phones need time); the last one is waited for. */
@@ -29,9 +29,10 @@ async function gisInit(){if(gisOK)return true;if(!await loadGIS())return false;
  try{google.accounts.id.initialize({client_id:CID,use_fedcm_for_prompt:true,auto_select:false,cancel_on_tap_outside:false,callback:async r=>{try{await Au.signInWithCredential(auth,Au.GoogleAuthProvider.credential(r.credential))}catch(e){window.__iqEntry&&window.__iqEntry.ready(friendly(e))}}});gisOK=true}catch(e){return false}return true}
 const gisPrompt=()=>new Promise(r=>{try{google.accounts.id.prompt(n=>{if((n.isNotDisplayed&&n.isNotDisplayed())||(n.isSkippedMoment&&n.isSkippedMoment()))r('fallback');else if(n.isDismissedMoment&&n.isDismissedMoment())r('done')})}catch(e){r('fallback')}setTimeout(()=>r('done'),2500)});
 const gisToken=()=>new Promise(res=>{try{const tc=google.accounts.oauth2.initTokenClient({client_id:CID,scope:'openid email profile',callback:async t=>{if(!t||!t.access_token){res(t&&t.error==='access_denied'?'':'x');return}try{await Au.signInWithCredential(auth,Au.GoogleAuthProvider.credential(null,t.access_token));res('')}catch(e){res(friendly(e))}},error_callback:e=>res(e&&(e.type==='popup_closed')?'':'x')});tc.requestAccessToken({prompt:'select_account'})}catch(e){res('x')}});
-let direct=false; /* after the first try, the next tap opens the Google window straight away, inside the tap, so the browser cannot block it */
-window.__iqSignIn=async()=>{if(direct){try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider());return ''}catch(e){return friendly(e)}}direct=true;if(await gisInit()){if(await gisPrompt()!=='fallback')return '';const r=await gisToken();if(r!=='x')return r}
- try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider());return ''}catch(e){return friendly(e)}};
+/* Open Google INSIDE the tap (no waiting first), so browsers never block the window. Order: Google token window (already warmed up) -> Firebase popup -> full-page redirect. */
+const viaRedirect=async()=>{try{await Au.signInWithRedirect(auth,new Au.GoogleAuthProvider());return ''}catch(e){return friendly(e)}};
+const viaPopup=async()=>{try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider());return ''}catch(e){const c=(e&&e.code)||'';if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported')return viaRedirect();return friendly(e)}};
+window.__iqSignIn=async()=>{if(gisOK){const r=await gisToken();if(r!=='x')return r}return viaPopup()};
 gisInit().catch(()=>{});
 window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try{const x={updated:Date.now()};if(p&&p.name)x.name=String(p.name).slice(0,80);if(p&&p.cls)x.cls=String(p.cls);if(p&&p.sboard)x.sboard=String(p.sboard);await F.setDoc(F.doc(fs,'students',u.uid),x,{merge:true});return true}catch(e){return false}};
 function profileView(u,d){
