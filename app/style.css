@@ -1234,10 +1234,11 @@ body:has(#entry.docked) .topbar{display:none}
 .lp-tags li{padding:5px 12px;border-radius:999px;background:#e6f4e8;border:1px solid #b9d6c0;color:#0d4a2e;font-size:.88rem;font-weight:600}
 .lp-faqs{display:grid;gap:10px;max-width:860px}
 .lp-faq{border:1px solid #d3e6d8;border-radius:16px;background:#f4faf5;padding:0 16px}
-.lp-faq summary{cursor:pointer;list-style:none;padding:14px 0;font-weight:700;color:#0d4a2e;min-height:44px}
+.lp-faq summary{cursor:pointer;list-style:none;padding:14px 0;font-weight:700;color:#0d4a2e;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:14px}
 .lp-faq summary::-webkit-details-marker{display:none}
-.lp-faq summary::after{content:"+";float:inline-end;font-weight:800;color:#c9962a}
-.lp-faq[open] summary::after{content:"\2212"}
+.lp-faq summary::after{content:"";flex:none;width:9px;height:9px;margin-inline:4px 6px;border-right:2.5px solid #1d6a42;border-bottom:2.5px solid #1d6a42;transform:translateY(-3px) rotate(45deg);transition:transform .2s ease}
+.lp-faq[open] summary::after{transform:translateY(2px) rotate(-135deg)}
+@media (prefers-reduced-motion:reduce){.lp-faq summary::after{transition:none}}
 .lp-faq p{margin:0 0 14px;line-height:1.9;color:#2c4a3a}
 
 /* ===== smooth sign-in: resume splash, busy buttons, onboarding card ===== */
