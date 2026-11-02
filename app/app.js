@@ -1279,14 +1279,14 @@
   // KG home: parents or children pick a section; "Today's Play" mixes everything
   var kgSec = null;
   var KG_SECS = [
-    { id: "letters", icon: "🐪", t: { en: "Urdu Letters", ur: "اردو حروف" }, ids: "u-letters-0 u-words-0 t-ur-0 pp-u-pics1 pp-u-pics2 pp-u-pics3 pp-u-pics4 pp-u-pics5 pp-u-order pp-u-join pp-u-marks" },
     { id: "abc", icon: "🔤", t: { en: "ABC", ur: "اے بی سی" }, ids: "e-sounds-0 pp-e-pics1 pp-e-pics2 pp-e-pics3 pp-e-pics4 pp-e-pics5 pp-e-pics6 e-words-0 t-en-0 pp-e-order pp-e-case pp-e-vowel" },
+    { id: "letters", icon: "🐪", t: { en: "Urdu Letters", ur: "حروفِ تہجی" }, ids: "u-letters-0 u-words-0 t-ur-0 pp-u-pics1 pp-u-pics2 pp-u-pics3 pp-u-pics4 pp-u-pics5 pp-u-order pp-u-join pp-u-marks" },
+    { id: "numbers", icon: "🔢", t: { en: "Counting and Maths", ur: "گنتی اور حساب" }, ids: "m-count-1 pp-m-find15 pp-m-count15 m-after-0 m-before-0 m-missing-0 pp-m-back5 pp-m-find610 pp-m-count610 m-cnt10-0 m-bigger-0 pp-m-ten pp-m-between pp-m-morelss pp-m-oddeven pp-m-add m-double-0 pp-m-sub m-takeaway-0 pp-u-numbers pp-m-money pp-m-ordinal" },
     { id: "animals", icon: "img:animals_cat", t: { en: "Animals", ur: "جانور" }, ids: "u-hear-0 e-hear-0 u-animals-0 e-animals-0 u-sound-0 e-sound-0 pp-e-animalpics pp-e-birdpics" },
     { id: "fruits", icon: "img:fruits_apple", t: { en: "Fruits", ur: "پھل" }, ids: "u-fruits-0 e-fruits-0 pp-e-fruitpics" },
     { id: "veg", icon: "img:veg_carrot", t: { en: "Vegetables", ur: "سبزیاں" }, ids: "u-veg-0 e-veg-0 pp-e-vegpics" },
     { id: "things", icon: "img:things_ball", t: { en: "Things", ur: "چیزیں" }, ids: "u-things-0 e-things-0 u-use-0 e-use-0 pp-e-vehiclepics" },
     { id: "colours", icon: "🌈", t: { en: "Colours", ur: "رنگ" }, ids: "pp-m-colours u-colour-0 e-colour-0" },
-    { id: "numbers", icon: "🔢", t: { en: "Counting and Maths", ur: "گنتی اور حساب" }, ids: "m-count-1 pp-m-find15 pp-m-count15 m-after-0 m-before-0 m-missing-0 pp-m-back5 pp-m-find610 pp-m-count610 m-cnt10-0 m-bigger-0 pp-m-ten pp-m-between pp-m-morelss pp-m-oddeven pp-m-add m-double-0 pp-m-sub m-takeaway-0 pp-u-numbers pp-m-money pp-m-ordinal" },
     { id: "shapes", icon: "🔺", t: { en: "Shapes and Size", ur: "شکلیں اور سائز" }, ids: "pp-m-shapes t-shape-0 pp-m-size pp-m-hardsoft pp-m-position m-pattern-0" },
     { id: "think", icon: "🧩", t: { en: "Think and Pick", ur: "سوچو اور چنو" }, ids: "u-group-0 e-group-0 u-odd-0 e-odd-0" },
     { id: "world", icon: "🌍", t: { en: "My World", ur: "میری دنیا" }, ids: "pp-u-feel pp-u-manners pp-e-polite pp-u-plural pp-e-body pp-e-bodypics pp-e-days pp-m-days pp-m-daynight pp-m-time pp-e-hotcold pp-e-seasons pp-e-prof pp-e-living pp-e-food pp-e-natural pp-e-citizen" }
