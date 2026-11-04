@@ -2165,11 +2165,7 @@
   var LIB_CATS = ["textbook", "quran", "urdu", "english", "science", "stories", "pak", "ref", "exam", "general"];
   // Starter entries: only official or trusted sites that were opened and checked. Admins add the rest.
   function libKind(x) { return x && (x.kind === "syllabus" || x.kind === "general") ? x.kind : (x && x.cat === "textbook" ? "syllabus" : "general"); }
-  var LIB_STARTER = [
-    { id: "s-kp-tbb", title: { en: "Khyber Pakhtunkhwa Textbook Board", ur: "خیبر پختونخوا ٹیکسٹ بک بورڈ" }, author: { en: "Government of Khyber Pakhtunkhwa", ur: "حکومت خیبر پختونخوا" }, cat: "textbook", grade: "all", lang: "ur", url: "https://tbb.kp.gov.pk/", verified: true, note: { en: "The official textbook board for Khyber Pakhtunkhwa schools.", ur: "خیبر پختونخوا کے سکولوں کی نصابی کتابوں کا سرکاری بورڈ۔" } },
-    { id: "s-nbf", title: { en: "National Book Foundation", ur: "نیشنل بک فاؤنڈیشن" }, author: { en: "Government of Pakistan", ur: "حکومت پاکستان" }, cat: "general", grade: "all", lang: "ur", url: "https://www.nbf.org.pk", verified: true, note: { en: "Pakistan's national book body, founded in 1972 to make books available at moderate prices.", ur: "پاکستان کا قومی ادارہ جو 1972 میں مناسب قیمت پر کتابیں فراہم کرنے کے لیے قائم ہوا۔" } },
-    { id: "s-iqbal", title: { en: "Iqbal Cyber Library", ur: "اقبال سائبر لائبریری" }, author: { en: "Iqbal Academy Pakistan", ur: "اقبال اکیڈمی پاکستان" }, cat: "urdu", grade: "all", lang: "ur", url: "https://iqbalcyberlibrary.net/", verified: true, note: { en: "The official website of Iqbal Academy Pakistan.", ur: "اقبال اکیڈمی پاکستان کی سرکاری ویب سائٹ۔" } }
-  ];
+  var LIB_STARTER = [];
   function lt(x) { return x && typeof x === "object" ? (x[LANG()] || x.en || "") : String(x || ""); }
   function cleanLib(o, id) {
     var g = String(o.grade || "all"); if (g !== "all" && D.grades.map(String).indexOf(g) < 0) g = "all";
