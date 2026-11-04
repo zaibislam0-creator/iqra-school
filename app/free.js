@@ -22,6 +22,8 @@ window.IQRA_BOARDS = [
   { id: "balochistan", name: { en: "Balochistan", ur: "بلوچستان" }, code: "BTBB", url: "" },
   { id: "federal", name: { en: "National Book Foundation", ur: "نیشنل بک فاؤنڈیشن" }, short: { en: "Federal", ur: "وفاقی" }, code: "NBF", url: "https://www.nbf.org.pk" }
 ];
-window.IQRA_BOOKS = [];
+window.IQRA_BOOKS = [
+  { cls: 0, subject: { en: "Urdu poetry · Iqbal Academy Pakistan, Lahore (1994)", ur: "اردو شاعری · اقبال اکیڈمی پاکستان، لاہور (1994)" }, title: { en: "Kulliyat-e-Iqbal (Urdu) – Allama Muhammad Iqbal", ur: "کلیاتِ اقبال (اردو) – علامہ محمد اقبال" }, url: "https://iqradigitalschool.com/books/kulliyat-e-iqbal-urdu.pdf" }
+];
 window.IQRA_NOTES = [];
 window.IQRA_PAPERS = [];
