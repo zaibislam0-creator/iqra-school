@@ -3485,7 +3485,8 @@
       var px = e.target.closest && e.target.closest("[data-px],[data-pxn]"); if (!px) return;
       var isN = px.hasAttribute("data-pxn"), idx = Number(px.getAttribute(isN ? "data-pxn" : "data-px"));
       var real = (isN ? document.querySelectorAll("#app .topbar nav > *, #app .topbar .kidnav > *") : document.querySelectorAll("#app .topbar .hb > *"))[idx];
-      if (isN) dockEntry();
+      /* the Class chip opens the class screen inside the app, so the landing page must step aside first, like the tabs do */
+      if (isN || (real && real.getAttribute("data-arg") === "setup")) dockEntry();
       if (real) real.click();
     });
     (function () { var ap = document.getElementById("app"), q = 0; if (ap && window.MutationObserver) new MutationObserver(function () { if (q) return; q = requestAnimationFrame(function () { q = 0; sync(); }); }).observe(ap, { childList: true }); })();
