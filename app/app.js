@@ -1196,6 +1196,12 @@
   }
   function c1Per(b) { return b.periods === 1 ? c1Pair("period a week", "پیریڈ ہفتہ وار") : c1Pair("periods a week", "پیریڈ ہفتہ وار"); }
   function c1Pair(a, b) { return LANG() === "ur" ? b : a; }
+  // a small picture for each chapter; chapters we have no picture for use the book's own icon, so every row has one
+  function c1TopicIcon(en, fallback) {
+    var s = String(en || "").toLowerCase(), map = [[/^alphabet/, "Aa"], [/^phonics/, "🔊"], [/^vocabulary/, "🍎"], [/^word building/, "🧩"], [/^reading/, "📖"], [/^writing/, "✏️"], [/^grammar/, "🧱"], [/^speaking/, "💬"], [/^literature/, "📚"]], i;
+    for (i = 0; i < map.length; i++) if (map[i][0].test(s)) return map[i][1];
+    return fallback || "•";
+  }
   function c1Bars(rows, unit) {
     var max = rows.reduce(function (m, r) { return Math.max(m, r.v); }, 1), h = '<ul class="c1bars">';
     rows.forEach(function (r) {
@@ -1243,8 +1249,11 @@
     var C = D.class1, ur = LANG() === "ur", prev = C.books[idx - 1], next = C.books[idx + 1];
     var h = '<button type="button" class="link" data-act="home">‹ ' + esc(t("back")) + "</button>";
     h += '<section class="c1bk"><span class="c1ic big" aria-hidden="true">' + esc(b.icon) + '</span><div><p class="c1k">' + esc(c1Pair("Book ", "کتاب ") + b.n + c1Pair(" of ", " از ") + C.books.length) + " · " + b.periods + " " + esc(c1Per(b)) + "</p><h2>" + esc(L(b.title)) + "</h2><p>" + esc(L(b.goal)) + "</p></div></section>";
-    h += '<h3 class="subhd">' + esc(c1Pair("What we will learn", "ہم کیا سیکھیں گے")) + '</h3><ol class="c1chs">';
-    b.topics.forEach(function (tp, k) { h += '<li><span class="c1cn">' + (k + 1) + "</span><span>" + esc(L(tp)) + "</span></li>"; });
+    h += '<h3 class="subhd">' + esc(c1Pair("What we will learn", "ہم کیا سیکھیں گے")) + '</h3><ol class="c1chs kgrid">';
+    b.topics.forEach(function (tp, k) {
+      var full = L(tp), ci = full.search(/[:：]/), ti = ci > 0 ? full.slice(0, ci).trim() : full, de = ci > 0 ? full.slice(ci + 1).trim() : "";
+      h += '<li class="kgtile kgsec c1chap"><span class="c1cn">' + (k + 1) + '</span><span class="kgpic" aria-hidden="true">' + esc(c1TopicIcon(tp.en, b.icon)) + "</span><b>" + esc(ti) + "</b>" + (de ? "<small>" + esc(de) + "</small>" : "") + "</li>";
+    });
     h += "</ol>";
     h += '<div class="card c1target"><h3>🎯 ' + esc(c1Pair("By the end of the year", "سال کے آخر تک")) + "</h3><p>" + esc(L(b.target)) + "</p>" + (b.review ? '<p class="small">' + esc(L(b.review)) + "</p>" : "") + "</div>";
     h += '<p class="note">' + esc(c1Pair("The chapter pages of this book are being prepared. They will open here one by one once they are written and checked.", "اس کتاب کے ابواب تیار کیے جا رہے ہیں۔ لکھے اور جانچے جانے کے بعد وہ یہاں ایک ایک کر کے کھلیں گے۔")) + "</p>";
@@ -3133,6 +3142,7 @@
   function nNum(v) { return '<bdi dir="ltr">' + v + "</bdi>"; }
   function nGet(id) { return (state.noteProg || {})[id] || { said: {}, wrote: {} }; }
   function nProg(id) { state.noteProg = state.noteProg || {}; var p = state.noteProg[id] || (state.noteProg[id] = {}); p.said = p.said || {}; p.wrote = p.wrote || {}; return p; }
+  function nTitleSplit(t) { var m = /^(.*) · ([^·]*[؀-ۿ][^·]*)$/.exec(String(t || "")); return m ? [m[1], m[2]] : [String(t || ""), ""]; }
   function nTitle(t) { var m = /^(.*) · ([^·]*[؀-ۿ][^·]*)$/.exec(String(t || "")); return m ? m[1] + " · " + m[2] : String(t || ""); }
   function nPairs(sc) {
     var out = [], pts = sc.pts || [], i = 0;
@@ -3143,6 +3153,17 @@
       else { out.push({ en: a, ur: "" }); i++; }
     }
     return out;
+  }
+  // a picture for each lesson section, like the KG tiles: a lesson's own picture if it has one, the letter for letter sections,
+  // an emoji for common topics, and the section number when nothing fits
+  var N_PICS = [[/hello|greeting|goodbye/, "👋"], [/thank|polite|respect|please/, "🙏"], [/pencil|line|draw|trace|copy|write it/, "✏️"], [/doctor/, "🩺"], [/body/, "🧍"], [/family|friend/, "👪"], [/classroom|class rule|class clean|school/, "🏫"], [/number|count|first to|sixth/, "🔢"], [/day|month|special/, "📅"], [/colour|color/, "🎨"], [/shape/, "🔷"], [/fruit/, "🍎"], [/vegetable/, "🥕"], [/food|healthy/, "🥗"], [/animal|pets|farm/, "🐾"], [/bird/, "🐦"], [/season|nature/, "🌳"], [/rhym|poem/, "🎵"], [/story|read/, "📖"], [/sound|listen|blend|join/, "🔊"], [/question|ask|who,|answer/, "❓"], [/remember|review|think/, "✅"], [/say|tell|talk|about me|speak|queue|help|share|care|habit/, "💬"], [/noun|capital|full stop|comma|a or an|am, is|add |one and many|this and that|these|ownership|opposite|size|command|grammar|'s /, "🧱"], [/word/, "🧩"]];
+  function nPic(sc, title, i) {
+    var t = String(title || "").trim(), k;
+    if (sc.pic) return emoOrImg(sc.pic);
+    if (/^[A-Za-z][a-z]$/.test(t)) return esc(t.charAt(0));
+    t = t.toLowerCase();
+    for (k = 0; k < N_PICS.length; k++) if (N_PICS[k][0].test(t)) return N_PICS[k][1];
+    return String(i + 1);
   }
   function nIsVocab(en) { return en.split(/\s+/).length <= 3 && !/[.?!,;:]/.test(en); }
   function nPool(d) {
@@ -3226,22 +3247,23 @@
     status = p.done ? nb("Completed", "مکمل") : (said || cur > 0 ? nb("In progress", "جاری") : nb("New", "نیا"));
     h += '<div class="nstat"><span class="nbadge' + (p.done ? " done" : "") + '">' + (p.done ? "✓ " : "") + esc(status) + "</span>" + (total ? '<progress class="nprog" value="' + said + '" max="' + total + '" aria-label="' + esc(nb("Lines practised", "مشق کی ہوئی لائنیں")) + '"></progress><small>' + said + "/" + total + "</small>" : "") + "</div>";
     if (!open) return h + '<button type="button" class="bigbtn" data-act="nOpen" data-arg="' + esc(id) + '">' + esc(p.done ? nb("Read again", "دوبارہ پڑھیں") : (said || cur > 0 ? nb("Continue lesson", "سبق جاری رکھیں") : nb("Open lesson", "سبق کھولیں"))) + "</button></div>";
-    h += '<div class="nobj"><h5>🎯 ' + esc(nb("What you will learn", "آپ کیا سیکھیں گے")) + "</h5><ul>";
-    secs.forEach(function (sc) { h += '<li dir="auto">' + esc(nTitle(sc.t)) + "</li>"; });
-    h += "</ul></div>";
+    h += '<div class="nobj"><h5>🎯 ' + esc(nb("What you will learn", "آپ کیا سیکھیں گے")) + '</h5><div class="kgrid nlaunch">';
     secs.forEach(function (sc, i) {
-      var on = cur === i;
-      h += '<section class="nsec' + (on ? " open" : "") + '"><button type="button" class="nsechd" aria-expanded="' + (on ? "true" : "false") + '" data-act="nSec" data-arg="' + esc(id) + "|" + i + '">' + (sc.pic ? '<span class="npic" aria-hidden="true">' + emoOrImg(sc.pic) + "</span>" : '<span class="nnum">' + (i + 1) + "</span>") + '<span dir="auto">' + esc(nTitle(sc.t) || (rt("noteChap") + " " + (i + 1))) + '</span><span class="nchev" aria-hidden="true">›</span></button>';
-      if (on) {
-        h += '<div class="nbody">';
-        nPairs(sc).forEach(function (pr, j) {
-          var key = i + "-" + j, voc = pr.en && pr.ur && nIsVocab(pr.en), sd = !!p.said[key];
-          h += '<div class="nrow' + (voc ? " voc" : "") + '">' + nListen(pr.en || pr.ur, pr.en ? "en" : "ur") + "<div>" + (pr.en ? '<p class="nentxt" lang="en" dir="ltr">' + esc(pr.en) + "</p>" : "") + (pr.en && pr.ur ? '<div class="nurrow"><p class="nurtxt" lang="ur" dir="rtl">' + esc(pr.ur) + "</p>" + nListen(pr.ur, "ur", true) + "</div>" : (pr.ur ? '<p class="nurtxt" lang="ur" dir="rtl">' + esc(pr.ur) + "</p>" : "")) + "</div>" +
-            (pr.en ? '<button type="button" class="nsaid' + (sd ? " on" : "") + '" data-act="nSaid" data-arg="' + esc(id) + "|" + key + '" aria-pressed="' + (sd ? "true" : "false") + '">🗣️ ' + esc(sd ? nb("Said it", "بول لیا") : nb("Say it", "بولیں")) + "</button>" : "<span></span>") + "</div>";
-        });
-        h += "</div>";
-      }
-      h += "</section>";
+      var tsp = nTitleSplit(sc.t), sTot = 0, sSaid = 0, on = cur === i;
+      nPairs(sc).forEach(function (pr, j) { if (pr.en) { sTot++; if (p.said[i + "-" + j]) sSaid++; } });
+      h += '<button type="button" class="kgtile kgsec ntile' + (on ? " on" : "") + (sTot && sSaid === sTot ? " all" : "") + '" aria-expanded="' + (on ? "true" : "false") + '" data-act="nSec" data-arg="' + esc(id) + "|" + i + '"><span class="kgpic" aria-hidden="true">' + nPic(sc, tsp[0], i) + '</span><b dir="auto">' + esc(tsp[0] || (rt("noteChap") + " " + (i + 1))) + "</b>" + (tsp[1] ? '<span class="nsu" lang="ur" dir="rtl">' + esc(tsp[1]) + "</span>" : "") + (sTot ? '<small class="nsc">' + (sSaid === sTot ? "✓ " : "") + sSaid + "/" + sTot + "</small>" : "") + "</button>";
+    });
+    h += "</div></div>";
+    secs.forEach(function (sc, i) {
+      if (cur !== i) return;
+      h += '<section class="nsec open">';
+      h += '<div class="nbody">';
+      nPairs(sc).forEach(function (pr, j) {
+        var key = i + "-" + j, voc = pr.en && pr.ur && nIsVocab(pr.en), sd = !!p.said[key];
+        h += '<div class="nrow' + (voc ? " voc" : "") + '">' + nListen(pr.en || pr.ur, pr.en ? "en" : "ur") + "<div>" + (pr.en ? '<p class="nentxt" lang="en" dir="ltr">' + esc(pr.en) + "</p>" : "") + (pr.en && pr.ur ? '<div class="nurrow"><p class="nurtxt" lang="ur" dir="rtl">' + esc(pr.ur) + "</p>" + nListen(pr.ur, "ur", true) + "</div>" : (pr.ur ? '<p class="nurtxt" lang="ur" dir="rtl">' + esc(pr.ur) + "</p>" : "")) + "</div>" +
+          (pr.en ? '<button type="button" class="nsaid' + (sd ? " on" : "") + '" data-act="nSaid" data-arg="' + esc(id) + "|" + key + '" aria-pressed="' + (sd ? "true" : "false") + '">🗣️ ' + esc(sd ? nb("Said it", "بول لیا") : nb("Say it", "بولیں")) + "</button>" : "<span></span>") + "</div>";
+      });
+      h += "</div></section>";
     });
     wl = nPool(d).map(function (y) { return y.en; }).filter(function (e) { return !/_/.test(e); }).sort(function (a, b) { return a.length - b.length; }).slice(0, 3);
     if (wl.length) {
