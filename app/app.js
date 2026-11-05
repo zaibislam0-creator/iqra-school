@@ -1297,7 +1297,7 @@
     var live = C.books.filter(function (b) { return info[b.sub].files; });
     var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], plan = c1Plan(fb, cont), cur = plan.cur, wk = c1WeekHTML(), avg = sN ? Math.round(sSum / sN * 100) : null;
     var pc0 = fi.t ? Math.round(fi.dn / fi.t * 100) : 0, ar = LANG() === "ur" ? "‹" : "›";
-    var h = '<section class="c1today" id="subjects"><span class="c1logo" aria-hidden="true">' + brandMark(84) + '</span><div class="c1tt"><small>' + esc(c1Pair("Today's learning", "آج کی پڑھائی")) + "</small>" +
+    var h = '<section class="c1today" id="subjects"><span class="c1logo" aria-hidden="true">' + brandMark(84) + '</span><div class="c1tt"><small>' + esc(c1Pair("Today's task", "آج کا کام")) + "</small>" +
       (cur ? "<h2>" + esc(c1LabelOf(cur)) + (cur.name ? "<span>" + esc(cur.name) + "</span>" : "") + "</h2>" : "<h2>" + esc(L(fb.title)) + "</h2>") +
       "<p>" + esc(L(fb.title)) + '</p><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta">' +
       (cur ? '<button type="button" class="c1cbtn" data-act="nLearn" data-arg="' + esc(cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button>" : "") +
@@ -1347,16 +1347,55 @@
     h += '</ul><p class="note">' + esc(L(C.note)) + '</p><p class="note">' + esc(L(C.ict)) + "</p></details>";
     return h;
   }
+  var C1_MAP = [
+    [/^Speaking|class rules|polite words|asking questions in class|respect and helping|friends and listening|good habits|sharing is caring/i, "speaking"],
+    [/^Reading/i, "reading"],
+    [/story of/i, "literature"],
+    [/three-letter words/i, "word"],
+    [/rhyming|blends|digraphs/i, "phonics"],
+    [/^Letters [A-Z] to|pencil and lines/i, "alphabet"],
+    [/capital letters|full stop|the comma|greeting card/i, "writing"],
+    [/nouns|pronouns|singular|this and that|these and those|a and an|masculine|question words|am, is|describing words|ordinal|ownership|who owns|commands|colour words in sentences/i, "grammar"],
+    [/./, "vocabulary"]
+  ];
+  function c1ChapKey(tpEn) { return String(tpEn || "").split(/[:：]/)[0].trim().toLowerCase().split(/\s+/)[0]; }
+  function c1LessonKey(name) { for (var i = 0; i < C1_MAP.length; i++) if (C1_MAP[i][0].test(name)) return C1_MAP[i][1]; return "vocabulary"; }
+  function c1ChapPanel(b, k, tp) {
+    var full = L(tp), ci = full.search(/[:：]/), ti = ci > 0 ? full.slice(0, ci).trim() : full, de = ci > 0 ? full.slice(ci + 1).trim() : "", key = c1ChapKey(tp.en), ar = LANG() === "ur" ? "‹" : "›";
+    var plan = c1Plan(b, null), mine = plan.list.filter(function (x) { return !x.r && c1LessonKey(x.name) === key; }), revs = plan.list.filter(function (x) { return x.r; }), dn = 0;
+    mine.forEach(function (x) { if (x.done) dn++; });
+    var h = '<section class="c1chp" id="c1chp"><div class="c1chp-h"><div><small>' + esc(c1Pair("Chapter ", "باب ") + (k + 1)) + "</small><h3>" + esc(ti) + "</h3>" + (de ? "<p>" + esc(de) + "</p>" : "") + '</div><button type="button" class="c1x" data-act="c1Ch" data-arg="' + k + '" aria-label="' + esc(c1Pair("Close", "بند کریں")) + '">✕</button></div>';
+    if (!mine.length) h += '<p class="c1empty">' + esc(c1Pair("Lessons for this chapter are being prepared.", "اس باب کے اسباق تیار ہو رہے ہیں۔")) + "</p>";
+    else {
+      h += '<p class="c1chp-n">' + nNum(dn) + "/" + nNum(mine.length) + " " + esc(c1Pair("lessons done", "اسباق مکمل")) + '</p><ul class="c1chl">';
+      mine.forEach(function (x) { h += '<li><button type="button" data-act="nLearn" data-arg="' + esc(x.id) + '"><span class="c1ck' + (x.done ? " d" : "") + '" aria-hidden="true">' + (x.done ? "✓" : "") + '</span><span class="c1un">' + esc(c1LabelOf(x)) + '</span><span class="c1upn">' + esc(x.name) + '</span><span class="c1ar" aria-hidden="true">' + ar + "</span></button></li>"; });
+      h += "</ul>";
+    }
+    if (revs.length) { h += '<div class="c1rev"><span>' + esc(c1Pair("Revision", "دہرائی")) + "</span>"; revs.forEach(function (x) { h += '<button type="button" data-act="nLearn" data-arg="' + esc(x.id) + '">' + esc(c1Pair("Review ", "دہرائی ") + x.l) + (x.done ? " ✓" : "") + "</button>"; }); h += "</div>"; }
+    return h + "</section>";
+  }
+  function c1TodayCard(b) {
+    var open = state.noteOpen, plan = c1Plan(b, null), i, cont = null;
+    for (i = 0; i < plan.list.length; i++) if (plan.list[i].id === open && !plan.list[i].done) cont = { b: b, x: { id: open } };
+    plan = c1Plan(b, cont);
+    var cur = plan.cur, tot = plan.list.length, dn = plan.list.filter(function (x) { return x.done; }).length, pc = tot ? Math.round(dn / tot * 100) : 0;
+    if (!cur) return "";
+    return '<section class="c1today c1today-b"><div class="c1tt"><small>' + esc(c1Pair("Today's task", "آج کا کام")) + "</small><h2>" + esc(c1LabelOf(cur)) + (cur.name ? "<span>" + esc(cur.name) + "</span>" : "") + '</h2><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(dn) + "/" + nNum(tot) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta"><button type="button" class="c1cbtn" data-act="nLearn" data-arg="' + esc(cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button></div></section>";
+  }
   function c1Book(b, idx) {
     var C = D.class1, ur = LANG() === "ur", prev = C.books[idx - 1], next = C.books[idx + 1];
     var h = '<button type="button" class="link" data-act="home">‹ ' + esc(t("back")) + "</button>";
     h += '<section class="c1bk"><span class="c1ic big" aria-hidden="true">' + esc(b.icon) + '</span><div><p class="c1k">' + esc(c1Pair("Book ", "کتاب ") + b.n + c1Pair(" of ", " از ") + C.books.length) + " · " + b.periods + " " + esc(c1Per(b)) + "</p><h2>" + esc(L(b.title)) + "</h2><p>" + esc(L(b.goal)) + "</p></div></section>";
+    var live = b.sub === "english", sel = live && typeof state.c1ch === "number" ? state.c1ch : -1;
+    if (live) h += c1TodayCard(b);
     h += '<h3 class="subhd">' + esc(c1Pair("What we will learn", "ہم کیا سیکھیں گے")) + '</h3><ol class="c1chs kgrid">';
     b.topics.forEach(function (tp, k) {
       var full = L(tp), ci = full.search(/[:：]/), ti = ci > 0 ? full.slice(0, ci).trim() : full, de = ci > 0 ? full.slice(ci + 1).trim() : "";
-      h += '<li class="kgtile kgsec c1chap"><span class="c1cn">' + (k + 1) + '</span><span class="kgpic" aria-hidden="true">' + esc(c1TopicIcon(tp.en, b.icon)) + "</span><b>" + esc(ti) + "</b>" + (de ? "<small>" + esc(de) + "</small>" : "") + "</li>";
+      var inner = '<span class="c1cn">' + (k + 1) + '</span><span class="kgpic" aria-hidden="true">' + esc(c1TopicIcon(tp.en, b.icon)) + "</span><b>" + esc(ti) + "</b>" + (de ? "<small>" + esc(de) + "</small>" : "");
+      h += live ? '<li><button type="button" class="kgtile kgsec c1chap' + (sel === k ? " on" : "") + '" data-act="c1Ch" data-arg="' + k + '" aria-expanded="' + (sel === k) + '">' + inner + '<span class="c1open" aria-hidden="true">' + esc(c1Pair("Open lessons", "اسباق کھولیں")) + "</span></button></li>" : '<li class="kgtile kgsec c1chap">' + inner + "</li>";
     });
     h += "</ol>";
+    if (sel >= 0 && b.topics[sel]) h += c1ChapPanel(b, sel, b.topics[sel]);
     h += '<div class="card c1target"><h3>🎯 ' + esc(c1Pair("By the end of the year", "سال کے آخر تک")) + "</h3><p>" + esc(L(b.target)) + "</p>" + (b.review ? '<p class="small">' + esc(L(b.review)) + "</p>" : "") + "</div>";
     h += '<p class="note">' + esc(c1Pair("The chapter pages of this book are being prepared. They will open here one by one once they are written and checked.", "اس کتاب کے ابواب تیار کیے جا رہے ہیں۔ لکھے اور جانچے جانے کے بعد وہ یہاں ایک ایک کر کے کھلیں گے۔")) + "</p>";
     if (b.sub === "english") {
@@ -1888,6 +1927,7 @@
       case "go": view = arg; render(); break;
       case "speak": speak(arg, true); break;
       case "nSay": speak(String(arg).slice(3), true, String(arg).slice(0, 2)); break;
+      case "c1Ch": var c1k = Number(arg); state.c1ch = state.c1ch === c1k ? -1 : c1k; save(); render(); if (state.c1ch >= 0) setTimeout(function () { var pe = root.querySelector("#c1chp"); if (pe && pe.scrollIntoView) pe.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, 40); break;
       case "c1Syl": state.c1syl = !state.c1syl; save(); render(); break;
       case "nLearn": var nlx = resById(arg); if (nlx) { curSubject = nlx.d.subject; resTab = "note"; state.noteOpen = arg; noteRun = null; save(); render(); setTimeout(function () { var ge = root.querySelector("#res-" + arg); if (ge && ge.scrollIntoView) ge.scrollIntoView({ block: "start" }); }, 60); } break;
       case "nOpen": state.noteOpen = state.noteOpen === arg ? "" : arg; noteRun = null; save(); render(); break;
@@ -3244,7 +3284,7 @@
   function isRichNote(d) { return !!(d && d.type === "note" && Array.isArray(d.sections) && d.builtin && d.writer === "IQRA"); }
   function nb(en, ur) { return en + " · " + ur; }
   function nNum(v) { return '<bdi dir="ltr">' + v + "</bdi>"; }
-  function nGet(id) { return (state.noteProg || {})[id] || { said: {}, wrote: {} }; }
+  function nGet(id) { var p = (state.noteProg || {})[id]; if (!p) return { said: {}, wrote: {} }; if (!p.said) p.said = {}; if (!p.wrote) p.wrote = {}; return p; }
   function nProg(id) { state.noteProg = state.noteProg || {}; var p = state.noteProg[id] || (state.noteProg[id] = {}); p.said = p.said || {}; p.wrote = p.wrote || {}; return p; }
   function nTitleSplit(t) { var m = /^(.*) · ([^·]*[؀-ۿ][^·]*)$/.exec(String(t || "")); return m ? [m[1], m[2]] : [String(t || ""), ""]; }
   function nTitle(t) { var m = /^(.*) · ([^·]*[؀-ۿ][^·]*)$/.exec(String(t || "")); return m ? m[1] + " · " + m[2] : String(t || ""); }
