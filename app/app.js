@@ -1217,10 +1217,13 @@
       "<li><b>" + C.books.length + "</b><span>" + esc(c1Pair("books", "کتابیں")) + "</span></li><li><b>" + C.terms + "</b><span>" + esc(c1Pair("terms", "ٹرم")) + "</span></li><li><b>" + C.weeks + "</b><span>" + esc(c1Pair("weeks", "ہفتے")) + "</span></li></ul></section>";
     h += '<h3 class="subhd" id="subjects">' + esc(c1Pair("The nine Class 1 books", "جماعت اول کی نو کتابیں")) + '</h3><div class="c1books">';
     C.books.forEach(function (b) {
-      var n = resFor(b.sub, 1).length;
-      h += '<button type="button" class="c1book" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1n">' + b.n + '</span><span class="c1ic" aria-hidden="true">' + esc(b.icon) + "</span><b>" + esc(L(b.title)) + "</b><small>" + esc(L(b.purpose)) + '</small><span class="c1meta">' +
-        b.topics.length + " " + esc(c1Pair("chapters", "ابواب")) + " · " + b.periods + " " + esc(c1Per(b)) + "</span>" +
-        (n ? '<span class="c1have">' + n + " " + esc(c1Pair("files", "فائلیں")) + "</span>" : '<span class="c1soon">' + esc(c1Pair("In preparation", "تیاری میں")) + "</span>") + "</button>";
+      var n = resFor(b.sub, 1).length, notes = resFor(b.sub, 1, "note"), tot = notes.length, dn = 0, pg = (state.noteProg || {});
+      notes.forEach(function (x) { if (pg[x.id] && pg[x.id].done) dn++; });
+      h += '<button type="button" class="c1book" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1top"><span class="c1ic" aria-hidden="true">' + esc(b.icon) + "</span>" +
+        (n ? '<span class="c1have">' + nNum(n) + " " + esc(c1Pair("files", "فائلیں")) + "</span>" : '<span class="c1soon">' + esc(c1Pair("In preparation", "تیاری میں")) + "</span>") + "</span>" +
+        "<b>" + esc(L(b.title)) + "</b><small>" + esc(L(b.purpose)) + "</small>" +
+        (tot ? '<span class="c1prog"><span class="c1pl"><span>' + esc(c1Pair("Lessons done", "مکمل اسباق")) + "</span><b>" + nNum(dn) + "/" + nNum(tot) + '</b></span><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + Math.round(dn / tot * 100) + '%"></span></span></span>' : "") +
+        '<span class="c1meta">' + esc(c1Pair("Book ", "کتاب ")) + nNum(b.n) + " · " + nNum(b.topics.length) + " " + esc(c1Pair("chapters", "ابواب")) + " · " + nNum(b.periods) + " " + esc(c1Per(b)) + "</span></button>";
     });
     h += "</div>";
     // four terms
