@@ -1916,3 +1916,11 @@ body.c1clean .c1more>summary{border:0;box-shadow:none;border-radius:0;background
   .c1today .c1logo{display:none}
   .c1today .c1tt{grid-column:1}
 }
+
+/* syllabus section: collapsed by default */
+.c1sy-b{display:flex;align-items:center;gap:12px;width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:start;cursor:pointer}
+.c1sy-b h3{flex:1;margin:0}
+.c1chev{flex:none;font-size:1.3rem;line-height:1;color:var(--g)}
+.c1syl:not(.open){padding:16px 20px}
+.c1syl:not(.open) .c1sy-b:hover h3{text-decoration:underline}
+.c1syl.open .c1sy-b{margin-bottom:6px}

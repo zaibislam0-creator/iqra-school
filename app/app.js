@@ -1153,7 +1153,7 @@
     if (pathTest) return pathTestPage();
     var name = state.name ? " \u2068" + state.name + "\u2069" : "";
     var greet = sess.moodMsg || (t("greetA") + name + "! " + t("greetB"));
-    if (gnum(state.grade) === 1 && D.class1) return kidBanner(greet) + staffBarHTML() + announceHTML() + class1Home();
+    if (gnum(state.grade) === 1 && D.class1) return staffBarHTML() + announceHTML() + class1Home();
     var subs = subjectsFor(state.grade).filter(function (x) { return !kidUI() || lessonsFor(x.id, state.grade).length || resFor(x.id, state.grade).length || canRes(); });
     if (!subs.length) {
       return (isSecG(state.grade) ? secBoardPicker() : "") + homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + uploadCard() + '<div class="card pager"><p class="bigtext">' + esc(t("soon")) + '</p><button class="bigbtn" data-act="go" data-arg="character">' + svg("heart", 30) + " " + esc(t("stories")) + "</button></div>";
@@ -1269,7 +1269,8 @@
       if (!units[x.u]) { units[x.u] = { n: x.u, name: x.un, t: 0, d: 0 }; order.push(x.u); }
       units[x.u].t++; if (x.done) { units[x.u].d++; done++; }
     });
-    var pct = Math.round(done / list.length * 100), h = '<section class="c1syl"><div class="c1sy-h"><h3>' + esc(c1Pair("Syllabus covered", "نصاب جو پڑھ لیا")) + "</h3><b>" + nNum(done) + "/" + nNum(list.length) + " " + esc(c1Pair("lessons", "اسباق")) + " · " + nNum(pct) + "%</b></div>";
+    var pct = Math.round(done / list.length * 100), op = !!state.c1syl, h = '<section class="c1syl' + (op ? " open" : "") + '"><button type="button" class="c1sy-h c1sy-b" data-act="c1Syl" aria-expanded="' + op + '"><h3>' + esc(c1Pair("Syllabus covered", "نصاب جو پڑھ لیا")) + "</h3><b>" + nNum(done) + "/" + nNum(list.length) + " " + esc(c1Pair("lessons", "اسباق")) + " · " + nNum(pct) + '%</b><span class="c1chev" aria-hidden="true">' + (op ? "˄" : "˅") + "</span></button>";
+    if (!op) return h + "</section>";
     if (cur) h += '<p class="c1here"><span class="c1pin" aria-hidden="true">●</span> ' + esc(c1Pair("You are here: ", "آپ یہاں ہیں: ")) + "<b>" + esc(c1LabelOf(cur)) + (cur.name ? " · " + esc(cur.name) : "") + "</b></p>";
     h += '<div class="c1map" role="img" aria-label="' + done + "/" + list.length + '">';
     list.forEach(function (x) { h += '<span class="c1cell' + (x.done ? " d" : "") + (cur && x.id === cur.id ? " cur" : "") + '" title="' + esc(c1LabelOf(x)) + '"></span>'; });
@@ -1887,6 +1888,7 @@
       case "go": view = arg; render(); break;
       case "speak": speak(arg, true); break;
       case "nSay": speak(String(arg).slice(3), true, String(arg).slice(0, 2)); break;
+      case "c1Syl": state.c1syl = !state.c1syl; save(); render(); break;
       case "nLearn": var nlx = resById(arg); if (nlx) { curSubject = nlx.d.subject; resTab = "note"; state.noteOpen = arg; noteRun = null; save(); render(); setTimeout(function () { var ge = root.querySelector("#res-" + arg); if (ge && ge.scrollIntoView) ge.scrollIntoView({ block: "start" }); }, 60); } break;
       case "nOpen": state.noteOpen = state.noteOpen === arg ? "" : arg; noteRun = null; save(); render(); break;
       case "nGo": state.noteOpen = arg; noteRun = null; save(); render(); setTimeout(function () { var ge = root.querySelector("#res-" + arg); if (ge && ge.scrollIntoView) ge.scrollIntoView({ block: "start" }); }, 30); break;
