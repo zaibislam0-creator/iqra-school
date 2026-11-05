@@ -112,7 +112,7 @@
     if (!s || !s.iq) return;
     navRestoring = true;
     try {
-      quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; resRun = null;
+      quizRun = null; countGame = null; gameRun = null; traceRun = null; tVis = null; cgToken++; lessonStep = 0; resRun = null; noteRun = null;
       pathTest = s.pt || null; openStory = s.story || null; curSubject = s.sub || null; openLesson = null; view = s.view || "learn";
       if (s.lesson) act("openLesson", s.lesson); else render();
     } finally { navRestoring = false; }
@@ -735,7 +735,7 @@
     return /[\u0600-\u06ff]/.test(s) ? null : s;
   }
   function stopVoice() { speakTok = (speakTok || 0) + 1; try { if (curAudio) { curAudio.pause(); curAudio = null; } if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (e) {} }
-  function speak(text, force) {
+  function speak(text, force, lang) {
     if (!force && !state.voice) return;
     stopVoice();
     var clip = voiceBank[vkey(text)];
@@ -743,7 +743,7 @@
     var key = vkey(text);
     if (cloud.on && cloud.db && cloud.role === "student" && !clipMiss[key]) {
       var tok = ++speakTok;
-      var done = false, fall = function () { if (done) return; done = true; clipMiss[key] = 1; if (tok === speakTok) speakTTS(text); };
+      var done = false, fall = function () { if (done) return; done = true; clipMiss[key] = 1; if (tok === speakTok) speakTTS(text, lang); };
       var timer = setTimeout(fall, 1800);
       try {
         cloud.db.collection("clips").doc(hashKey(key)).get().then(function (d) {
@@ -752,19 +752,19 @@
           if (x && x.k === key && typeof x.url === "string") {
             voiceBank[key] = x.url;
             if (tok === speakTok) { try { curAudio = new Audio(x.url); curAudio.play().catch(function () {}); } catch (e) {} }
-          } else { clipMiss[key] = 1; if (tok === speakTok) speakTTS(text); }
+          } else { clipMiss[key] = 1; if (tok === speakTok) speakTTS(text, lang); }
         }).catch(function () { clearTimeout(timer); fall(); });
       } catch (e) { clearTimeout(timer); fall(); }
       return;
     }
-    speakTTS(text);
+    speakTTS(text, lang);
   }
   var clipMiss = {}, speakTok = 0;
-  function speakTTS(text) {
+  function speakTTS(text, lang) {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     try {
       var u = new SpeechSynthesisUtterance(String(text));
-      if (LANG() === "ur") {
+      if ((lang || LANG()) === "ur") {
         var v = urduVoice(), tx = String(text);
         if (v) { u.voice = v; u.lang = v.lang; }
         else { var hv = hindiVoice(), hs = toHindi(tx); if (!hv || !hs) { vState = { tried: true, started: false, err: "no voice", lang: "ur" }; return; } u = new SpeechSynthesisUtterance(hs); u.voice = hv; u.lang = hv.lang; }
@@ -1776,6 +1776,16 @@
       case "childview": adultOK = false; view = "learn"; render(); break;
       case "go": view = arg; render(); break;
       case "speak": speak(arg, true); break;
+      case "nSay": speak(String(arg).slice(3), true, String(arg).slice(0, 2)); break;
+      case "nOpen": state.noteOpen = state.noteOpen === arg ? "" : arg; noteRun = null; save(); render(); break;
+      case "nGo": state.noteOpen = arg; noteRun = null; save(); render(); setTimeout(function () { var ge = root.querySelector("#res-" + arg); if (ge && ge.scrollIntoView) ge.scrollIntoView({ block: "start" }); }, 30); break;
+      case "nSec": var nsa = String(arg).split("|"), nsp = nProg(nsa[0]); nsp.open = nsp.open === Number(nsa[1]) ? -1 : Number(nsa[1]); save(); render(); break;
+      case "nSaid": var nsd = String(arg).split("|"), nsq = nProg(nsd[0]); if (nsq.said[nsd[1]]) delete nsq.said[nsd[1]]; else nsq.said[nsd[1]] = 1; save(); render(); break;
+      case "nWrote": var nwd = String(arg).split("|"), nwq = nProg(nwd[0]); if (nwq.wrote[nwd[1]]) delete nwq.wrote[nwd[1]]; else nwq.wrote[nwd[1]] = 1; save(); render(); break;
+      case "nDone": var ndq = nProg(arg); ndq.done = !ndq.done; save(); render(); break;
+      case "nStart": var nsx = resById(arg); if (nsx) noteRun = nMakeRun(nsx, 1); render(); break;
+      case "nAgain": var nax = resById(arg); if (nax) noteRun = nMakeRun(nax, (noteRun && noteRun.id === arg ? noteRun.n : 0) + 1); render(); break;
+      case "nAns": var nas = String(arg).split("|"), nr = noteRun; if (!nr || nr.id !== nas[0]) break; var nqi = Number(nas[1]), noi = Number(nas[2]); if (!nr.qs[nqi] || nr.ans[nqi] != null) break; nr.ans[nqi] = noi; if (nr.ans.every(function (a) { return a != null; })) nFinish(nr); render(); break;
       case "home": curSubject = null; openLesson = null; render(); break;
       case "sub": curSubject = arg; render(); if (autoVoice()) speak(L(D.subjects.filter(function (x) { return x.id === arg; })[0])); break;
       case "openLesson":
@@ -3062,6 +3072,7 @@
     if (resMsg) h += '<p class="note" aria-live="polite">' + esc(resMsg) + "</p>";
     if (resForm) return h + resFormHTML() + "</section>";
     var items = resFor(sid, g, resTab);
+    if (resTab === "note") h += nSummaryHTML(items);
     if (!items.length) h += '<div class="resempty"><span class="resstar">' + STAR_FACE + "</span><span>" + esc(rt("none")) + "</span></div>";
     items.forEach(function (x) { h += resCard(x); });
     if (canRes()) h += '<button type="button" class="btn alt resadd" data-act="resNew" data-arg="' + resTab + "|" + esc(sid) + "|" + esc(g) + '">+ ' + esc(rt("add_" + resTab)) + "</button>";
@@ -3095,7 +3106,8 @@
     var d = x.d, s = d.src || {}, u = safeUrl(s.url), h = "";
     if (d.type === "book" && d.en) h += '<p class="small"><span class="badge inreview">' + esc(rt("engBook")) + "</span></p>";
     if (u) h += '<div class="actions">' + (/\.pdf($|[?#])/i.test(u) ? '<button type="button" class="bigbtn" data-act="readBook" data-arg="res:' + esc(x.id) + '">📖 ' + esc(rt("open")) + "</button>" : '<a class="bigbtn" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(rt("open")) + "</a>") + (s.kind === "asset" ? '<a class="bigbtn alt" href="' + esc(u) + '" download>' + esc(rt("download")) + "</a>" : "") + "</div>";
-    if (d.type === "note" && Array.isArray(d.sections)) {
+    if (isRichNote(d)) h += nRichHTML(x);
+    else if (d.type === "note" && Array.isArray(d.sections)) {
       if (!d.writer) h += '<p class="small"><span class="badge inreview">' + esc(rt("autoNoHelp")) + "</span></p>";
       d.sections.forEach(function (sc, i) {
         h += '<details class="resnote"' + (d.sections.length === 1 ? " open" : "") + '><summary dir="auto"><b>' + esc(sc.t || (rt("noteChap") + " " + (i + 1))) + '</b></summary><ul dir="auto">';
@@ -3111,6 +3123,145 @@
       else if (canRes()) h += '<button type="button" class="btn alt" data-act="resGuideFrom" data-arg="' + x.id + '">🗣️ ' + esc(rt("mkGuide")) + "</button>";
     }
     return h;
+  }
+  // ================= upgraded reader for IQRA-written notes (Class 1 English pilot) =================
+  // Reads the existing note data (sections of alternating English and Urdu lines). Nothing in the data changes;
+  // listen buttons, practice, writing, check-yourself and progress are all built from the lines the teacher already wrote.
+  var noteRun = null, URDU_RE = /[؀-ۿ]/;
+  function isRichNote(d) { return !!(d && d.type === "note" && Array.isArray(d.sections) && d.builtin && d.writer === "IQRA"); }
+  function nb(en, ur) { return en + " · " + ur; }
+  function nNum(v) { return '<bdi dir="ltr">' + v + "</bdi>"; }
+  function nGet(id) { return (state.noteProg || {})[id] || { said: {}, wrote: {} }; }
+  function nProg(id) { state.noteProg = state.noteProg || {}; var p = state.noteProg[id] || (state.noteProg[id] = {}); p.said = p.said || {}; p.wrote = p.wrote || {}; return p; }
+  function nTitle(t) { var m = /^(.*) · ([^·]*[؀-ۿ][^·]*)$/.exec(String(t || "")); return m ? m[1] + " · " + m[2] : String(t || ""); }
+  function nPairs(sc) {
+    var out = [], pts = sc.pts || [], i = 0;
+    while (i < pts.length) {
+      var a = String(pts[i]), b = pts[i + 1] != null ? String(pts[i + 1]) : "";
+      if (URDU_RE.test(a)) { out.push({ en: "", ur: a }); i++; }
+      else if (b && URDU_RE.test(b)) { out.push({ en: a, ur: b }); i += 2; }
+      else { out.push({ en: a, ur: "" }); i++; }
+    }
+    return out;
+  }
+  function nIsVocab(en) { return en.split(/\s+/).length <= 3 && !/[.?!,;:]/.test(en); }
+  function nPool(d) {
+    var out = [], seen = {};
+    d.sections.forEach(function (sc) { nPairs(sc).forEach(function (p) { if (p.en && p.ur && !seen[p.en]) { seen[p.en] = 1; out.push(p); } }); });
+    return out;
+  }
+  function nHash(s) { var h = 5381, i; for (i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return h >>> 0; }
+  function nRand(seed) { var s = (seed >>> 0) || 1; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+  function nShuffle(a, r) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function nWord(w) { return w.replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, ""); }
+  function nBlank(p, others, r) {
+    if (/_/.test(p.en)) return null;
+    var words = p.en.split(/\s+/), cands = [], bank = [], pick, d2, o, shown;
+    words.forEach(function (w, i) { var c = nWord(w); if (/^[A-Za-z']{3,}$/.test(c)) cands.push({ i: i, w: c }); });
+    if (words.length < 3 || !cands.length) return null;
+    pick = cands.sort(function (a, b) { return b.w.length - a.w.length; })[0];
+    others.forEach(function (y) { y.en.split(/\s+/).forEach(function (w) { var c = nWord(w); if (/^[A-Za-z']{3,}$/.test(c) && c.toLowerCase() !== pick.w.toLowerCase() && bank.indexOf(c) < 0) bank.push(c); }); });
+    if (bank.length < 2) return null;
+    d2 = nShuffle(bank, r).slice(0, 2); o = nShuffle([pick.w].concat(d2), r);
+    shown = words.slice(); shown[pick.i] = words[pick.i].replace(pick.w, "_____");
+    return { type: "blank", prompt: nb("Fill in the blank.", "خالی جگہ پُر کریں۔"), text: shown.join(" "), say: p.en, opts: o, c: o.indexOf(pick.w) };
+  }
+  function nMakeRun(x, n) {
+    var pool = nPool(x.d), r = nRand(nHash(x.id) + n * 7919), qs = [], types = ["meaning", "listen", "blank", "tf", "meaning"], order, k;
+    if (pool.length >= 3) {
+      order = nShuffle(pool, r);
+      for (k = 0; k < 12 && qs.length < 5; k++) {
+        var p = order[k % order.length], type = types[k % types.length], others = nShuffle(pool.filter(function (y) { return y !== p; }), r), q = null, o, good, ur2;
+        if (type === "meaning") { o = [p.ur, others[0].ur, others[1].ur]; q = { type: type, prompt: nb("What does this mean?", "اس کا مطلب کیا ہے؟"), text: p.en, say: p.en, opts: nShuffle(o, r), c: 0 }; q.c = q.opts.indexOf(p.ur); }
+        else if (type === "listen") { o = [p.en, others[0].en, others[1].en]; q = { type: type, prompt: nb("Listen and choose.", "سنیں اور چنیں۔"), say: p.en, opts: nShuffle(o, r), c: 0 }; q.c = q.opts.indexOf(p.en); }
+        else if (type === "blank") q = nBlank(p, others, r);
+        else { good = r() < 0.5; ur2 = good ? p.ur : others[0].ur; q = { type: type, prompt: nb("True or False?", "درست یا غلط؟"), text: p.en + "  =  " + ur2, say: p.en, opts: [nb("True", "درست"), nb("False", "غلط")], c: good ? 0 : 1 }; }
+        if (q && q.c >= 0 && q.opts.filter(function (v, i) { return q.opts.indexOf(v) === i; }).length === q.opts.length && !qs.some(function (z) { return z.type === q.type && z.text === q.text && z.say === q.say; })) qs.push(q);
+      }
+    }
+    return { id: x.id, n: n, qs: qs, ans: qs.map(function () { return null; }) };
+  }
+  function nFinish(run) {
+    var s = 0; run.qs.forEach(function (q, i) { if (run.ans[i] === q.c) s++; });
+    state.noteScore = state.noteScore || {}; var prev = state.noteScore[run.id];
+    state.noteScore[run.id] = { s: s, t: run.qs.length, best: Math.max(s, prev ? prev.best : 0), at: Date.now() };
+    if (run.qs.length && s / run.qs.length >= 0.6) nProg(run.id).done = true;
+    save();
+  }
+  function nListen(text, lang, small) {
+    return '<button type="button" class="nlisten' + (small ? " sm" : "") + '" data-act="nSay" data-arg="' + lang + "|" + esc(text) + '" aria-label="' + esc(nb("Listen", "سنیں")) + '">' + svg("speaker", small ? 20 : 26) + "</button>";
+  }
+  function nNeighbors(x) {
+    var list = resFor(x.d.subject, x.d.grade, "note").filter(function (y) { return isRichNote(y.d); }), i = list.map(function (y) { return y.id; }).indexOf(x.id);
+    return { prev: i > 0 ? list[i - 1] : null, next: i >= 0 && i < list.length - 1 ? list[i + 1] : null };
+  }
+  function nQuizHTML(x) {
+    var id = x.id, sc = (state.noteScore || {})[id], run = noteRun && noteRun.id === id ? noteRun : null, h = '<div class="ncheck"><h5>✅ ' + esc(nb("Check yourself", "خود کو جانچیں")) + "</h5>";
+    if (!run) {
+      if (nPool(x.d).length < 3) return "";
+      return h + '<p class="small">' + esc(nb("5 quick questions. You see the answer straight away.", "5 مختصر سوال۔ جواب فوراً نظر آئے گا۔")) + (sc ? " · " + esc("Last") + " " + nNum(sc.s + "/" + sc.t) + " · " + esc("Best") + " " + nNum(sc.best + "/" + sc.t) : "") + '</p><button type="button" class="bigbtn" data-act="nStart" data-arg="' + esc(id) + '">' + esc(nb("Start", "شروع کریں")) + "</button></div>";
+    }
+    if (!run.qs.length) return "";
+    var answered = run.ans.filter(function (a) { return a != null; }).length, all = answered === run.qs.length;
+    run.qs.forEach(function (q, i) {
+      var a = run.ans[i], got = a != null;
+      h += '<fieldset class="nq"><legend>' + (i + 1) + ". " + esc(q.prompt) + "</legend>";
+      if (q.say) h += '<div class="nqsay">' + nListen(q.say, "en") + (q.text ? '<p class="nqtext" dir="auto">' + esc(q.text) + "</p>" : "") + "</div>";
+      q.opts.forEach(function (o, j) {
+        var cls = got ? (j === q.c ? " right" : (a === j ? " wrong" : "")) : "";
+        h += '<button type="button" class="nopt' + cls + '" dir="auto" data-act="nAns" data-arg="' + esc(id) + "|" + i + "|" + j + '"' + (got ? " disabled" : "") + ">" + (got && j === q.c ? "✓ " : (got && a === j ? "✗ " : "")) + esc(o) + "</button>";
+      });
+      if (got) h += '<p class="nfb" aria-live="polite">' + esc(a === q.c ? nb("Correct! Well done.", "درست! شاباش۔") : nb("Not quite. The right answer is marked ✓.", "ٹھیک نہیں۔ صحیح جواب ✓ سے دکھایا گیا ہے۔")) + "</p>";
+      h += "</fieldset>";
+    });
+    if (all) {
+      var s = (state.noteScore || {})[id] || { s: 0, t: run.qs.length, best: 0 }, pass = s.t && s.s / s.t >= 0.6;
+      h += '<p class="bigtext center" dir="ltr">' + esc("Score") + ": " + nNum(s.s + "/" + s.t) + ' · <bdi lang="ur" dir="rtl">نمبر</bdi></p><p class="small center">' + esc(pass ? nb("✅ Well done! This lesson is complete.", "✅ شاباش! یہ سبق مکمل ہوا۔") : nb("You need 60% or more. Read the lesson again and try once more.", "کم از کم 60٪ نمبر چاہیں۔ سبق دوبارہ پڑھ کر کوشش کریں۔")) + '</p><button type="button" class="bigbtn" data-act="nAgain" data-arg="' + esc(id) + '">' + esc(nb("Try again", "دوبارہ کوشش کریں")) + "</button>";
+    }
+    return h + "</div>";
+  }
+  function nRichHTML(x) {
+    var d = x.d, id = x.id, p = nGet(id), open = state.noteOpen === id, secs = d.sections, total = 0, said = 0, cur = typeof p.open === "number" ? p.open : 0, h = '<div class="nrich">', status, nn, wl;
+    secs.forEach(function (sc, i) { nPairs(sc).forEach(function (pr, j) { if (pr.en) { total++; if (p.said[i + "-" + j]) said++; } }); });
+    status = p.done ? nb("Completed", "مکمل") : (said || cur > 0 ? nb("In progress", "جاری") : nb("New", "نیا"));
+    h += '<div class="nstat"><span class="nbadge' + (p.done ? " done" : "") + '">' + (p.done ? "✓ " : "") + esc(status) + "</span>" + (total ? '<progress class="nprog" value="' + said + '" max="' + total + '" aria-label="' + esc(nb("Lines practised", "مشق کی ہوئی لائنیں")) + '"></progress><small>' + said + "/" + total + "</small>" : "") + "</div>";
+    if (!open) return h + '<button type="button" class="bigbtn" data-act="nOpen" data-arg="' + esc(id) + '">' + esc(p.done ? nb("Read again", "دوبارہ پڑھیں") : (said || cur > 0 ? nb("Continue lesson", "سبق جاری رکھیں") : nb("Open lesson", "سبق کھولیں"))) + "</button></div>";
+    h += '<div class="nobj"><h5>🎯 ' + esc(nb("What you will learn", "آپ کیا سیکھیں گے")) + "</h5><ul>";
+    secs.forEach(function (sc) { h += '<li dir="auto">' + esc(nTitle(sc.t)) + "</li>"; });
+    h += "</ul></div>";
+    secs.forEach(function (sc, i) {
+      var on = cur === i;
+      h += '<section class="nsec' + (on ? " open" : "") + '"><button type="button" class="nsechd" aria-expanded="' + (on ? "true" : "false") + '" data-act="nSec" data-arg="' + esc(id) + "|" + i + '">' + (sc.pic ? '<span class="npic" aria-hidden="true">' + emoOrImg(sc.pic) + "</span>" : '<span class="nnum">' + (i + 1) + "</span>") + '<span dir="auto">' + esc(nTitle(sc.t) || (rt("noteChap") + " " + (i + 1))) + '</span><span class="nchev" aria-hidden="true">›</span></button>';
+      if (on) {
+        h += '<div class="nbody">';
+        nPairs(sc).forEach(function (pr, j) {
+          var key = i + "-" + j, voc = pr.en && pr.ur && nIsVocab(pr.en), sd = !!p.said[key];
+          h += '<div class="nrow' + (voc ? " voc" : "") + '">' + nListen(pr.en || pr.ur, pr.en ? "en" : "ur") + "<div>" + (pr.en ? '<p class="nentxt" lang="en" dir="ltr">' + esc(pr.en) + "</p>" : "") + (pr.en && pr.ur ? '<div class="nurrow"><p class="nurtxt" lang="ur" dir="rtl">' + esc(pr.ur) + "</p>" + nListen(pr.ur, "ur", true) + "</div>" : (pr.ur ? '<p class="nurtxt" lang="ur" dir="rtl">' + esc(pr.ur) + "</p>" : "")) + "</div>" +
+            (pr.en ? '<button type="button" class="nsaid' + (sd ? " on" : "") + '" data-act="nSaid" data-arg="' + esc(id) + "|" + key + '" aria-pressed="' + (sd ? "true" : "false") + '">🗣️ ' + esc(sd ? nb("Said it", "بول لیا") : nb("Say it", "بولیں")) + "</button>" : "<span></span>") + "</div>";
+        });
+        h += "</div>";
+      }
+      h += "</section>";
+    });
+    wl = nPool(d).map(function (y) { return y.en; }).filter(function (e) { return !/_/.test(e); }).sort(function (a, b) { return a.length - b.length; }).slice(0, 3);
+    if (wl.length) {
+      h += '<div class="nwrite"><h5>✍️ ' + esc(nb("Writing practice", "لکھنے کی مشق")) + '</h5><p class="small">' + esc(nb("Write each line neatly in your copybook, then tick it.", "ہر لائن اپنی کاپی میں صاف لکھیں، پھر نشان لگائیں۔")) + "</p>";
+      wl.forEach(function (ln, k) { var wk = "w" + k, w = !!p.wrote[wk]; h += '<button type="button" class="nwr' + (w ? " on" : "") + '" data-act="nWrote" data-arg="' + esc(id) + "|" + wk + '" aria-pressed="' + (w ? "true" : "false") + '"><span class="nbox" aria-hidden="true">' + (w ? "✓" : "") + '</span><span dir="ltr" lang="en">' + esc(ln) + "</span></button>"; });
+      h += "</div>";
+    }
+    h += nQuizHTML(x);
+    nn = nNeighbors(x);
+    h += '<div class="nfoot"><button type="button" class="bigbtn' + (p.done ? " alt" : "") + '" data-act="nDone" data-arg="' + esc(id) + '">' + esc(p.done ? "✓ " + nb("Completed (tap to undo)", "مکمل (واپس کرنے کے لیے دبائیں)") : nb("Mark lesson as completed", "سبق مکمل کریں")) + '</button><div class="nnav">' +
+      (nn.prev ? '<button type="button" class="btn alt" data-act="nGo" data-arg="' + esc(nn.prev.id) + '">‹ ' + esc(nb("Previous lesson", "پچھلا سبق")) + "</button>" : "") +
+      '<button type="button" class="btn alt" data-act="nOpen" data-arg="' + esc(id) + '">' + esc(nb("Close", "بند کریں")) + "</button>" +
+      (nn.next ? '<button type="button" class="btn alt" data-act="nGo" data-arg="' + esc(nn.next.id) + '">' + esc(nb("Next lesson", "اگلا سبق")) + " ›</button>" : "") + "</div></div></div>";
+    return h;
+  }
+  function nSummaryHTML(items) {
+    var rich = items.filter(function (y) { return isRichNote(y.d); }), done;
+    if (!rich.length) return "";
+    done = rich.filter(function (y) { return nGet(y.id).done; }).length;
+    return '<div class="nsum"><progress class="nprog" value="' + done + '" max="' + rich.length + '" aria-label="' + esc(nb("Lessons completed", "مکمل سبق")) + '"></progress><span dir="ltr">' + esc("Completed") + " " + nNum(done + " / " + rich.length) + ' · <bdi lang="ur" dir="rtl">مکمل</bdi> · ' + esc("Pending") + " " + nNum(rich.length - done) + ' · <bdi lang="ur" dir="rtl">باقی</bdi></span></div>';
   }
   var AUTH = {};
   function authorLine(x) {
