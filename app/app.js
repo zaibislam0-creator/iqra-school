@@ -1240,7 +1240,7 @@
     var pg = state.noteProg || {}, list = resFor(fb.sub, 1, "note").map(function (x) {
       var d = x.d || {}, id = x.id || d.id || "", m = /-u(\d+)-l(\d+)$/.exec(id), r = /-r(\d+)$/.exec(id);
       if (!m && !r) return null;
-      var t = (String(d.title || "").split(": ")[1] || "").split(" · ")[0];
+      var tt = String(d.title || ""), kk = tt.indexOf(": "), t = (kk < 0 ? "" : tt.slice(kk + 2)).split(" · ")[0];
       return { id: id, u: m ? +m[1] : 999, l: m ? +m[2] : +r[1], un: m ? "" : c1Pair("Reviews", "دہرائی"), r: !m, name: t, done: !!(pg[id] && pg[id].done) };
     }).filter(Boolean).sort(function (a, b) { return a.u - b.u || a.l - b.l; });
     var cur = null, i, started = false;
@@ -1359,11 +1359,12 @@
     [/./, "vocabulary"]
   ];
   var C1_MATH_MAP = [["u1l1","u1l2","u1l8","u1l9","u1l10"],["u1l3","u1l12"],["u1l6","u1l7"],["u1l4","u1l5","u1l11","u1l13","u1l14"],["u2l1","u2l2","u2l3","u2l4","u2l5"],["u2l6","u2l7","u2l8","u2l9"],["u6l1","u6l2","u6l3","u6l4","u6l5","u6l6","u6l7","u6l8","u6l9"],["u3l1","u3l2","u3l3","u3l4"],["u5l1","u5l2","u5l3","u5l4","u5l5"],["u4l1","u4l2","u4l3"],[],[]];
+  var C1_MAPS = { math: C1_MATH_MAP, urdu: [["u1l1","u1l2","u1l3","u1l4","u1l5","u1l6","u1l7","u1l8"],["u1l9"],["u1l10"],["u1l11"],["u1l11","u1l12"],["u1l13","u2l5","u2l6"],["u1l11","u2l2","u2l3"],["u2l5","u2l6","u2l7","u2l10","u2l11","u2l13","u2l14","u2l15"],["u2l1","u2l2","u2l3","u2l4","u2l8","u2l9","u2l11","u2l12","u2l14","u2l15"]], gk: [["u1l1","u1l2"],["u1l4"],["u1l6"],["u1l5","u1l9"],["u1l6"],["u1l8"],["u1l7","u1l8"],["u1l13","u1l14"],["u1l10"],[],["u1l3","u1l12"],["u1l11"]], islamiat: [["u1l5"],["u1l2"],["u1l5","u1l6"],["u1l1","u2l1","u2l2","u2l3","u2l4","u2l5","u2l6","u2l7","u2l8","u2l9"],["u1l1","u2l10"],["u1l4"],["u1l10","u1l11","u1l14"],["u1l7","u1l8","u1l9"],["u1l9"],["u1l3","u1l12","u1l13"],["u1l15"],["u3l1","u3l2","u3l3","u1l12"]] };
   function c1ChapKey(tpEn) { return String(tpEn || "").split(/[:：]/)[0].trim().toLowerCase().split(/\s+/)[0]; }
   function c1LessonKey(name) { for (var i = 0; i < C1_MAP.length; i++) if (C1_MAP[i][0].test(name)) return C1_MAP[i][1]; return "vocabulary"; }
   function c1ChapPanel(b, k, tp) {
     var full = L(tp), ci = full.search(/[:：]/), ti = ci > 0 ? full.slice(0, ci).trim() : full, de = ci > 0 ? full.slice(ci + 1).trim() : "", key = c1ChapKey(tp.en), ar = LANG() === "ur" ? "‹" : "›";
-    var plan = c1Plan(b, null), mm = b.sub === "math" ? (C1_MATH_MAP[k] || []) : null, mine = plan.list.filter(function (x) { return !x.r && (mm ? mm.indexOf("u" + x.u + "l" + x.l) >= 0 : c1LessonKey(x.name) === key); }), revs = plan.list.filter(function (x) { return x.r; }), dn = 0;
+    var plan = c1Plan(b, null), mm = C1_MAPS[b.sub] ? (C1_MAPS[b.sub][k] || []) : null, mine = plan.list.filter(function (x) { return !x.r && (mm ? mm.indexOf("u" + x.u + "l" + x.l) >= 0 : c1LessonKey(x.name) === key); }), revs = plan.list.filter(function (x) { return x.r; }), dn = 0;
     mine.forEach(function (x) { if (x.done) dn++; });
     var h = '<section class="c1chp" id="c1chp"><div class="c1chp-h"><div><small>' + esc(c1Pair("Chapter ", "باب ") + (k + 1)) + "</small><h3>" + esc(ti) + "</h3>" + (de ? "<p>" + esc(de) + "</p>" : "") + '</div><button type="button" class="c1x" data-act="c1Ch" data-arg="' + k + '" aria-label="' + esc(c1Pair("Close", "بند کریں")) + '">✕</button></div>';
     if (!mine.length) h += '<p class="c1empty">' + esc(c1Pair("Lessons for this chapter are being prepared.", "اس باب کے اسباق تیار ہو رہے ہیں۔")) + "</p>";
@@ -1387,7 +1388,7 @@
     var C = D.class1, ur = LANG() === "ur", prev = C.books[idx - 1], next = C.books[idx + 1];
     var h = '<button type="button" class="link" data-act="home">‹ ' + esc(t("back")) + "</button>";
     h += '<section class="c1bk"><span class="c1ic big" aria-hidden="true">' + esc(b.icon) + '</span><div><p class="c1k">' + esc(c1Pair("Book ", "کتاب ") + b.n + c1Pair(" of ", " از ") + C.books.length) + " · " + b.periods + " " + esc(c1Per(b)) + "</p><h2>" + esc(L(b.title)) + "</h2><p>" + esc(L(b.goal)) + "</p></div></section>";
-    var live = b.sub === "english" || b.sub === "math", sel = live && typeof state.c1ch === "number" ? state.c1ch : -1;
+    var live = b.sub === "english" || !!C1_MAPS[b.sub], sel = live && typeof state.c1ch === "number" ? state.c1ch : -1;
     if (live) h += c1TodayCard(b);
     h += '<h3 class="subhd">' + esc(c1Pair("What we will learn", "ہم کیا سیکھیں گے")) + '</h3><ol class="c1chs kgrid">';
     b.topics.forEach(function (tp, k) {
@@ -3149,6 +3150,7 @@
   BUILTIN_RES = BUILTIN_RES.filter(function (x) { return String(x.d.grade) !== "KG"; });
   (Array.isArray(window.IQRA_C1_GAMES) ? window.IQRA_C1_GAMES : []).forEach(function (g) { if (!D.lessons.some(function (x) { return x.id === g.id; })) D.lessons.push(g); }); /* Class 1 English games: written by IQRA */
   BUILTIN_RES = BUILTIN_RES.concat(Array.isArray(window.IQRA_C1_EN) ? window.IQRA_C1_EN : []); /* Class 1 English, Unit 1: written by IQRA */
+  BUILTIN_RES = BUILTIN_RES.concat(Array.isArray(window.IQRA_C1_URDU) ? window.IQRA_C1_URDU : [], Array.isArray(window.IQRA_C1_GK) ? window.IQRA_C1_GK : [], Array.isArray(window.IQRA_C1_ISL) ? window.IQRA_C1_ISL : []); /* Class 1 Urdu, GK, Islamiyat: written by IQRA */
   BUILTIN_RES = BUILTIN_RES.concat(Array.isArray(window.IQRA_C1_MATH) ? window.IQRA_C1_MATH : []); /* Class 1 Mathematics: written by IQRA */
   var RES_ICON = { video: "🎬", note: "📄", book: "📚", test: "📝", guide: "🗣️" };
   var RES_TYPES = ["video", "note", "book", "paper", "test", "guide"];
@@ -3294,7 +3296,7 @@
     var out = [], pts = sc.pts || [], i = 0;
     while (i < pts.length) {
       var a = String(pts[i]), b = pts[i + 1] != null ? String(pts[i + 1]) : "";
-      if (URDU_RE.test(a)) { out.push({ en: "", ur: a }); i++; }
+      if (URDU_RE.test(a) && !/[A-Za-z]{2}/.test(a)) { out.push({ en: "", ur: a }); i++; }
       else if (b && URDU_RE.test(b)) { out.push({ en: a, ur: b }); i += 2; }
       else { out.push({ en: a, ur: "" }); i++; }
     }
