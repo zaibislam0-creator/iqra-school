@@ -1234,6 +1234,32 @@
     if (soon) h += '<li class="c1pm">' + esc(c1Pair(soon + " more books in preparation", soon + " مزید کتابیں تیاری میں")) + "</li>";
     return h + "</ul></div></section>";
   }
+  function c1SyllabusHTML(fb, cont) {
+    var pg = state.noteProg || {}, list = resFor(fb.sub, 1, "note").map(function (x) {
+      var d = x.d || {}, id = x.id || d.id || "", m = /-u(\d+)-l(\d+)$/.exec(id), r = /-r(\d+)$/.exec(id);
+      if (!m && !r) return null;
+      var dm = /\(Unit \d+: ([^)]*)\)/.exec(d.desc || ""), t = (String(d.title || "").split(": ")[1] || "").split(" · ")[0];
+      return { id: id, u: m ? +m[1] : 999, l: m ? +m[2] : +r[1], un: m ? "" : c1Pair("Reviews", "دہرائی"), r: !m, name: t, done: !!(pg[id] && pg[id].done) };
+    }).filter(Boolean).sort(function (a, b) { return a.u - b.u || a.l - b.l; });
+    if (!list.length) return "";
+    var cur = null, units = {}, order = [], done = 0, i;
+    if (cont && cont.b === fb) for (i = 0; i < list.length; i++) if (list[i].id === cont.x.id) cur = list[i];
+    for (i = 0; i < list.length && !cur; i++) if (!list[i].done) cur = list[i];
+    list.forEach(function (x) {
+      if (!units[x.u]) { units[x.u] = { n: x.u, name: x.un, t: 0, d: 0 }; order.push(x.u); }
+      units[x.u].t++; if (x.done) { units[x.u].d++; done++; }
+    });
+    var pct = Math.round(done / list.length * 100), h = '<section class="c1syl"><div class="c1sy-h"><h3>' + esc(c1Pair("Syllabus covered", "نصاب جو پڑھ لیا")) + "</h3><b>" + nNum(done) + "/" + nNum(list.length) + " " + esc(c1Pair("lessons", "اسباق")) + " · " + nNum(pct) + "%</b></div>";
+    if (cur) h += '<p class="c1here"><span class="c1pin" aria-hidden="true">●</span> ' + esc(c1Pair("You are here: ", "آپ یہاں ہیں: ")) + "<b>" + (cur.r ? esc(c1Pair("Review ", "دہرائی ")) + nNum(cur.l) : esc(c1Pair("Unit ", "یونٹ ")) + nNum(cur.u) + " · " + esc(c1Pair("Lesson ", "سبق ")) + nNum(cur.l)) + (cur.name ? " · " + esc(cur.name) : "") + "</b></p>";
+    h += '<div class="c1map" role="img" aria-label="' + done + "/" + list.length + '">';
+    list.forEach(function (x) { h += '<span class="c1cell' + (x.done ? " d" : "") + (cur && x.id === cur.id ? " cur" : "") + '" title="' + esc("U" + x.u + " L" + x.l) + '"></span>'; });
+    h += '</div><ul class="c1units">';
+    order.forEach(function (n) {
+      var u = units[n], on = cur && cur.u === n;
+      h += '<li' + (on ? ' class="on"' : "") + '><span class="c1un">' + (n === 999 ? esc(u.name) : esc(c1Pair("Unit ", "یونٹ ")) + nNum(n) + (u.name ? " · " + esc(u.name) : "")) + '</span><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + Math.round(u.d / u.t * 100) + '%"></span></span><em>' + nNum(u.d) + "/" + nNum(u.t) + (on ? ' <i>' + esc(c1Pair("you are here", "آپ یہاں")) + "</i>" : "") + "</em></li>";
+    });
+    return h + "</ul></section>";
+  }
   function c1DashHTML(C) {
     var pg = state.noteProg || {}, sc = state.noteScore || {}, T = 0, Dn = 0, St = 0, cont = null, info = {};
     C.books.forEach(function (b) {
@@ -1250,6 +1276,7 @@
     var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], started = !!cont || fi.dn > 0, pc0 = fi.t ? Math.round(fi.dn / fi.t * 100) : 0;
     var h = '<section class="c1top2"><div><h2>' + esc(L(C.title)) + '</h2><p>' + esc(C.books.length + " " + c1Pair("books", "کتابیں") + " · " + C.terms + " " + c1Pair("terms", "ٹرم") + " · " + C.weeks + " " + c1Pair("weeks", "ہفتے")) + '</p></div></section>' +
       '<section class="c1next" id="subjects"><div class="c1nt"><small>' + esc(c1Pair(started ? "Continue where you stopped" : "Start here", started ? "جہاں رکے تھے وہیں سے جاری رکھیں" : "یہاں سے شروع کریں")) + '</small><b>' + esc(L(fb.title)) + '</b><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><button type="button" class="c1cbtn" data-act="sub" data-arg="' + esc(fb.sub) + '">' + esc(c1Pair(started ? "Continue" : "Start", started ? "جاری رکھیں" : "شروع کریں")) + '</button></section>' +
+      c1SyllabusHTML(fb, cont) +
       '<h3 class="subhd c1sh">' + esc(c1Pair("All 9 books", "تمام 9 کتابیں")) + '</h3><div class="c1tiles">';
     C.books.forEach(function (b) {
       var f = info[b.sub], pc = f.t ? Math.round(f.dn / f.t * 100) : 0, ok = f.files > 0;
