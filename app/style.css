@@ -1872,3 +1872,10 @@ body.c1clean .c1more>summary{border:0;box-shadow:none;border-radius:0;background
 :root[data-theme="dark"] .c1today{background:#0b3a28}
 .c1tt h2,.c1tt h2 span{font-family:inherit}
 .c1today .c1cbtn,.c1lbtn{font-size:1rem;min-height:48px}
+
+.c1logo{flex:none;display:grid;place-items:center;width:84px;height:84px;border-radius:20px;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.c1logo img{width:64px;height:64px;object-fit:contain}
+.c1today{flex-wrap:nowrap;gap:20px}
+.c1today .c1ta{flex:none}
+@media (max-width:900px){.c1today{flex-wrap:wrap}.c1logo{width:68px;height:68px;border-radius:16px}.c1logo img{width:50px;height:50px}.c1tt{flex-basis:200px}}
+@media (max-width:560px){.c1today{flex-direction:column;align-items:flex-start}}

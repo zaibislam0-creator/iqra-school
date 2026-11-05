@@ -1296,7 +1296,7 @@
     var live = C.books.filter(function (b) { return info[b.sub].files; });
     var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], plan = c1Plan(fb, cont), cur = plan.cur, wk = c1WeekHTML(), avg = sN ? Math.round(sSum / sN * 100) : null;
     var pc0 = fi.t ? Math.round(fi.dn / fi.t * 100) : 0, ar = LANG() === "ur" ? "‹" : "›";
-    var h = '<section class="c1today" id="subjects"><div class="c1tt"><small>' + esc(c1Pair("Today's learning", "آج کی پڑھائی")) + "</small>" +
+    var h = '<section class="c1today" id="subjects"><span class="c1logo" aria-hidden="true">' + brandMark(64) + '</span><div class="c1tt"><small>' + esc(c1Pair("Today's learning", "آج کی پڑھائی")) + "</small>" +
       (cur ? "<h2>" + esc(c1LabelOf(cur)) + (cur.name ? "<span>" + esc(cur.name) + "</span>" : "") + "</h2>" : "<h2>" + esc(L(fb.title)) + "</h2>") +
       "<p>" + esc(L(fb.title)) + '</p><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta">' +
       (cur ? '<button type="button" class="c1cbtn" data-act="nLearn" data-arg="' + esc(cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button>" : "") +
