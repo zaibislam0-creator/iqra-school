@@ -118,6 +118,7 @@
     } finally { navRestoring = false; }
   });
   function render() {
+    document.body.classList.remove("c1clean");
     if (view === "home") view = "learn";
     if (ADMIN && ["addbook", "voice", "admin", "pack"].indexOf(view) < 0) view = "addbook";
     if (!ADMIN && ["addbook", "voice", "admin", "pack"].indexOf(view) > -1) { if (isStaff()) { staffTab = view; view = "staff"; } else if (view !== "pack") view = "adult"; }
@@ -1234,39 +1235,40 @@
     return h + "</ul></div></section>";
   }
   function c1DashHTML(C) {
-    var pg = state.noteProg || {}, sc = state.noteScore || {}, T = 0, Dn = 0, St = 0, sSum = 0, sN = 0, cont = null, info = {};
+    var pg = state.noteProg || {}, sc = state.noteScore || {}, T = 0, Dn = 0, St = 0, cont = null, info = {};
     C.books.forEach(function (b) {
       var notes = resFor(b.sub, 1, "note"), dn = 0;
       notes.forEach(function (x) {
         var q = pg[x.id];
         if (q && q.done) dn++;
         else if (q && (q.open || Object.keys(q.said || {}).length || Object.keys(q.wrote || {}).length)) { St++; if (!cont) cont = { b: b, x: x }; }
-        if (sc[x.id] && sc[x.id].t) { sSum += sc[x.id].best / sc[x.id].t; sN++; }
       });
       T += notes.length; Dn += dn;
       info[b.sub] = { dn: dn, t: notes.length, files: resFor(b.sub, 1).length };
     });
-    var first = null;
-    C.books.forEach(function (b) { if (!first && info[b.sub].t) first = b; });
-    var fb = cont ? cont.b : (first || C.books[0]), fi = info[fb.sub], started = !!cont || fi.dn > 0;
-    var pct = T ? Math.round(Dn / T * 100) : 0, avg = sN ? Math.round(sSum / sN * 100) : null, R = 44, CI = 2 * Math.PI * R;
-    var fpc = fi.t ? Math.round(fi.dn / fi.t * 100) : 0;
-    var h = '<section class="c1feat"><div class="c1fl"><span class="c1tag">' + esc(c1Pair(started ? "Continue learning" : "Start here", started ? "سیکھنا جاری رکھیں" : "یہاں سے شروع کریں")) + '</span><h3 id="subjects">' + esc(L(fb.title)) + "</h3><p>" + esc(L(fb.goal || fb.purpose)) + '</p><div class="c1fp"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + fpc + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></div><button type="button" class="c1cbtn" data-act="sub" data-arg="' + esc(fb.sub) + '">' + esc(c1Pair(started ? "Continue" : "Start learning", started ? "جاری رکھیں" : "شروع کریں")) + '</button></div>' +
-      '<div class="c1fr"><div class="c1ring"><svg viewBox="0 0 100 100" role="img" aria-label="' + pct + '%"><circle cx="50" cy="50" r="' + R + '" class="c1rtk"/><circle cx="50" cy="50" r="' + R + '" class="c1rf" stroke-dasharray="' + (CI * pct / 100).toFixed(1) + " " + CI.toFixed(1) + '" transform="rotate(-90 50 50)"/></svg><div class="c1rc"><b>' + nNum(pct) + "%</b><span>" + esc(c1Pair("overall", "کل")) + '</span></div></div><ul class="c1kpi"><li><b>' + nNum(Dn) + "</b><span>" + esc(c1Pair("completed", "مکمل")) + "</span></li><li><b>" + nNum(St) + "</b><span>" + esc(c1Pair("in progress", "جاری")) + "</span></li><li><b>" + (avg === null ? "–" : nNum(avg) + "%") + "</b><span>" + esc(c1Pair("avg score", "اوسط")) + "</span></li></ul></div></section>" +
-      '<h3 class="subhd">' + esc(c1Pair("All books", "تمام کتابیں")) + '</h3><div class="c1tiles">';
-    C.books.forEach(function (b, i) {
+    var live = C.books.filter(function (b) { return info[b.sub].files; }), soon = C.books.filter(function (b) { return !info[b.sub].files; });
+    var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], started = !!cont || fi.dn > 0, pc0 = fi.t ? Math.round(fi.dn / fi.t * 100) : 0;
+    var h = '<section class="c1top2"><div><h2>' + esc(L(C.title)) + '</h2><p>' + esc(C.books.length + " " + c1Pair("books", "کتابیں") + " · " + C.terms + " " + c1Pair("terms", "ٹرم") + " · " + C.weeks + " " + c1Pair("weeks", "ہفتے")) + '</p></div></section>' +
+      '<section class="c1next" id="subjects"><div class="c1nt"><small>' + esc(c1Pair(started ? "Continue where you stopped" : "Start here", started ? "جہاں رکے تھے وہیں سے جاری رکھیں" : "یہاں سے شروع کریں")) + '</small><b>' + esc(L(fb.title)) + '</b><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><button type="button" class="c1cbtn" data-act="sub" data-arg="' + esc(fb.sub) + '">' + esc(c1Pair(started ? "Continue" : "Start", started ? "جاری رکھیں" : "شروع کریں")) + '</button></section>' +
+      (live.length > 1 ? '<h3 class="subhd c1sh">' + esc(c1Pair("Books", "کتابیں")) + '</h3><div class="c1tiles">' : '<div class="c1tiles" hidden>');
+    live.forEach(function (b) {
       var f = info[b.sub], pc = f.t ? Math.round(f.dn / f.t * 100) : 0;
-      h += '<button type="button" class="c1tile t' + (i % 5) + (f.files ? "" : " off") + '" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1th"><span class="c1tn" aria-hidden="true">' + nNum(b.n) + '</span><span class="c1ti" aria-hidden="true">' + esc(b.icon) + '</span></span><span class="c1tb"><b>' + esc(L(b.title)) + "</b><small>" + esc(L(b.purpose)) + '</small><span class="c1tf">' +
-        (f.t ? '<span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(f.dn) + "/" + nNum(f.t) + "</em>" : "<em>" + esc(c1Pair("In preparation", "تیاری میں")) + "</em>") + "</span></span></button>";
+      h += '<button type="button" class="c1tile" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1ti" aria-hidden="true">' + esc(b.icon) + '</span><span class="c1tb"><b>' + esc(L(b.title)) + '</b><span class="c1tf"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(f.dn) + "/" + nNum(f.t) + "</em></span></span></button>";
     });
-    return h + "</div>";
+    h += "</div>";
+    if (soon.length) {
+      h += '<details class="c1soonbox"><summary>' + esc(c1Pair("Coming soon", "جلد آ رہی ہیں")) + " (" + nNum(soon.length) + ')</summary><ul>';
+      soon.forEach(function (b) { h += '<li><button type="button" data-act="sub" data-arg="' + esc(b.sub) + '"><span aria-hidden="true">' + esc(b.icon) + "</span>" + esc(L(b.title)) + "</button></li>"; });
+      h += "</ul></details>";
+    }
+    return h;
   }
   function class1Home() {
     var C = D.class1, ur = LANG() === "ur", book = null, i;
     for (i = 0; i < C.books.length; i++) if (C.books[i].sub === curSubject) book = C.books[i];
     if (book) return c1Book(book, i);
-    var h = '<section class="c1hero"><div class="c1hero-t"><h2>' + esc(L(C.title)) + " · " + esc(L(C.tagline)) + "</h2><p>" + esc(L(C.vision)) + '</p></div><ul class="c1stats">' +
-      "<li><b>" + C.books.length + "</b><span>" + esc(c1Pair("books", "کتابیں")) + "</span></li><li><b>" + C.terms + "</b><span>" + esc(c1Pair("terms", "ٹرم")) + "</span></li><li><b>" + C.weeks + "</b><span>" + esc(c1Pair("weeks", "ہفتے")) + "</span></li></ul></section>";
+    document.body.classList.add("c1clean");
+    var h = "";
     h += c1DashHTML(C);
     // four terms
     h += '<details class="morebox c1more"><summary>📅 ' + esc(c1Pair("Four terms · 36 weeks", "چار ٹرم · 36 ہفتے")) + '</summary><div class="c1grid">';

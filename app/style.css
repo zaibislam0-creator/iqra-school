@@ -1718,3 +1718,49 @@ html.adm .bigbtn.gobtn2{border-radius:12px;min-height:48px}
 :root[data-theme="dark"] .c1tb small,:root[data-theme="dark"] .c1tf em{color:var(--notefg)}
 :root[data-theme="dark"] .c1tf .c1track{background:var(--track)}
 :root[data-theme="dark"] .c1tf .c1fill{background:var(--w)}
+
+/* ---- Class 1 home v4: clean, white, one accent ---- */
+body.c1clean{background:#fff}
+body.c1clean::before{display:none}
+.c1top2{margin:18px 0 14px}
+.c1top2 h2{margin:0;font-size:1.5rem;font-weight:700;color:#064E36}
+.c1top2 p{margin:2px 0 0;color:#5b7a69;font-size:.95rem}
+.c1next{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 20px;border:1px solid #dfe9e2;border-radius:14px;background:#fff}
+.c1nt{display:grid;gap:4px;min-width:0;flex:1}
+.c1nt small{font-size:.85rem;color:#5b7a69}
+.c1nt b{font-size:1.15rem;font-weight:600;color:#064E36}
+.c1np{display:flex;align-items:center;gap:12px;max-width:380px}
+.c1np .c1track{flex:1;display:block;height:6px;border-radius:99px;background:#e6efe9;overflow:hidden}
+.c1np .c1fill{display:block;height:100%;border-radius:99px;background:#0C6849}
+.c1np em{font-style:normal;font-size:.82rem;color:#5b7a69;white-space:nowrap}
+.c1cbtn{flex:none;padding:11px 28px;border:0;border-radius:10px;background:#0C6849;color:#fff;font:inherit;font-weight:600;cursor:pointer;box-shadow:none}
+.c1cbtn:hover{background:#064E36}
+.c1sh{margin:26px 0 10px;font-family:inherit;font-size:.95rem;font-weight:600;color:#355a45}
+.c1tiles{grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:0}
+.c1tile{flex-direction:row;align-items:center;gap:14px;padding:16px;border:1px solid #dfe9e2;border-radius:14px;box-shadow:none;transition:border-color .15s}
+.c1tile:hover,.c1tile:focus-visible{transform:none;box-shadow:none;border-color:#0C6849}
+.c1ti{flex:none;width:48px;height:48px;border-radius:12px;background:#F4F8F3;box-shadow:none;font-size:1.5rem}
+.c1tb{padding:0;gap:6px;min-width:0}
+.c1tb b{font-size:1rem;font-weight:600}
+.c1tf{padding-top:0}
+.c1soonbox{margin:22px 0 10px;border-top:1px solid #e9f0ec;padding-top:12px}
+.c1soonbox summary{cursor:pointer;font-weight:600;font-size:.95rem;color:#5b7a69}
+.c1soonbox ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.c1soonbox button{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid #dfe9e2;border-radius:999px;background:#fff;color:#5b7a69;font:inherit;font-size:.88rem;cursor:pointer}
+.c1soonbox button:hover{border-color:#0C6849;color:#064E36}
+@media (max-width:560px){.c1next{flex-direction:column;align-items:stretch}.c1cbtn{width:100%}.c1tiles{grid-template-columns:1fr}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) body.c1clean{background:var(--bg)}:root:not([data-theme="light"]) :is(.c1next,.c1soonbox button){background:var(--card);border-color:var(--line)}:root:not([data-theme="light"]) :is(.c1top2 h2,.c1nt b){color:var(--tx)}:root:not([data-theme="light"]) :is(.c1top2 p,.c1nt small,.c1np em,.c1sh,.c1soonbox summary,.c1soonbox button){color:var(--notefg)}:root:not([data-theme="light"]) .c1ti{background:var(--g2)}:root:not([data-theme="light"]) .c1cbtn{background:var(--btn)}}
+:root[data-theme="dark"] body.c1clean{background:var(--bg)}
+:root[data-theme="dark"] :is(.c1next,.c1soonbox button){background:var(--card);border-color:var(--line)}
+:root[data-theme="dark"] :is(.c1top2 h2,.c1nt b){color:var(--tx)}
+:root[data-theme="dark"] :is(.c1top2 p,.c1nt small,.c1np em,.c1sh,.c1soonbox summary,.c1soonbox button){color:var(--notefg)}
+:root[data-theme="dark"] .c1ti{background:var(--g2)}
+:root[data-theme="dark"] .c1cbtn{background:var(--btn)}
+
+body.c1clean .c1more{background:#fff;border:1px solid #dfe9e2;border-radius:12px;box-shadow:none}
+body.c1clean .c1more>summary{background:transparent;color:#064E36;font-weight:600;font-size:1rem}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) body.c1clean .c1more{background:var(--card);border-color:var(--line)}:root:not([data-theme="light"]) body.c1clean .c1more>summary{color:var(--tx)}}
+:root[data-theme="dark"] body.c1clean .c1more{background:var(--card);border-color:var(--line)}
+:root[data-theme="dark"] body.c1clean .c1more>summary{color:var(--tx)}
+body.c1clean .c1more{border:0;border-top:1px solid #e9f0ec;border-radius:0;background:transparent;margin:0}
+body.c1clean .c1more>summary{border:0;box-shadow:none;border-radius:0;background:transparent;padding:14px 4px}
