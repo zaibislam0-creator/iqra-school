@@ -1225,9 +1225,12 @@
       '<div class="c1ring"><svg viewBox="0 0 100 100" role="img" aria-label="' + pct + '%"><circle cx="50" cy="50" r="' + R + '" class="c1rt"/><circle cx="50" cy="50" r="' + R + '" class="c1rf" stroke-dasharray="' + (CI * pct / 100).toFixed(1) + " " + CI.toFixed(1) + '" transform="rotate(-90 50 50)"/></svg><div class="c1rc"><b>' + nNum(pct) + '%</b><span>' + esc(c1Pair("done", "مکمل")) + "</span></div></div>" +
       '<ul class="c1kpi"><li><b>' + nNum(Dn) + "/" + nNum(T) + "</b><span>" + esc(c1Pair("lessons completed", "مکمل اسباق")) + "</span></li><li><b>" + (avg === null ? "–" : nNum(avg) + "%") + "</b><span>" + esc(c1Pair("average quiz score", "اوسط نمبر")) + "</span></li></ul>" +
       '<ul class="c1pb">';
+    var soon = 0;
     rows.forEach(function (r) {
+      if (!r.t) { soon++; return; }
       h += '<li><span class="c1pn">' + esc(r.name) + '</span><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + (r.t ? Math.round(r.dn / r.t * 100) : 0) + '%"></span></span><b>' + (r.t ? nNum(r.dn) + "/" + nNum(r.t) : esc(c1Pair("soon", "جلد"))) + "</b></li>";
     });
+    if (soon) h += '<li class="c1pm">' + esc(c1Pair(soon + " more books in preparation", soon + " مزید کتابیں تیاری میں")) + "</li>";
     return h + "</ul></div></section>";
   }
   function class1Home() {
