@@ -1233,24 +1233,37 @@
     if (soon) h += '<li class="c1pm">' + esc(c1Pair(soon + " more books in preparation", soon + " مزید کتابیں تیاری میں")) + "</li>";
     return h + "</ul></div></section>";
   }
+  function c1DashHTML(C) {
+    var pg = state.noteProg || {}, sc = state.noteScore || {}, rows = "", T = 0, Dn = 0, St = 0, sSum = 0, sN = 0, cont = null;
+    C.books.forEach(function (b) {
+      var notes = resFor(b.sub, 1, "note"), dn = 0, files = resFor(b.sub, 1).length;
+      notes.forEach(function (x) {
+        var q = pg[x.id];
+        if (q && q.done) dn++;
+        else if (q && (q.open || Object.keys(q.said || {}).length || Object.keys(q.wrote || {}).length)) { St++; if (!cont) cont = { b: b, x: x }; }
+        if (sc[x.id] && sc[x.id].t) { sSum += sc[x.id].best / sc[x.id].t; sN++; }
+      });
+      T += notes.length; Dn += dn;
+      var pc = notes.length ? Math.round(dn / notes.length * 100) : 0;
+      rows += '<li><button type="button" class="c1row' + (files ? "" : " off") + '" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1ri" aria-hidden="true">' + esc(b.icon) + '</span><span class="c1rt"><b>' + esc(L(b.title)) + "</b><small>" + esc(L(b.purpose)) + "</small></span>" +
+        (notes.length ? '<span class="c1rp"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(dn) + "/" + nNum(notes.length) + "</em></span>" : '<span class="c1rp"><em>' + esc(c1Pair("In preparation", "تیاری میں")) + "</em></span>") +
+        '<span class="c1go">' + esc(files ? c1Pair("Open", "کھولیں") : c1Pair("Preview", "دیکھیں")) + "</span></button></li>";
+    });
+    if (!cont) { var b0 = C.books[0]; cont = { b: b0, x: null }; }
+    var pct = T ? Math.round(Dn / T * 100) : 0, avg = sN ? Math.round(sSum / sN * 100) : null, R = 40, CI = 2 * Math.PI * R;
+    var h = '<div class="c1dash"><section class="c1main"><h3 class="subhd" id="subjects">' + esc(c1Pair("My books", "میری کتابیں")) + '</h3><ul class="c1rows">' + rows + "</ul></section>" +
+      '<aside class="c1side"><section class="c1cont"><p>' + esc(c1Pair(cont.x ? "Continue learning" : "Start learning", cont.x ? "سیکھنا جاری رکھیں" : "سیکھنا شروع کریں")) + "</p><b>" + esc(L(cont.b.title)) + '</b><button type="button" class="c1cbtn" data-act="sub" data-arg="' + esc(cont.b.sub) + '">' + esc(c1Pair(cont.x ? "Continue" : "Start", cont.x ? "جاری رکھیں" : "شروع کریں")) + "</button></section>" +
+      '<section class="c1stat"><h3>' + esc(c1Pair("Progress", "پیش رفت")) + '</h3><div class="c1ring"><svg viewBox="0 0 100 100" role="img" aria-label="' + pct + '%"><circle cx="50" cy="50" r="' + R + '" class="c1rtk"/><circle cx="50" cy="50" r="' + R + '" class="c1rf" stroke-dasharray="' + (CI * pct / 100).toFixed(1) + " " + CI.toFixed(1) + '" transform="rotate(-90 50 50)"/></svg><div class="c1rc"><b>' + nNum(pct) + "%</b></div></div>" +
+      '<ul class="c1kpi"><li><span>' + esc(c1Pair("Completed", "مکمل")) + "</span><b>" + nNum(Dn) + "</b></li><li><span>" + esc(c1Pair("In progress", "جاری")) + "</span><b>" + nNum(St) + "</b></li><li><span>" + esc(c1Pair("Average score", "اوسط نمبر")) + "</span><b>" + (avg === null ? "–" : nNum(avg) + "%") + "</b></li></ul></section></aside></div>";
+    return h;
+  }
   function class1Home() {
     var C = D.class1, ur = LANG() === "ur", book = null, i;
     for (i = 0; i < C.books.length; i++) if (C.books[i].sub === curSubject) book = C.books[i];
     if (book) return c1Book(book, i);
     var h = '<section class="c1hero"><div class="c1hero-t"><h2>' + esc(L(C.title)) + " · " + esc(L(C.tagline)) + "</h2><p>" + esc(L(C.vision)) + '</p></div><ul class="c1stats">' +
       "<li><b>" + C.books.length + "</b><span>" + esc(c1Pair("books", "کتابیں")) + "</span></li><li><b>" + C.terms + "</b><span>" + esc(c1Pair("terms", "ٹرم")) + "</span></li><li><b>" + C.weeks + "</b><span>" + esc(c1Pair("weeks", "ہفتے")) + "</span></li></ul></section>";
-    h += c1ProgressHTML(C);
-    h += '<h3 class="subhd" id="subjects">' + esc(c1Pair("The nine Class 1 books", "جماعت اول کی نو کتابیں")) + '</h3><div class="c1books">';
-    C.books.forEach(function (b) {
-      var n = resFor(b.sub, 1).length, notes = resFor(b.sub, 1, "note"), tot = notes.length, dn = 0, pg = (state.noteProg || {});
-      notes.forEach(function (x) { if (pg[x.id] && pg[x.id].done) dn++; });
-      h += '<button type="button" class="c1book" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1top"><span class="c1ic" aria-hidden="true">' + esc(b.icon) + "</span>" +
-        (n ? '<span class="c1have">' + nNum(n) + " " + esc(c1Pair("files", "فائلیں")) + "</span>" : '<span class="c1soon">' + esc(c1Pair("In preparation", "تیاری میں")) + "</span>") + "</span>" +
-        "<b>" + esc(L(b.title)) + "</b><small>" + esc(L(b.purpose)) + "</small>" +
-        (tot ? '<span class="c1prog"><span class="c1pl"><span>' + esc(c1Pair("Lessons done", "مکمل اسباق")) + "</span><b>" + nNum(dn) + "/" + nNum(tot) + '</b></span><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + Math.round(dn / tot * 100) + '%"></span></span></span>' : "") +
-        '<span class="c1meta">' + esc(c1Pair("Book ", "کتاب ")) + nNum(b.n) + " · " + nNum(b.topics.length) + " " + esc(c1Pair("chapters", "ابواب")) + " · " + nNum(b.periods) + " " + esc(c1Per(b)) + "</span></button>";
-    });
-    h += "</div>";
+    h += c1DashHTML(C);
     // four terms
     h += '<details class="morebox c1more"><summary>📅 ' + esc(c1Pair("Four terms · 36 weeks", "چار ٹرم · 36 ہفتے")) + '</summary><div class="c1grid">';
     C.termPlan.forEach(function (tm) {
