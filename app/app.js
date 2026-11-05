@@ -1234,57 +1234,87 @@
     if (soon) h += '<li class="c1pm">' + esc(c1Pair(soon + " more books in preparation", soon + " مزید کتابیں تیاری میں")) + "</li>";
     return h + "</ul></div></section>";
   }
-  function c1SyllabusHTML(fb, cont) {
+  function dayKey(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function logAct() { var k = dayKey(new Date()); state.actLog = state.actLog || {}; state.actLog[k] = (state.actLog[k] || 0) + 1; }
+  function c1Plan(fb, cont) {
     var pg = state.noteProg || {}, list = resFor(fb.sub, 1, "note").map(function (x) {
       var d = x.d || {}, id = x.id || d.id || "", m = /-u(\d+)-l(\d+)$/.exec(id), r = /-r(\d+)$/.exec(id);
       if (!m && !r) return null;
-      var dm = /\(Unit \d+: ([^)]*)\)/.exec(d.desc || ""), t = (String(d.title || "").split(": ")[1] || "").split(" · ")[0];
+      var t = (String(d.title || "").split(": ")[1] || "").split(" · ")[0];
       return { id: id, u: m ? +m[1] : 999, l: m ? +m[2] : +r[1], un: m ? "" : c1Pair("Reviews", "دہرائی"), r: !m, name: t, done: !!(pg[id] && pg[id].done) };
     }).filter(Boolean).sort(function (a, b) { return a.u - b.u || a.l - b.l; });
-    if (!list.length) return "";
-    var cur = null, units = {}, order = [], done = 0, i;
+    var cur = null, i, started = false;
+    list.forEach(function (x) { if (x.done) started = true; });
     if (cont && cont.b === fb) for (i = 0; i < list.length; i++) if (list[i].id === cont.x.id) cur = list[i];
+    if (cur) started = true;
     for (i = 0; i < list.length && !cur; i++) if (!list[i].done) cur = list[i];
+    var next = list.filter(function (x) { return !x.done && (!cur || x.id !== cur.id); }).slice(0, 3);
+    return { list: list, cur: cur, next: next, started: started };
+  }
+  function c1LabelOf(x) { return x.r ? c1Pair("Review ", "دہرائی ") + x.l : c1Pair("Unit ", "یونٹ ") + x.u + " · " + c1Pair("Lesson ", "سبق ") + x.l; }
+  function c1WeekHTML() {
+    var log = state.actLog || {}, days = [], i, mx = 1, tot = 0, d, now = new Date();
+    for (i = 6; i >= 0; i--) { d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); var n = log[dayKey(d)] || 0; days.push({ n: n, l: d.toLocaleDateString("en", { weekday: "short" }), today: i === 0 }); mx = Math.max(mx, n); tot += n; }
+    var streak = 0; for (i = 0; i < 60; i++) { d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); if (log[dayKey(d)]) streak++; else if (i > 0) break; }
+    var h = '<section class="c1wk"><div class="c1sy-h"><h3>' + esc(c1Pair("This week", "اس ہفتے")) + "</h3><b>" + nNum(tot) + " " + esc(c1Pair("activities", "سرگرمیاں")) + '</b></div><div class="c1bars7" role="img" aria-label="' + tot + '">';
+    days.forEach(function (x) { h += '<div class="c1b7' + (x.today ? " t" : "") + '"><span class="c1b7v">' + (x.n ? nNum(x.n) : "") + '</span><span class="c1b7b"><i style="height:' + (x.n ? Math.max(8, Math.round(x.n / mx * 100)) : 3) + '%"></i></span><span class="c1b7l">' + esc(x.l) + "</span></div>"; });
+    h += "</div>" + (tot ? "" : '<p class="c1empty">' + esc(c1Pair("No activity yet this week. Start a lesson to fill this chart.", "اس ہفتے ابھی کوئی سرگرمی نہیں۔ سبق شروع کریں۔")) + "</p>") + "</section>";
+    return { html: h, streak: streak };
+  }
+  function c1SyllabusHTML(fb, plan) {
+    var list = plan.list, cur = plan.cur;
+    if (!list.length) return "";
+    var units = {}, order = [], done = 0;
     list.forEach(function (x) {
       if (!units[x.u]) { units[x.u] = { n: x.u, name: x.un, t: 0, d: 0 }; order.push(x.u); }
       units[x.u].t++; if (x.done) { units[x.u].d++; done++; }
     });
     var pct = Math.round(done / list.length * 100), h = '<section class="c1syl"><div class="c1sy-h"><h3>' + esc(c1Pair("Syllabus covered", "نصاب جو پڑھ لیا")) + "</h3><b>" + nNum(done) + "/" + nNum(list.length) + " " + esc(c1Pair("lessons", "اسباق")) + " · " + nNum(pct) + "%</b></div>";
-    if (cur) h += '<p class="c1here"><span class="c1pin" aria-hidden="true">●</span> ' + esc(c1Pair("You are here: ", "آپ یہاں ہیں: ")) + "<b>" + (cur.r ? esc(c1Pair("Review ", "دہرائی ")) + nNum(cur.l) : esc(c1Pair("Unit ", "یونٹ ")) + nNum(cur.u) + " · " + esc(c1Pair("Lesson ", "سبق ")) + nNum(cur.l)) + (cur.name ? " · " + esc(cur.name) : "") + "</b></p>";
+    if (cur) h += '<p class="c1here"><span class="c1pin" aria-hidden="true">●</span> ' + esc(c1Pair("You are here: ", "آپ یہاں ہیں: ")) + "<b>" + esc(c1LabelOf(cur)) + (cur.name ? " · " + esc(cur.name) : "") + "</b></p>";
     h += '<div class="c1map" role="img" aria-label="' + done + "/" + list.length + '">';
-    list.forEach(function (x) { h += '<span class="c1cell' + (x.done ? " d" : "") + (cur && x.id === cur.id ? " cur" : "") + '" title="' + esc("U" + x.u + " L" + x.l) + '"></span>'; });
+    list.forEach(function (x) { h += '<span class="c1cell' + (x.done ? " d" : "") + (cur && x.id === cur.id ? " cur" : "") + '" title="' + esc(c1LabelOf(x)) + '"></span>'; });
     h += '</div><ul class="c1units">';
     order.forEach(function (n) {
       var u = units[n], on = cur && cur.u === n;
-      h += '<li' + (on ? ' class="on"' : "") + '><span class="c1un">' + (n === 999 ? esc(u.name) : esc(c1Pair("Unit ", "یونٹ ")) + nNum(n) + (u.name ? " · " + esc(u.name) : "")) + '</span><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + Math.round(u.d / u.t * 100) + '%"></span></span><em>' + nNum(u.d) + "/" + nNum(u.t) + (on ? ' <i>' + esc(c1Pair("you are here", "آپ یہاں")) + "</i>" : "") + "</em></li>";
+      h += '<li' + (on ? ' class="on"' : "") + '><span class="c1un">' + (n === 999 ? esc(u.name) : esc(c1Pair("Unit ", "یونٹ ")) + nNum(n)) + '</span><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + Math.round(u.d / u.t * 100) + '%"></span></span><em>' + nNum(u.d) + "/" + nNum(u.t) + (on ? ' <i>' + esc(c1Pair("you are here", "آپ یہاں")) + "</i>" : "") + "</em></li>";
     });
     return h + "</ul></section>";
   }
   function c1DashHTML(C) {
-    var pg = state.noteProg || {}, sc = state.noteScore || {}, T = 0, Dn = 0, St = 0, cont = null, info = {};
+    var pg = state.noteProg || {}, sc = state.noteScore || {}, cont = null, info = {}, sSum = 0, sN = 0, Dn = 0;
     C.books.forEach(function (b) {
       var notes = resFor(b.sub, 1, "note"), dn = 0;
       notes.forEach(function (x) {
         var q = pg[x.id];
         if (q && q.done) dn++;
-        else if (q && (q.open || Object.keys(q.said || {}).length || Object.keys(q.wrote || {}).length)) { St++; if (!cont) cont = { b: b, x: x }; }
+        else if (q && (Object.keys(q.said || {}).length || Object.keys(q.wrote || {}).length) || state.noteOpen === x.id) { if (!cont) cont = { b: b, x: x }; }
+        if (sc[x.id] && sc[x.id].t) { sSum += sc[x.id].best / sc[x.id].t; sN++; }
       });
-      T += notes.length; Dn += dn;
+      Dn += dn;
       info[b.sub] = { dn: dn, t: notes.length, files: resFor(b.sub, 1).length };
     });
-    var live = C.books.filter(function (b) { return info[b.sub].files; }), soon = C.books.filter(function (b) { return !info[b.sub].files; });
-    var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], started = !!cont || fi.dn > 0, pc0 = fi.t ? Math.round(fi.dn / fi.t * 100) : 0;
-    var h = '<section class="c1top2"><div><h2>' + esc(L(C.title)) + '</h2><p>' + esc(C.books.length + " " + c1Pair("books", "کتابیں") + " · " + C.terms + " " + c1Pair("terms", "ٹرم") + " · " + C.weeks + " " + c1Pair("weeks", "ہفتے")) + '</p></div></section>' +
-      '<section class="c1next" id="subjects"><div class="c1nt"><small>' + esc(c1Pair(started ? "Continue where you stopped" : "Start here", started ? "جہاں رکے تھے وہیں سے جاری رکھیں" : "یہاں سے شروع کریں")) + '</small><b>' + esc(L(fb.title)) + '</b><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><button type="button" class="c1cbtn" data-act="sub" data-arg="' + esc(fb.sub) + '">' + esc(c1Pair(started ? "Continue" : "Start", started ? "جاری رکھیں" : "شروع کریں")) + '</button></section>' +
-      c1SyllabusHTML(fb, cont) +
+    var live = C.books.filter(function (b) { return info[b.sub].files; });
+    var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], plan = c1Plan(fb, cont), cur = plan.cur, wk = c1WeekHTML(), avg = sN ? Math.round(sSum / sN * 100) : null;
+    var pc0 = fi.t ? Math.round(fi.dn / fi.t * 100) : 0, ar = LANG() === "ur" ? "‹" : "›";
+    var h = '<section class="c1today" id="subjects"><div class="c1tt"><small>' + esc(c1Pair("Today's learning", "آج کی پڑھائی")) + "</small>" +
+      (cur ? "<h2>" + esc(c1LabelOf(cur)) + (cur.name ? "<span>" + esc(cur.name) + "</span>" : "") + "</h2>" : "<h2>" + esc(L(fb.title)) + "</h2>") +
+      "<p>" + esc(L(fb.title)) + '</p><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta">' +
+      (cur ? '<button type="button" class="c1cbtn" data-act="nLearn" data-arg="' + esc(cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button>" : "") +
+      '<button type="button" class="c1lbtn" data-act="sub" data-arg="' + esc(fb.sub) + '">' + esc(c1Pair("Open book", "کتاب کھولیں")) + "</button></div></section>" +
       '<h3 class="subhd c1sh">' + esc(c1Pair("All 9 books", "تمام 9 کتابیں")) + '</h3><div class="c1tiles">';
     C.books.forEach(function (b) {
       var f = info[b.sub], pc = f.t ? Math.round(f.dn / f.t * 100) : 0, ok = f.files > 0;
-      h += '<button type="button" class="c1tile' + (ok ? "" : " soonb") + '" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1ti" aria-hidden="true">' + esc(b.icon) + '</span><span class="c1tb"><b>' + esc(L(b.title)) + '</b>' +
+      h += '<button type="button" class="c1tile' + (ok ? "" : " soonb") + '" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1ti" aria-hidden="true">' + esc(b.icon) + '</span><span class="c1tb"><b>' + esc(L(b.title)) + "</b>" +
         (ok ? '<span class="c1tf"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(f.dn) + "/" + nNum(f.t) + " " + esc(c1Pair("lessons", "اسباق")) + "</em></span>" : '<span class="c1st">' + esc(c1Pair("Coming soon", "جلد آ رہی ہے")) + "</span>") +
-        '</span><span class="c1ar" aria-hidden="true">' + (LANG() === "ur" ? "‹" : "›") + "</span></button>";
+        '</span><span class="c1ar" aria-hidden="true">' + ar + "</span></button>";
     });
-    h += "</div>";
+    h += "</div>" + c1SyllabusHTML(fb, plan) + '<div class="c1two">' + wk.html +
+      '<section class="c1ach"><div class="c1sy-h"><h3>' + esc(c1Pair("Achievements", "کامیابیاں")) + '</h3></div><ul class="c1kp"><li><b>' + nNum(Number(state.stars) || 0) + "</b><span>" + esc(c1Pair("stars", "ستارے")) + "</span></li><li><b>" + nNum(Dn) + "</b><span>" + esc(c1Pair("lessons done", "مکمل اسباق")) + "</span></li><li><b>" + (avg === null ? "–" : nNum(avg) + "%") + "</b><span>" + esc(c1Pair("average score", "اوسط نمبر")) + "</span></li><li><b>" + nNum(wk.streak) + "</b><span>" + esc(c1Pair("day streak", "دن مسلسل")) + "</span></li></ul></section></div>";
+    if (plan.next.length) {
+      h += '<section class="c1up"><div class="c1sy-h"><h3>' + esc(c1Pair("Up next", "اگلے اسباق")) + "</h3></div><ul>";
+      plan.next.forEach(function (x) { h += '<li><button type="button" data-act="nLearn" data-arg="' + esc(x.id) + '"><span class="c1un">' + esc(c1LabelOf(x)) + '</span><span class="c1upn">' + esc(x.name) + '</span><span class="c1ar" aria-hidden="true">' + ar + "</span></button></li>"; });
+      h += "</ul></section>";
+    }
     return h;
   }
   function class1Home() {
@@ -1857,15 +1887,16 @@
       case "go": view = arg; render(); break;
       case "speak": speak(arg, true); break;
       case "nSay": speak(String(arg).slice(3), true, String(arg).slice(0, 2)); break;
+      case "nLearn": var nlx = resById(arg); if (nlx) { curSubject = nlx.d.subject; resTab = "note"; state.noteOpen = arg; noteRun = null; save(); render(); setTimeout(function () { var ge = root.querySelector("#res-" + arg); if (ge && ge.scrollIntoView) ge.scrollIntoView({ block: "start" }); }, 60); } break;
       case "nOpen": state.noteOpen = state.noteOpen === arg ? "" : arg; noteRun = null; save(); render(); break;
       case "nGo": state.noteOpen = arg; noteRun = null; save(); render(); setTimeout(function () { var ge = root.querySelector("#res-" + arg); if (ge && ge.scrollIntoView) ge.scrollIntoView({ block: "start" }); }, 30); break;
       case "nSec": var nsa = String(arg).split("|"), nsp = nProg(nsa[0]); nsp.open = nsp.open === Number(nsa[1]) ? -1 : Number(nsa[1]); save(); render(); break;
-      case "nSaid": var nsd = String(arg).split("|"), nsq = nProg(nsd[0]); if (nsq.said[nsd[1]]) delete nsq.said[nsd[1]]; else nsq.said[nsd[1]] = 1; save(); render(); break;
-      case "nWrote": var nwd = String(arg).split("|"), nwq = nProg(nwd[0]); if (nwq.wrote[nwd[1]]) delete nwq.wrote[nwd[1]]; else nwq.wrote[nwd[1]] = 1; save(); render(); break;
-      case "nDone": var ndq = nProg(arg); ndq.done = !ndq.done; save(); render(); break;
+      case "nSaid": var nsd = String(arg).split("|"), nsq = nProg(nsd[0]); if (nsq.said[nsd[1]]) delete nsq.said[nsd[1]]; else { nsq.said[nsd[1]] = 1; logAct(); } save(); render(); break;
+      case "nWrote": var nwd = String(arg).split("|"), nwq = nProg(nwd[0]); if (nwq.wrote[nwd[1]]) delete nwq.wrote[nwd[1]]; else { nwq.wrote[nwd[1]] = 1; logAct(); } save(); render(); break;
+      case "nDone": var ndq = nProg(arg); ndq.done = !ndq.done; if (ndq.done) logAct(); save(); render(); break;
       case "nStart": var nsx = resById(arg); if (nsx) noteRun = nMakeRun(nsx, 1); render(); break;
       case "nAgain": var nax = resById(arg); if (nax) noteRun = nMakeRun(nax, (noteRun && noteRun.id === arg ? noteRun.n : 0) + 1); render(); break;
-      case "nAns": var nas = String(arg).split("|"), nr = noteRun; if (!nr || nr.id !== nas[0]) break; var nqi = Number(nas[1]), noi = Number(nas[2]); if (!nr.qs[nqi] || nr.ans[nqi] != null) break; nr.ans[nqi] = noi; if (nr.ans.every(function (a) { return a != null; })) nFinish(nr); render(); break;
+      case "nAns": var nas = String(arg).split("|"), nr = noteRun; if (!nr || nr.id !== nas[0]) break; var nqi = Number(nas[1]), noi = Number(nas[2]); if (!nr.qs[nqi] || nr.ans[nqi] != null) break; nr.ans[nqi] = noi; logAct(); if (nr.ans.every(function (a) { return a != null; })) nFinish(nr); render(); break;
       case "home": curSubject = null; openLesson = null; render(); break;
       case "sub": curSubject = arg; render(); if (autoVoice()) speak(L(D.subjects.filter(function (x) { return x.id === arg; })[0])); break;
       case "openLesson":
