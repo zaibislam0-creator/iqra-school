@@ -1764,3 +1764,29 @@ body.c1clean .c1more>summary{background:transparent;color:#064E36;font-weight:60
 :root[data-theme="dark"] body.c1clean .c1more>summary{color:var(--tx)}
 body.c1clean .c1more{border:0;border-top:1px solid #e9f0ec;border-radius:0;background:transparent;margin:0}
 body.c1clean .c1more>summary{border:0;box-shadow:none;border-radius:0;background:transparent;padding:14px 4px}
+
+/* ---- clarity pass: all books visible, larger and darker text ---- */
+.c1top2 h2{font-size:1.7rem}
+.c1top2 p,.c1nt small,.c1np em,.c1tf em{color:#33503f;font-size:1rem}
+.c1nt b{font-size:1.3rem}
+.c1sh{margin:28px 0 12px;font-size:1.15rem;color:#064E36}
+.c1tiles{grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.c1tile{padding:16px 18px;min-height:84px;border:1.5px solid #cfdcd4}
+.c1tile:hover,.c1tile:focus-visible{border-color:#0C6849;background:#F4F8F3}
+.c1ti{width:52px;height:52px;font-size:1.6rem}
+.c1tb b{font-size:1.08rem;color:#064E36}
+.c1tf .c1track{height:7px}
+.c1st{font-size:.95rem;color:#5b6f63}
+.c1ar{margin-inline-start:auto;font-size:1.8rem;line-height:1;color:#0C6849}
+.c1tile.soonb{background:#fafbfa}
+.c1tile.soonb .c1ti{opacity:.6}
+.c1tile.soonb .c1ar{color:#9fb2a7}
+@media (max-width:560px){.c1top2 h2{font-size:1.5rem}.c1tiles{grid-template-columns:1fr}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) :is(.c1top2 p,.c1nt small,.c1np em,.c1tf em,.c1st){color:var(--notefg)}:root:not([data-theme="light"]) :is(.c1sh,.c1tb b){color:var(--tx)}:root:not([data-theme="light"]) .c1tile{border-color:var(--line)}:root:not([data-theme="light"]) .c1tile:hover{background:var(--g2)}:root:not([data-theme="light"]) .c1tile.soonb{background:var(--card)}:root:not([data-theme="light"]) .c1ar{color:var(--tx)}}
+:root[data-theme="dark"] :is(.c1top2 p,.c1nt small,.c1np em,.c1tf em,.c1st){color:var(--notefg)}
+:root[data-theme="dark"] :is(.c1sh,.c1tb b){color:var(--tx)}
+:root[data-theme="dark"] .c1tile{border-color:var(--line)}
+:root[data-theme="dark"] .c1tile:hover{background:var(--g2)}
+:root[data-theme="dark"] .c1tile.soonb{background:var(--card)}
+:root[data-theme="dark"] .c1ar{color:var(--tx)}
+.c1tiles{margin-bottom:24px}

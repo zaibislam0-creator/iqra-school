@@ -1250,17 +1250,14 @@
     var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], started = !!cont || fi.dn > 0, pc0 = fi.t ? Math.round(fi.dn / fi.t * 100) : 0;
     var h = '<section class="c1top2"><div><h2>' + esc(L(C.title)) + '</h2><p>' + esc(C.books.length + " " + c1Pair("books", "کتابیں") + " · " + C.terms + " " + c1Pair("terms", "ٹرم") + " · " + C.weeks + " " + c1Pair("weeks", "ہفتے")) + '</p></div></section>' +
       '<section class="c1next" id="subjects"><div class="c1nt"><small>' + esc(c1Pair(started ? "Continue where you stopped" : "Start here", started ? "جہاں رکے تھے وہیں سے جاری رکھیں" : "یہاں سے شروع کریں")) + '</small><b>' + esc(L(fb.title)) + '</b><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><button type="button" class="c1cbtn" data-act="sub" data-arg="' + esc(fb.sub) + '">' + esc(c1Pair(started ? "Continue" : "Start", started ? "جاری رکھیں" : "شروع کریں")) + '</button></section>' +
-      (live.length > 1 ? '<h3 class="subhd c1sh">' + esc(c1Pair("Books", "کتابیں")) + '</h3><div class="c1tiles">' : '<div class="c1tiles" hidden>');
-    live.forEach(function (b) {
-      var f = info[b.sub], pc = f.t ? Math.round(f.dn / f.t * 100) : 0;
-      h += '<button type="button" class="c1tile" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1ti" aria-hidden="true">' + esc(b.icon) + '</span><span class="c1tb"><b>' + esc(L(b.title)) + '</b><span class="c1tf"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(f.dn) + "/" + nNum(f.t) + "</em></span></span></button>";
+      '<h3 class="subhd c1sh">' + esc(c1Pair("All 9 books", "تمام 9 کتابیں")) + '</h3><div class="c1tiles">';
+    C.books.forEach(function (b) {
+      var f = info[b.sub], pc = f.t ? Math.round(f.dn / f.t * 100) : 0, ok = f.files > 0;
+      h += '<button type="button" class="c1tile' + (ok ? "" : " soonb") + '" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1ti" aria-hidden="true">' + esc(b.icon) + '</span><span class="c1tb"><b>' + esc(L(b.title)) + '</b>' +
+        (ok ? '<span class="c1tf"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(f.dn) + "/" + nNum(f.t) + " " + esc(c1Pair("lessons", "اسباق")) + "</em></span>" : '<span class="c1st">' + esc(c1Pair("Coming soon", "جلد آ رہی ہے")) + "</span>") +
+        '</span><span class="c1ar" aria-hidden="true">' + (LANG() === "ur" ? "‹" : "›") + "</span></button>";
     });
     h += "</div>";
-    if (soon.length) {
-      h += '<details class="c1soonbox"><summary>' + esc(c1Pair("Coming soon", "جلد آ رہی ہیں")) + " (" + nNum(soon.length) + ')</summary><ul>';
-      soon.forEach(function (b) { h += '<li><button type="button" data-act="sub" data-arg="' + esc(b.sub) + '"><span aria-hidden="true">' + esc(b.icon) + "</span>" + esc(L(b.title)) + "</button></li>"; });
-      h += "</ul></details>";
-    }
     return h;
   }
   function class1Home() {
