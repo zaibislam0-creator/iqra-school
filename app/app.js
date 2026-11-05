@@ -1209,12 +1209,34 @@
     });
     return h + "</ul>";
   }
+  function c1ProgressHTML(C) {
+    var pg = state.noteProg || {}, sc = state.noteScore || {}, rows = [], T = 0, Dn = 0, sSum = 0, sN = 0;
+    C.books.forEach(function (b) {
+      var notes = resFor(b.sub, 1, "note"), dn = 0;
+      notes.forEach(function (x) {
+        if (pg[x.id] && pg[x.id].done) dn++;
+        if (sc[x.id] && sc[x.id].t) { sSum += sc[x.id].best / sc[x.id].t; sN++; }
+      });
+      T += notes.length; Dn += dn;
+      rows.push({ name: L(b.title), dn: dn, t: notes.length });
+    });
+    var pct = T ? Math.round(Dn / T * 100) : 0, avg = sN ? Math.round(sSum / sN * 100) : null, R = 42, CI = 2 * Math.PI * R;
+    var h = '<section class="c1prg" aria-label="' + esc(c1Pair("Your progress", "آپ کی پیش رفت")) + '"><h3>' + esc(c1Pair("Your progress", "آپ کی پیش رفت")) + '</h3><div class="c1prg-in">' +
+      '<div class="c1ring"><svg viewBox="0 0 100 100" role="img" aria-label="' + pct + '%"><circle cx="50" cy="50" r="' + R + '" class="c1rt"/><circle cx="50" cy="50" r="' + R + '" class="c1rf" stroke-dasharray="' + (CI * pct / 100).toFixed(1) + " " + CI.toFixed(1) + '" transform="rotate(-90 50 50)"/></svg><div class="c1rc"><b>' + nNum(pct) + '%</b><span>' + esc(c1Pair("done", "مکمل")) + "</span></div></div>" +
+      '<ul class="c1kpi"><li><b>' + nNum(Dn) + "/" + nNum(T) + "</b><span>" + esc(c1Pair("lessons completed", "مکمل اسباق")) + "</span></li><li><b>" + (avg === null ? "–" : nNum(avg) + "%") + "</b><span>" + esc(c1Pair("average quiz score", "اوسط نمبر")) + "</span></li></ul>" +
+      '<ul class="c1pb">';
+    rows.forEach(function (r) {
+      h += '<li><span class="c1pn">' + esc(r.name) + '</span><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + (r.t ? Math.round(r.dn / r.t * 100) : 0) + '%"></span></span><b>' + (r.t ? nNum(r.dn) + "/" + nNum(r.t) : esc(c1Pair("soon", "جلد"))) + "</b></li>";
+    });
+    return h + "</ul></div></section>";
+  }
   function class1Home() {
     var C = D.class1, ur = LANG() === "ur", book = null, i;
     for (i = 0; i < C.books.length; i++) if (C.books[i].sub === curSubject) book = C.books[i];
     if (book) return c1Book(book, i);
     var h = '<section class="c1hero"><div class="c1hero-t"><h2>' + esc(L(C.title)) + " · " + esc(L(C.tagline)) + "</h2><p>" + esc(L(C.vision)) + '</p></div><ul class="c1stats">' +
       "<li><b>" + C.books.length + "</b><span>" + esc(c1Pair("books", "کتابیں")) + "</span></li><li><b>" + C.terms + "</b><span>" + esc(c1Pair("terms", "ٹرم")) + "</span></li><li><b>" + C.weeks + "</b><span>" + esc(c1Pair("weeks", "ہفتے")) + "</span></li></ul></section>";
+    h += c1ProgressHTML(C);
     h += '<h3 class="subhd" id="subjects">' + esc(c1Pair("The nine Class 1 books", "جماعت اول کی نو کتابیں")) + '</h3><div class="c1books">';
     C.books.forEach(function (b) {
       var n = resFor(b.sub, 1).length, notes = resFor(b.sub, 1, "note"), tot = notes.length, dn = 0, pg = (state.noteProg || {});
