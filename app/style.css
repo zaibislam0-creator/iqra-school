@@ -1954,3 +1954,10 @@ body.c1clean .c1more>summary{border:0;box-shadow:none;border-radius:0;background
 .c1chs.kgrid>li{border:0;padding:0;background:transparent;border-radius:0;box-shadow:none;display:block}
 .c1today-b{margin:14px 0 6px}
 .c1st.c1has{color:var(--g);font-weight:600}
+
+/* Class picker: equal 4-column grid, Prep not clipped, clear selected state */
+#app .setup3 .gpick{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#app .setup3 .gchip{display:flex;align-items:center;justify-content:center;text-align:center;white-space:normal;line-height:1.2;min-height:48px;padding:6px 8px}
+#app .setup3 .gchip[data-sgrade="KG"]{grid-column:span 2}
+#app .setup3 .gchip.on{background:#0d4a2e;color:#fff;border-color:#0d4a2e;box-shadow:0 6px 16px rgba(13,74,46,.35);transform:scale(1.04)}
+#app .setup3 .gchip.on::after{content:" \2713"}
