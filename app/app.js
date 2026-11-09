@@ -1180,11 +1180,12 @@
 
   // ---- Class 1: IQRA's own nine-book curriculum (data in D.class1) ----
   // Class 2 uses the same nine-book home as Class 1; its lessons come from the typed lessons that staff enter in admin.
+  function gradeTitle(n) { var en = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"][n]; var ur = ["", "اول", "دوم", "سوم", "چہارم", "پنجم", "ششم", "ہفتم", "ہشتم", "نہم", "دہم"][n]; return { en: "Class " + n, ur: "جماعت " + ur }; }
   function c1Cfg(g) {
     var n = gnum(g);
     if (!D.class1) return null;
     if (n === 1) return D.class1;
-    if (n === 2 || n === 3) { var ck = "class" + n; if (!D[ck]) D[ck] = { c2: true, title: n === 2 ? { en: "Class 2", ur: "جماعت دوم" } : { en: "Class 3", ur: "جماعت سوم" }, books: D.class1.books.map(function (b) { return Object.assign({}, b, { topics: [] }); }) }; return D[ck]; }
+    if (n >= 2 && n <= 10) { var ck = "class" + n; if (!D[ck]) D[ck] = { c2: true, title: gradeTitle(n), books: D.class1.books.map(function (b) { return Object.assign({}, b, { topics: [] }); }) }; return D[ck]; }
     return null;
   }
   function c1Subjects(g) {
