@@ -1199,7 +1199,7 @@
   function c2Subs(sub) { return sub === "islamiat" ? ["islamiat", "ethics"] : [sub]; }
   function c2Items(sub) {
     var out = [];
-    c2Subs(sub).forEach(function (sid) { lessonsFor(sid, 2).forEach(function (l) { if (l.type !== "game" && l.type !== "study" && l.type !== "count" && l.type !== "trace" && l.quiz) out.push(l); }); });
+    c2Subs(sub).forEach(function (sid) { lessonsFor(sid, 2).forEach(function (l) { if (l.type !== "game" && l.type !== "study" && l.type !== "count" && l.type !== "trace" && l.uploaded && l.quiz) out.push(l); }); });
     return out;
   }
   function c2Plan(fb) {
