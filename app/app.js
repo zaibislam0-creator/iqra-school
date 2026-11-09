@@ -413,7 +413,7 @@
   function subjectsFor(g) {
     var n = gnum(g);
     var base = D.subjects.filter(function (s) { return n >= s.min && n <= s.max; });
-    if (n === 1 && D.class1) base = c1Subjects();
+    if (c1Cfg(g)) base = c1Subjects(g);
     if (isSecG(g) && state.sboard) { var bd = (D.secBoards || []).filter(function (b) { return b.id === state.sboard; })[0]; if (bd && bd.subjects && bd.subjects[n]) bd.subjects[n].forEach(function (x) { base.push(Object.assign({ min: n, max: n }, x)); }); }
     return base;
   }
@@ -1143,7 +1143,7 @@
     if (pathTest) return pathTestPage();
     var name = state.name ? " \u2068" + state.name + "\u2069" : "";
     var greet = sess.moodMsg || (t("greetA") + name + "! " + t("greetB"));
-    if (gnum(state.grade) === 1 && D.class1) return staffBarHTML() + announceHTML() + class1Home();
+    if (c1Cfg(state.grade)) return staffBarHTML() + announceHTML() + class1Home();
     var subs = subjectsFor(state.grade).filter(function (x) { return !kidUI() || lessonsFor(x.id, state.grade).length || resFor(x.id, state.grade).length || canRes(); });
     if (!subs.length) {
       return (isSecG(state.grade) ? secBoardPicker() : "") + homeHero() + staffBarHTML() + announceHTML() + launcherHTML() + uploadCard() + '<div class="card pager"><p class="bigtext">' + esc(t("soon")) + '</p><button class="bigbtn" data-act="go" data-arg="character">' + svg("heart", 30) + " " + esc(t("stories")) + "</button></div>";
@@ -1179,11 +1179,38 @@
   }
 
   // ---- Class 1: IQRA's own nine-book curriculum (data in D.class1) ----
-  function c1Subjects() {
-    return D.class1.books.map(function (b) {
+  // Class 2 uses the same nine-book home as Class 1; its lessons come from the typed lessons that staff enter in admin.
+  function c1Cfg(g) {
+    var n = gnum(g);
+    if (!D.class1) return null;
+    if (n === 1) return D.class1;
+    if (n === 2) { if (!D.class2) D.class2 = { c2: true, title: { en: "Class 2", ur: "جماعت دوم" }, books: D.class1.books.map(function (b) { return Object.assign({}, b, { topics: [] }); }) }; return D.class2; }
+    return null;
+  }
+  function c1Subjects(g) {
+    var gg = g === undefined ? state.grade : g, C = c1Cfg(gg), n = gnum(gg);
+    var out = C.books.map(function (b) {
       var s = D.subjects.filter(function (x) { return x.id === b.sub; })[0] || { id: b.sub };
-      return Object.assign({}, s, { en: b.title.en, ur: b.title.ur, icon: b.icon, min: 1, max: 1 });
+      return Object.assign({}, s, { en: b.title.en, ur: b.title.ur, icon: b.icon, min: n, max: n });
     });
+    if (C.c2) { var et = D.subjects.filter(function (x) { return x.id === "ethics"; })[0]; if (et) out.push(Object.assign({}, et, { min: n, max: n })); }
+    return out;
+  }
+  function c2Subs(sub) { return sub === "islamiat" ? ["islamiat", "ethics"] : [sub]; }
+  function c2Items(sub) {
+    var out = [];
+    c2Subs(sub).forEach(function (sid) { lessonsFor(sid, 2).forEach(function (l) { if (l.type !== "game" && l.type !== "study" && l.type !== "count" && l.type !== "trace" && l.quiz) out.push(l); }); });
+    return out;
+  }
+  function c2Plan(fb) {
+    var dn = state.kgdone || [], list = c2Items(fb.sub).map(function (l, i) {
+      var tt = String(L(l.title) || ""), m = /^\s*Unit\s*(\d+)\s*[:\-–]?\s*(.*)$/i.exec(tt);
+      return { id: l.id, u: m ? +m[1] : i + 1, l: 1, un: "", r: false, c2: true, name: m ? m[2] : tt, done: dn.indexOf(l.id) > -1 };
+    }).sort(function (a, b) { return a.u - b.u; });
+    var cur = null, started = false, i;
+    list.forEach(function (x) { if (x.done) started = true; });
+    for (i = 0; i < list.length && !cur; i++) if (!list[i].done) cur = list[i];
+    return { list: list, cur: cur, next: list.filter(function (x) { return !x.done && (!cur || x.id !== cur.id); }).slice(0, 3), started: started };
   }
   function c1Per(b) { return b.periods === 1 ? c1Pair("period a week", "پیریڈ ہفتہ وار") : c1Pair("periods a week", "پیریڈ ہفتہ وار"); }
   function c1Pair(a, b) { return LANG() === "ur" ? b : a; }
@@ -1227,6 +1254,7 @@
   function dayKey(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
   function logAct() { var k = dayKey(new Date()); state.actLog = state.actLog || {}; state.actLog[k] = (state.actLog[k] || 0) + 1; }
   function c1Plan(fb, cont) {
+    if (gnum(state.grade) === 2) return c2Plan(fb);
     var pg = state.noteProg || {}, list = resFor(fb.sub, 1, "note").map(function (x) {
       var d = x.d || {}, id = x.id || d.id || "", m = /-u(\d+)-l(\d+)$/.exec(id), r = /-r(\d+)$/.exec(id);
       if (!m && !r) return null;
@@ -1241,7 +1269,7 @@
     var next = list.filter(function (x) { return !x.done && (!cur || x.id !== cur.id); }).slice(0, 3);
     return { list: list, cur: cur, next: next, started: started };
   }
-  function c1LabelOf(x) { return x.r ? c1Pair("Review ", "دہرائی ") + x.l : c1Pair("Unit ", "یونٹ ") + x.u + " · " + c1Pair("Lesson ", "سبق ") + x.l; }
+  function c1LabelOf(x) { if (x.c2) return c1Pair("Unit ", "یونٹ ") + x.u; return x.r ? c1Pair("Review ", "دہرائی ") + x.l : c1Pair("Unit ", "یونٹ ") + x.u + " · " + c1Pair("Lesson ", "سبق ") + x.l; }
   function c1WeekHTML() {
     var log = state.actLog || {}, days = [], i, mx = 1, tot = 0, d, now = new Date();
     for (i = 6; i >= 0; i--) { d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); var n = log[dayKey(d)] || 0; days.push({ n: n, l: d.toLocaleDateString("en", { weekday: "short" }), today: i === 0 }); mx = Math.max(mx, n); tot += n; }
@@ -1274,15 +1302,16 @@
   function c1DashHTML(C) {
     var pg = state.noteProg || {}, sc = state.noteScore || {}, cont = null, info = {}, sSum = 0, sN = 0, Dn = 0;
     C.books.forEach(function (b) {
-      var notes = resFor(b.sub, 1, "note"), dn = 0;
-      notes.forEach(function (x) {
+      var c2 = gnum(state.grade) === 2, notes = c2 ? c2Items(b.sub) : resFor(b.sub, 1, "note"), dn = 0;
+      if (c2) { var kd = state.kgdone || []; notes.forEach(function (x) { if (kd.indexOf(x.id) > -1) dn++; }); }
+      (c2 ? [] : notes).forEach(function (x) {
         var q = pg[x.id];
         if (q && q.done) dn++;
         else if (q && (Object.keys(q.said || {}).length || Object.keys(q.wrote || {}).length) || state.noteOpen === x.id) { if (!cont) cont = { b: b, x: x }; }
         if (sc[x.id] && sc[x.id].t) { sSum += sc[x.id].best / sc[x.id].t; sN++; }
       });
       Dn += dn;
-      info[b.sub] = { dn: dn, t: notes.length, files: resFor(b.sub, 1).length };
+      info[b.sub] = { dn: dn, t: notes.length, files: notes.length + resFor(b.sub, gnum(state.grade)).length };
     });
     var live = C.books.filter(function (b) { return info[b.sub].files; });
     var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], plan = c1Plan(fb, cont), cur = plan.cur, wk = c1WeekHTML(), avg = sN ? Math.round(sSum / sN * 100) : null;
@@ -1290,7 +1319,7 @@
     var h = '<section class="c1today" id="subjects"><span class="c1logo" aria-hidden="true">' + brandMark(84) + '</span><div class="c1tt"><small>' + esc(c1Pair("Today's task", "آج کا کام")) + "</small>" +
       (cur ? "<h2>" + esc(c1LabelOf(cur)) + (cur.name ? "<span>" + esc(cur.name) + "</span>" : "") + "</h2>" : "<h2>" + esc(L(fb.title)) + "</h2>") +
       "<p>" + esc(L(fb.title)) + '</p><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta">' +
-      (cur ? '<button type="button" class="c1cbtn" data-act="nLearn" data-arg="' + esc(cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button>" : "") +
+      (cur ? '<button type="button" class="c1cbtn" data-act="' + (cur.c2 ? "openLesson" : "nLearn") + '" data-arg="' + esc(cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button>" : "") +
       '<button type="button" class="c1lbtn" data-act="sub" data-arg="' + esc(fb.sub) + '">' + esc(c1Pair("Open book", "کتاب کھولیں")) + "</button></div></section>" +
       '<h3 class="subhd c1sh">' + esc(c1Pair("All 9 books", "تمام 9 کتابیں")) + '</h3><div class="c1tiles">';
     C.books.forEach(function (b) {
@@ -1303,18 +1332,19 @@
       '<section class="c1ach"><div class="c1sy-h"><h3>' + esc(c1Pair("Achievements", "کامیابیاں")) + '</h3></div><ul class="c1kp"><li><b>' + nNum(Number(state.stars) || 0) + "</b><span>" + esc(c1Pair("stars", "ستارے")) + "</span></li><li><b>" + nNum(Dn) + "</b><span>" + esc(c1Pair("lessons done", "مکمل اسباق")) + "</span></li><li><b>" + (avg === null ? "–" : nNum(avg) + "%") + "</b><span>" + esc(c1Pair("average score", "اوسط نمبر")) + "</span></li><li><b>" + nNum(wk.streak) + "</b><span>" + esc(c1Pair("day streak", "دن مسلسل")) + "</span></li></ul></section></div>";
     if (plan.next.length) {
       h += '<section class="c1up"><div class="c1sy-h"><h3>' + esc(c1Pair("Up next", "اگلے اسباق")) + "</h3></div><ul>";
-      plan.next.forEach(function (x) { h += '<li><button type="button" data-act="nLearn" data-arg="' + esc(x.id) + '"><span class="c1un">' + esc(c1LabelOf(x)) + '</span><span class="c1upn">' + esc(x.name) + '</span><span class="c1ar" aria-hidden="true">' + ar + "</span></button></li>"; });
+      plan.next.forEach(function (x) { h += '<li><button type="button" data-act="' + (x.c2 ? "openLesson" : "nLearn") + '" data-arg="' + esc(x.id) + '"><span class="c1un">' + esc(c1LabelOf(x)) + '</span><span class="c1upn">' + esc(x.name) + '</span><span class="c1ar" aria-hidden="true">' + ar + "</span></button></li>"; });
       h += "</ul></section>";
     }
     return h;
   }
   function class1Home() {
-    var C = D.class1, ur = LANG() === "ur", book = null, i;
-    for (i = 0; i < C.books.length; i++) if (C.books[i].sub === curSubject) book = C.books[i];
-    if (book) return c1Book(book, i);
+    var C = c1Cfg(state.grade), ur = LANG() === "ur", book = null, i;
+    for (i = 0; i < C.books.length; i++) if (C.books[i].sub === curSubject || (C.c2 && curSubject === "ethics" && C.books[i].sub === "islamiat")) book = C.books[i];
+    if (book) return C.c2 ? c2Book(book, i, C) : c1Book(book, i);
     document.body.classList.add("c1clean");
     var h = "";
     h += c1DashHTML(C);
+    if (C.c2) return h;
     // four terms
     h += '<details class="morebox c1more"><summary>📅 ' + esc(c1Pair("Four terms · 36 weeks", "چار ٹرم · 36 ہفتے")) + '</summary><div class="c1grid">';
     C.termPlan.forEach(function (tm) {
@@ -1373,6 +1403,26 @@
     var cur = plan.cur, tot = plan.list.length, dn = plan.list.filter(function (x) { return x.done; }).length, pc = tot ? Math.round(dn / tot * 100) : 0;
     if (!cur) return "";
     return '<section class="c1today c1today-b"><div class="c1tt"><small>' + esc(c1Pair("Today's task", "آج کا کام")) + "</small><h2>" + esc(c1LabelOf(cur)) + (cur.name ? "<span>" + esc(cur.name) + "</span>" : "") + '</h2><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(dn) + "/" + nNum(tot) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta"><button type="button" class="c1cbtn" data-act="nLearn" data-arg="' + esc(cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button></div></section>";
+  }
+  function c2Book(b, idx, C) {
+    var prev = C.books[idx - 1], next = C.books[idx + 1], plan = c2Plan(b);
+    var h = '<button type="button" class="link" data-act="home">‹ ' + esc(t("back")) + "</button>";
+    h += '<section class="c1bk"><span class="c1ic big" aria-hidden="true">' + esc(b.icon) + '</span><div><p class="c1k">' + esc(c1Pair("Book ", "کتاب ") + b.n + c1Pair(" of ", " از ") + C.books.length) + "</p><h2>" + esc(L(b.title)) + "</h2></div></section>";
+    if (plan.cur) {
+      var dn = plan.list.filter(function (x) { return x.done; }).length, pc = plan.list.length ? Math.round(dn / plan.list.length * 100) : 0;
+      h += '<section class="c1today c1today-b"><div class="c1tt"><small>' + esc(c1Pair("Today's task", "آج کا کام")) + "</small><h2>" + esc(c1LabelOf(plan.cur)) + (plan.cur.name ? "<span>" + esc(plan.cur.name) + "</span>" : "") + '</h2><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(dn) + "/" + nNum(plan.list.length) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta"><button type="button" class="c1cbtn" data-act="openLesson" data-arg="' + esc(plan.cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button></div></section>";
+    }
+    if (plan.list.length) {
+      h += '<h3 class="subhd">' + esc(c1Pair("What we will learn", "ہم کیا سیکھیں گے")) + '</h3><ol class="c1chs kgrid">';
+      plan.list.forEach(function (x) {
+        h += '<li><button type="button" class="kgtile kgsec c1chap' + (x.done ? " on" : "") + '" data-act="openLesson" data-arg="' + esc(x.id) + '"><span class="c1cn">' + nNum(x.u) + '</span><span class="kgpic" aria-hidden="true">' + (x.done ? "✅" : esc(b.icon)) + "</span><b>" + esc(x.name) + "</b></button></li>";
+      });
+      h += "</ol>";
+    } else h += '<p class="note">' + esc(c1Pair("The chapter pages of this book are being prepared. They will open here one by one once they are written and checked.", "اس کتاب کے ابواب تیار کیے جا رہے ہیں۔ لکھے اور جانچے جانے کے بعد وہ یہاں ایک ایک کر کے کھلیں گے۔")) + "</p>";
+    h += resHub(b.sub, 2);
+    h += '<div class="c1nav">' + (prev ? '<button type="button" class="btn alt" data-act="sub" data-arg="' + esc(prev.sub) + '">‹ ' + esc(L(prev.title)) + "</button>" : "<span></span>") +
+      (next ? '<button type="button" class="btn alt" data-act="sub" data-arg="' + esc(next.sub) + '">' + esc(L(next.title)) + " ›</button>" : "<span></span>") + "</div>";
+    return h;
   }
   function c1Book(b, idx) {
     var C = D.class1, ur = LANG() === "ur", prev = C.books[idx - 1], next = C.books[idx + 1];
@@ -2165,7 +2215,7 @@
   }
   function classSubjects(g) {
     var n = gnum(g);
-    if (n === 1 && D.class1) return c1Subjects();
+    if (c1Cfg(g)) return c1Subjects(g);
     return D.subjects.filter(function (x) { return n >= x.min && n <= x.max; });
   }
   // ---- typed lesson entry ----
