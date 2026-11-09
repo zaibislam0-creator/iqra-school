@@ -1184,7 +1184,7 @@
     var n = gnum(g);
     if (!D.class1) return null;
     if (n === 1) return D.class1;
-    if (n === 2) { if (!D.class2) D.class2 = { c2: true, title: { en: "Class 2", ur: "جماعت دوم" }, books: D.class1.books.map(function (b) { return Object.assign({}, b, { topics: [] }); }) }; return D.class2; }
+    if (n === 2 || n === 3) { var ck = "class" + n; if (!D[ck]) D[ck] = { c2: true, title: n === 2 ? { en: "Class 2", ur: "جماعت دوم" } : { en: "Class 3", ur: "جماعت سوم" }, books: D.class1.books.map(function (b) { return Object.assign({}, b, { topics: [] }); }) }; return D[ck]; }
     return null;
   }
   function c1Subjects(g) {
@@ -1199,7 +1199,7 @@
   function c2Subs(sub) { return sub === "islamiat" ? ["islamiat", "ethics"] : [sub]; }
   function c2Items(sub) {
     var out = [];
-    c2Subs(sub).forEach(function (sid) { lessonsFor(sid, 2).forEach(function (l) { if (l.type !== "game" && l.type !== "study" && l.type !== "count" && l.type !== "trace" && l.uploaded && l.quiz) out.push(l); }); });
+    c2Subs(sub).forEach(function (sid) { lessonsFor(sid, gnum(state.grade)).forEach(function (l) { if (l.type !== "game" && l.type !== "study" && l.type !== "count" && l.type !== "trace" && l.uploaded && l.quiz) out.push(l); }); });
     return out;
   }
   function c2Plan(fb) {
@@ -1254,7 +1254,7 @@
   function dayKey(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
   function logAct() { var k = dayKey(new Date()); state.actLog = state.actLog || {}; state.actLog[k] = (state.actLog[k] || 0) + 1; }
   function c1Plan(fb, cont) {
-    if (gnum(state.grade) === 2) return c2Plan(fb);
+    if (c1Cfg(state.grade) && c1Cfg(state.grade).c2) return c2Plan(fb);
     var pg = state.noteProg || {}, list = resFor(fb.sub, 1, "note").map(function (x) {
       var d = x.d || {}, id = x.id || d.id || "", m = /-u(\d+)-l(\d+)$/.exec(id), r = /-r(\d+)$/.exec(id);
       if (!m && !r) return null;
@@ -1302,7 +1302,7 @@
   function c1DashHTML(C) {
     var pg = state.noteProg || {}, sc = state.noteScore || {}, cont = null, info = {}, sSum = 0, sN = 0, Dn = 0;
     C.books.forEach(function (b) {
-      var c2 = gnum(state.grade) === 2, notes = c2 ? c2Items(b.sub) : resFor(b.sub, 1, "note"), dn = 0;
+      var c2 = !!(c1Cfg(state.grade) && c1Cfg(state.grade).c2), notes = c2 ? c2Items(b.sub) : resFor(b.sub, 1, "note"), dn = 0;
       if (c2) { var kd = state.kgdone || []; notes.forEach(function (x) { if (kd.indexOf(x.id) > -1) dn++; }); }
       (c2 ? [] : notes).forEach(function (x) {
         var q = pg[x.id];
@@ -1419,7 +1419,7 @@
       });
       h += "</ol>";
     } else h += '<p class="note">' + esc(c1Pair("The chapter pages of this book are being prepared. They will open here one by one once they are written and checked.", "اس کتاب کے ابواب تیار کیے جا رہے ہیں۔ لکھے اور جانچے جانے کے بعد وہ یہاں ایک ایک کر کے کھلیں گے۔")) + "</p>";
-    h += resHub(b.sub, 2);
+    h += resHub(b.sub, gnum(state.grade));
     h += '<div class="c1nav">' + (prev ? '<button type="button" class="btn alt" data-act="sub" data-arg="' + esc(prev.sub) + '">‹ ' + esc(L(prev.title)) + "</button>" : "<span></span>") +
       (next ? '<button type="button" class="btn alt" data-act="sub" data-arg="' + esc(next.sub) + '">' + esc(L(next.title)) + " ›</button>" : "<span></span>") + "</div>";
     return h;
