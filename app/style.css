@@ -1964,3 +1964,4 @@ body.c1clean .c1more>summary{border:0;box-shadow:none;border-radius:0;background
 
 .rd2 .rd2-h3{margin:14px 0 2px;font-size:calc(var(--fs)*1.3);font-weight:800;color:var(--lvink);line-height:1.7}.rd2 .blk strong{color:var(--deep,#0f4a30);font-weight:800}.rd2-voc{margin:0}.rd2-voc dt{font-weight:800;color:var(--lvink);margin-top:10px}.rd2-voc dd{margin:2px 0 0;padding-inline-start:12px;line-height:1.9}
 .rd2 .blk{font-size:calc(var(--fs)*1.18*var(--rz,1))}.rd2 .rd2-h3{font-size:calc(var(--fs)*1.3*var(--rz,1))}.rd2-zoom{display:flex;gap:8px;justify-content:center;margin:0 0 12px}.rd2-zoom button{min-width:48px;min-height:44px;border-radius:99px;border:1px solid var(--lvline);background:#fff;color:var(--lvink);font:inherit;font-weight:800;cursor:pointer}.rd2-zoom button:focus-visible{outline:3px solid #7dd4a3;outline-offset:2px}.rd2 .lessonbody{max-width:38em}.rd2[lang=ur] .blk{line-height:2.2}
+.bkshelf{margin:12px 0}.bkshelf .rescard{margin:10px 0}

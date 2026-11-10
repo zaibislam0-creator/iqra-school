@@ -1433,13 +1433,15 @@
       var dn = plan.list.filter(function (x) { return x.done; }).length, pc = plan.list.length ? Math.round(dn / plan.list.length * 100) : 0;
       h += '<section class="c1today c1today-b"><div class="c1tt"><small>' + esc(c1Pair("Today's task", "آج کا کام")) + "</small><h2>" + esc(c1LabelOf(plan.cur)) + (plan.cur.name ? "<span>" + esc(plan.cur.name) + "</span>" : "") + '</h2><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc + '%"></span></span><em>' + nNum(dn) + "/" + nNum(plan.list.length) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta"><button type="button" class="c1cbtn" data-act="openLesson" data-arg="' + esc(plan.cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button></div></section>";
     }
+    var bkl = resFor(b.sub, gnum(state.grade), "book"); resMerge(b.sub).forEach(function (e) { bkl = bkl.concat(resFor(e, gnum(state.grade), "book")); });
+    if (bkl.length) { h += '<section class="card bkshelf"><h3 class="subhd">📚 ' + esc(c1Pair("Books", "کتابیں")) + " (" + bkl.length + ")</h3>"; bkl.forEach(function (x) { h += resCard(x); }); h += "</section>"; }
     if (plan.list.length) {
       h += '<h3 class="subhd">' + esc(c1Pair("What we will learn", "ہم کیا سیکھیں گے")) + '</h3><ol class="c1chs kgrid">';
       plan.list.forEach(function (x) {
         h += '<li><button type="button" class="kgtile kgsec c1chap' + (x.done ? " on" : "") + '" data-act="openLesson" data-arg="' + esc(x.id) + '"><span class="c1cn">' + nNum(x.u) + '</span><span class="kgpic" aria-hidden="true">' + (x.done ? "✅" : esc(b.icon)) + "</span><b>" + esc(x.name) + "</b></button></li>";
       });
       h += "</ol>";
-    } else h += '<p class="note">' + esc(c1Pair("The chapter pages of this book are being prepared. They will open here one by one once they are written and checked.", "اس کتاب کے ابواب تیار کیے جا رہے ہیں۔ لکھے اور جانچے جانے کے بعد وہ یہاں ایک ایک کر کے کھلیں گے۔")) + "</p>";
+    } else h += '<p class="note">' + esc(c1Pair("The chapter pages of this book are being prepared. Please read the books above for now; chapters will open here one by one once they are written and checked.", "اس کتاب کے ابواب تیار کیے جا رہے ہیں۔ فی الحال اوپر دی گئی کتابیں پڑھیں؛ لکھے اور جانچے جانے کے بعد ابواب یہاں ایک ایک کر کے کھلیں گے۔")) + "</p>";
     h += resHub(b.sub, gnum(state.grade), true);
     h += '<div class="c1nav">' + (prev ? '<button type="button" class="btn alt" data-act="sub" data-arg="' + esc(prev.sub) + '">‹ ' + esc(L(prev.title)) + "</button>" : "<span></span>") +
       (next ? '<button type="button" class="btn alt" data-act="sub" data-arg="' + esc(next.sub) + '">' + esc(L(next.title)) + " ›</button>" : "<span></span>") + "</div>";
