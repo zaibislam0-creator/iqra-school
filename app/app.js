@@ -469,10 +469,14 @@
   function bodyBlocks(txt, speak) {
     var out = "";
     function plain(x) {
-      var p = '<p class="blk" dir="auto">' + esc(x) + "</p>";
-      return speak ? '<div class="blkrow"><button type="button" class="chip lightchip sq" data-act="speak" data-arg="' + esc(x) + '" aria-label="' + esc(t("listen")) + '">' + svg("speaker", 26) + "</button>" + p + "</div>" : p;
+      var p = '<p class="blk" dir="auto">' + bold(x.replace(/\*\*/g, "**")) + "</p>";
+      return speak ? '<div class="blkrow"><button type="button" class="chip lightchip sq" data-act="speak" data-arg="' + esc(x.replace(/\*\*/g, "")) + '" aria-label="' + esc(t("listen")) + '">' + svg("speaker", 26) + "</button>" + p + "</div>" : p;
     }
-    sentences(txt).forEach(function (s) {
+    var hd = [];
+    String(txt || "").split(/\n+/).forEach(function (ln) { var m = /^#{2,3}\s+(.+)$/.exec(ln.trim()); if (m) hd.push({ h: m[1] }); else if (ln.trim()) hd.push({ t: ln }); });
+    var parts = hd.some(function (x) { return x.h; }) ? hd : [{ t: txt }], bold = function (x) { return esc(x).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>"); };
+    parts.forEach(function (pt) { if (pt.h) { out += '<h3 class="blk rd2-h3" dir="auto">' + esc(pt.h) + "</h3>"; return; }
+    sentences(pt.t).forEach(function (s) {
       var harakat = (s.match(/[ً-ْٰ۝]/g) || []).length, i = s.indexOf("(");
       if (harakat >= 6) {
         var lead = "", rest = s, c = s.indexOf(":");
@@ -482,7 +486,7 @@
         out += '<p class="blk ayah" lang="ar" dir="rtl">' + esc(ar) + "</p>";
         if (cap) out += '<p class="blk cap" dir="auto">' + esc(cap) + "</p>";
       } else out += plain(s);
-    });
+    }); });
     return '<div class="lessonbody">' + out + "</div>";
   }
   function lessonView(id) {
@@ -959,7 +963,7 @@
 
   // ================= editorial reading layout (shared by chapter and study lessons) =================
   var RD_TXT = {
-    min: ["دقیقہ", "min read"], pts: ["نکات", "points"], pages: ["کتاب کے صفحے", "Book pages"], lesson: ["سبق", "Lesson"], inbook: ["کتاب میں", "In your book"], think: ["سوچیں اور بتائیں", "Think and tell"], finish: ["مکمل کریں", "Finish"], key: ["اہم باتیں", "Key points"], toc: ["اس سبق میں", "In this lesson"], prev: ["پچھلا سبق", "Previous lesson"], next: ["اگلا سبق", "Next lesson"], listen: ["سنیں", "Listen"], donemsg: ["شاباش! یہ سبق مکمل ہو گیا۔", "Well done! This lesson is complete."], locked: ["پہلے موجودہ سبق مکمل کریں", "Finish the current lesson first"]
+    min: ["دقیقہ", "min read"], pts: ["نکات", "points"], pages: ["کتاب کے صفحے", "Book pages"], lesson: ["سبق", "Lesson"], inbook: ["کتاب میں", "In your book"], think: ["سوچیں اور بتائیں", "Think and tell"], finish: ["مکمل کریں", "Finish"], key: ["اہم باتیں", "Key points"], size: ["لکھائی کا سائز", "Text size"], obj: ["اس سبق میں آپ سیکھیں گے", "Learning objectives"], vocab: ["اہم الفاظ", "Important words"], summ: ["خلاصہ", "Lesson summary"], toc: ["اس سبق میں", "In this lesson"], prev: ["پچھلا سبق", "Previous lesson"], next: ["اگلا سبق", "Next lesson"], listen: ["سنیں", "Listen"], donemsg: ["شاباش! یہ سبق مکمل ہو گیا۔", "Well done! This lesson is complete."], locked: ["پہلے موجودہ سبق مکمل کریں", "Finish the current lesson first"]
   };
   function rdt(k) { return RD_TXT[k][LANG() === "ur" ? 0 : 1]; }
   function readMin(txt) { var w = String(txt).trim().split(/\s+/).length, m = Math.max(1, Math.round(w / 70)); return m; }
@@ -977,14 +981,18 @@
   function readShell(l, o) {
     var ur = LANG() === "ur", sj = D.subjects.filter(function (x) { return x.id === l.subject; })[0], title = L(l.title).replace(/^(Read first: |پہلے پڑھیں: )/, ""), body = L(l.body), m = l.meta || {};
     var sub = m.textbook || m.chapter || "", pts = sentences(body).length;
-    var h = '<article class="rd2" id="rd2root" lang="' + (ur ? "ur" : "en") + '" dir="' + (ur ? "rtl" : "ltr") + '"><div class="rd2-prog" aria-hidden="true"><i></i></div>';
+    var h = '<article class="rd2" id="rd2root" style="--rz:' + (state.rdZ || 1) + '" lang="' + (ur ? "ur" : "en") + '" dir="' + (ur ? "rtl" : "ltr") + '"><div class="rd2-prog" aria-hidden="true"><i></i></div>';
     h += '<div class="rd2-hero"><span class="rd2-cat">' + picon(l.subject) + "<span>" + esc(sj ? L(sj) : "") + '</span></span><h1 class="rd2-title">' + esc(title) + "</h1>" + (sub ? '<p class="rd2-sub">' + esc(String(sub).split(" · ")[ur ? 1 : 0] || sub) + "</p>" : "");
     h += '<div class="rd2-meta"><span>⏱ ' + readMin(body) + " " + esc(rdt("min")) + "</span><span>" + pts + " " + esc(rdt("pts")) + "</span>" + (l.bpage ? "<span>📖 " + esc(rdt("pages")) + " " + l.bpage + "–" + l.bend + "</span>" : "") + "</span></div>";
     h += '<button type="button" class="rd2-listen" data-act="speak" data-arg="' + esc(body) + '">' + svg("speaker", 24) + " " + esc(rdt("listen")) + "</button></div>";
+    h += '<div class="rd2-zoom" role="group" aria-label="' + esc(rdt("size")) + '"><button type="button" data-act="rdFont" data-arg="-" aria-label="A-">A−</button><button type="button" data-act="rdFont" data-arg="0" aria-label="A">A</button><button type="button" data-act="rdFont" data-arg="+" aria-label="A+">A+</button></div>';
     var toc = [["read", rdt("lesson")]]; if (o.book) toc.push(["book", rdt("inbook")]); toc.push(["think", rdt("think")], ["finish", rdt("finish")]);
     h += '<div class="rd2-toc" role="navigation" aria-label="' + esc(rdt("toc")) + '">' + toc.map(function (x) { return '<button type="button" data-act="rdJump" data-arg="rd2-' + x[0] + '">' + esc(x[1]) + "</button>"; }).join("") + "</div>";
+    if (l.objectives && l.objectives.length) h += rdSec("obj", rdt("obj"), "<ul>" + l.objectives.map(function (x) { return "<li>" + esc(L(x)) + "</li>"; }).join("") + "</ul>", "rd2-key");
     h += rdSec("read", rdt("lesson"), bodyBlocks(body, true));
+    if (l.vocab && l.vocab.length) h += rdSec("vocab", rdt("vocab"), "<dl class=\"rd2-voc\">" + l.vocab.map(function (x) { return "<dt>" + esc(L(x.term)) + "</dt><dd>" + esc(L(x.def)) + "</dd>"; }).join("") + "</dl>");
     if (l.takeaways && l.takeaways.length) h += rdSec("key", rdt("key"), "<ul>" + l.takeaways.map(function (x) { return "<li>" + esc(L(x)) + "</li>"; }).join("") + "</ul>", "rd2-key");
+    if (l.summary && L(l.summary)) h += rdSec("summ", rdt("summ"), '<p class="blk" dir="auto">' + esc(L(l.summary)) + "</p>", "rd2-key");
     if (o.book) h += rdSec("book", rdt("inbook"), o.book);
     h += rdSec("think", rdt("think"), '<ol class="rd2-q">' + reflectQs().map(function (q) { return "<li>" + esc(q) + "</li>"; }).join("") + "</ol>");
     h += rdSec("finish", rdt("finish"), o.finish, "rd2-done");
@@ -2005,6 +2013,7 @@
       case "readBook": readBookAct(arg); break;
       case "pathTest": pathTest = arg; resRun = null; render(); window.scrollTo(0, 0); break;
       case "pathBack": pathTest = null; resRun = null; render(); window.scrollTo(0, 0); break;
+      case "rdFont": { var _z = Math.max(0.85, Math.min(1.6, Math.round(((state.rdZ || 1) + (arg === "+" ? 0.1 : arg === "-" ? -0.1 : 0)) * 100) / 100)); if (arg === "0") _z = 1; state.rdZ = _z; save(); var _r = document.getElementById("rd2root"); if (_r) _r.style.setProperty("--rz", _z); break; }
       case "rdJump": var _je = document.getElementById(arg); if (_je) _je.scrollIntoView({ behavior: window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }); break;
       case "rdComplete": finishActivity(); openLesson = null; render(); window.scrollTo(0, 0); if (autoVoice()) speak(t("great")); break;
       case "playSnd": playSnd(arg); break;
