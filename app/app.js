@@ -1138,7 +1138,8 @@
     return h;
   }
   function kidHome() {
-    if (openLesson && !curLesson()) openLesson = null;
+    var cl0 = openLesson ? curLesson() : null;
+    if (openLesson && (!cl0 || (cl0.min != null && cl0.max != null && (gnum(state.grade) < cl0.min || gnum(state.grade) > cl0.max)))) openLesson = null;
     if (openLesson) return kidLessonView(curLesson());
     if (pathTest) return pathTestPage();
     var name = state.name ? " \u2068" + state.name + "\u2069" : "";
@@ -1206,7 +1207,9 @@
     if (C.c2) { var et = D.subjects.filter(function (x) { return x.id === "ethics"; })[0]; if (et) out.push(Object.assign({}, et, { min: n, max: n })); }
     return out;
   }
-  function c2Subs(sub) { return sub === "islamiat" ? ["islamiat", "ethics"] : [sub]; }
+  function c2Subs(sub) { return sub === "islamiat" ? ["islamiat", "ethics"] : sub === "gk" ? ["gk", "social"] : [sub]; }
+  // other subject ids whose books/notes are shown inside a class book (Ethics under Islamiat, Social Studies under General Knowledge)
+  function resMerge(sid) { return sid === "islamiat" ? ["ethics"] : sid === "gk" ? ["social"] : []; }
   function c2Items(sub) {
     var out = [];
     c2Subs(sub).forEach(function (sid) { lessonsFor(sid, gnum(state.grade)).forEach(function (l) { if (l.type !== "game" && l.type !== "study" && l.type !== "count" && l.type !== "trace" && l.uploaded && l.quiz) out.push(l); }); });
@@ -1215,8 +1218,8 @@
   function c2Plan(fb) {
     var dn = state.kgdone || [], list = c2Items(fb.sub).map(function (l, i) {
       var tt = String(L(l.title) || ""), m = /^\s*Unit\s*(\d+)\s*[:\-–]?\s*(.*)$/i.exec(tt);
-      return { id: l.id, u: m ? +m[1] : i + 1, l: 1, un: "", r: false, c2: true, name: m ? m[2] : tt, done: dn.indexOf(l.id) > -1 };
-    }).sort(function (a, b) { return a.u - b.u; });
+      return { id: l.id, g: c2Subs(fb.sub).indexOf(l.subject), u: m ? +m[1] : i + 1, l: 1, un: "", r: false, c2: true, name: m ? m[2] : tt, done: dn.indexOf(l.id) > -1 };
+    }).sort(function (a, b) { return (a.g - b.g) || (a.u - b.u); });
     var cur = null, started = false, i;
     list.forEach(function (x) { if (x.done) started = true; });
     for (i = 0; i < list.length && !cur; i++) if (!list[i].done) cur = list[i];
@@ -1321,7 +1324,7 @@
         if (sc[x.id] && sc[x.id].t) { sSum += sc[x.id].best / sc[x.id].t; sN++; }
       });
       Dn += dn;
-      info[b.sub] = { dn: dn, t: notes.length, files: notes.length + resFor(b.sub, gnum(state.grade)).length };
+      info[b.sub] = { dn: dn, t: notes.length, files: notes.length + resFor(b.sub, gnum(state.grade)).length + (c2 ? resMerge(b.sub).reduce(function (a, e) { return a + resFor(e, gnum(state.grade)).length; }, 0) : 0) };
     });
     var live = C.books.filter(function (b) { return info[b.sub].files; });
     var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], plan = c1Plan(fb, cont), cur = plan.cur, wk = c1WeekHTML(), avg = sN ? Math.round(sSum / sN * 100) : null;
@@ -1429,7 +1432,7 @@
       });
       h += "</ol>";
     } else h += '<p class="note">' + esc(c1Pair("The chapter pages of this book are being prepared. They will open here one by one once they are written and checked.", "اس کتاب کے ابواب تیار کیے جا رہے ہیں۔ لکھے اور جانچے جانے کے بعد وہ یہاں ایک ایک کر کے کھلیں گے۔")) + "</p>";
-    h += resHub(b.sub, gnum(state.grade));
+    h += resHub(b.sub, gnum(state.grade), true);
     h += '<div class="c1nav">' + (prev ? '<button type="button" class="btn alt" data-act="sub" data-arg="' + esc(prev.sub) + '">‹ ' + esc(L(prev.title)) + "</button>" : "<span></span>") +
       (next ? '<button type="button" class="btn alt" data-act="sub" data-arg="' + esc(next.sub) + '">' + esc(L(next.title)) + " ›</button>" : "<span></span>") + "</div>";
     return h;
@@ -3264,18 +3267,19 @@
     return '<div class="gamecard"><span class="gc-star">' + STAR_FACE + '</span><div class="gc-t"><h3>' + esc(L(l.title)) + "</h3><p>" + esc(sub) + "</p></div>" + cards +
       '<button type="button" class="gc-play' + (miss ? " lockd" : "") + '" data-act="openLesson" data-arg="' + esc(miss || l.id) + '"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M7 9h10a4 4 0 0 1 4 4v2a3 3 0 0 1-5.200 2L14.500 15.500h-5L8.200 17A3 3 0 0 1 3 15v-2a4 4 0 0 1 4-4z" fill="currentColor"/><path d="M8 11v3M6.500 12.500h3" stroke="' + DK + '" stroke-width="1.400" stroke-linecap="round"/></svg>' + esc(miss ? "🔒 " + lockText() : rt("play_now")) + "</button></div>";
   }
-  function resHub(sid, g) {
+  function resHub(sid, g, merge) {
     if (!sid) return "";
+    var rfm = function (k) { var l = resFor(sid, g, k); if (merge) resMerge(sid).forEach(function (e) { l = l.concat(resFor(e, g, k)); }); return l; };
     var h = '<section class="reshub card"><h3 class="reshead">' + esc(rt("hub")) + '</h3><div class="resorn">' + RES_ORN + '</div><div class="rctabs" role="tablist">';
     RES_TYPES.forEach(function (k) {
-      var n = resFor(sid, g, k).length;
+      var n = rfm(k).length;
       h += '<button type="button" role="tab" aria-selected="' + (resTab === k ? "true" : "false") + '" class="rctab' + (resTab === k ? " on" : "") + '" data-act="resTab" data-arg="' + k + '"><span class="rcic">' + RC_ICON[k] + (n ? '<i class="rccount">' + n + "</i>" : "") + "</span><b>" + esc(rt(k)) +
         '</b><span class="rcsub"><small>' + esc(rt("sub_" + k)) + '</small><svg class="rcgo dir" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>';
     });
     h += "</div>";
     if (resMsg) h += '<p class="note" aria-live="polite">' + esc(resMsg) + "</p>";
     if (resForm) return h + resFormHTML() + "</section>";
-    var items = resFor(sid, g, resTab);
+    var items = rfm(resTab);
     if (resTab === "note") h += nSummaryHTML(items);
     if (!items.length) h += '<div class="resempty"><span class="resstar">' + STAR_FACE + "</span><span>" + esc(rt("none")) + "</span></div>";
     items.forEach(function (x) { h += resCard(x); });
