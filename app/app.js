@@ -1185,7 +1185,16 @@
     var n = gnum(g);
     if (!D.class1) return null;
     if (n === 1) return D.class1;
-    if (n >= 2 && n <= 10) { var ck = "class" + n; if (!D[ck]) D[ck] = { c2: true, title: gradeTitle(n), books: D.class1.books.map(function (b) { return Object.assign({}, b, { topics: [] }); }) }; return D[ck]; }
+    if (n >= 2 && n <= 10) {
+      var ck = "class" + n;
+      if (!D[ck]) {
+        var bks = D.class1.books.map(function (b) { return Object.assign({}, b, { topics: [] }); });
+        // Class 6 (Middle) adds Computer as a tenth book
+        if (n === 6) bks.push({ n: bks.length + 1, sub: "computer", icon: "💻", periods: 2, title: { en: "Computer", ur: "کمپیوٹر" }, purpose: { en: "Computer basics, hardware, software and everyday use.", ur: "کمپیوٹر کی بنیادی معلومات، ہارڈ ویئر، سافٹ ویئر اور روزمرہ استعمال۔" }, goal: { en: "Understand how computers work and use them safely and confidently.", ur: "کمپیوٹر کے کام کرنے کا طریقہ سمجھنا اور اسے محفوظ طریقے سے اعتماد کے ساتھ استعمال کرنا۔" }, topics: [], target: { en: "Explain basic computer parts and use common programs.", ur: "کمپیوٹر کے بنیادی حصے بتانا اور عام پروگرام استعمال کرنا۔" } });
+        D[ck] = { c2: true, title: gradeTitle(n), books: bks };
+      }
+      return D[ck];
+    }
     return null;
   }
   function c1Subjects(g) {
@@ -1322,7 +1331,7 @@
       "<p>" + esc(L(fb.title)) + '</p><span class="c1np"><span class="c1track" aria-hidden="true"><span class="c1fill" style="width:' + pc0 + '%"></span></span><em>' + nNum(fi.dn) + "/" + nNum(fi.t) + " " + esc(c1Pair("lessons", "اسباق")) + '</em></span></div><div class="c1ta">' +
       (cur ? '<button type="button" class="c1cbtn" data-act="' + (cur.c2 ? "openLesson" : "nLearn") + '" data-arg="' + esc(cur.id) + '">' + esc(c1Pair(plan.started ? "Continue lesson" : "Start lesson", plan.started ? "سبق جاری رکھیں" : "سبق شروع کریں")) + "</button>" : "") +
       '<button type="button" class="c1lbtn" data-act="sub" data-arg="' + esc(fb.sub) + '">' + esc(c1Pair("Open book", "کتاب کھولیں")) + "</button></div></section>" +
-      '<h3 class="subhd c1sh">' + esc(c1Pair("All 9 books", "تمام 9 کتابیں")) + '</h3><div class="c1tiles">';
+      '<h3 class="subhd c1sh">' + esc(c1Pair("All " + C.books.length + " books", "تمام " + C.books.length + " کتابیں")) + '</h3><div class="c1tiles">';
     C.books.forEach(function (b) {
       var f = info[b.sub], pc = f.t ? Math.round(f.dn / f.t * 100) : 0, ok = f.files > 0;
       h += '<button type="button" class="c1tile' + (ok ? "" : " soonb") + '" data-act="sub" data-arg="' + esc(b.sub) + '"><span class="c1ti" aria-hidden="true">' + esc(b.icon) + '</span><span class="c1tb"><b>' + esc(L(b.title)) + "</b>" +
