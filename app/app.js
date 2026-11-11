@@ -1198,8 +1198,8 @@
       var ck = "class" + n;
       if (!D[ck]) {
         var bks = D.class1.books.map(function (b) { return Object.assign({}, b, { topics: [] }); });
-        // Class 6 (Middle) adds Computer as a tenth book
-        if (n === 6) bks.push({ n: bks.length + 1, sub: "computer", icon: "💻", periods: 2, title: { en: "Computer", ur: "کمپیوٹر" }, purpose: { en: "Computer basics, hardware, software and everyday use.", ur: "کمپیوٹر کی بنیادی معلومات، ہارڈ ویئر، سافٹ ویئر اور روزمرہ استعمال۔" }, goal: { en: "Understand how computers work and use them safely and confidently.", ur: "کمپیوٹر کے کام کرنے کا طریقہ سمجھنا اور اسے محفوظ طریقے سے اعتماد کے ساتھ استعمال کرنا۔" }, topics: [], target: { en: "Explain basic computer parts and use common programs.", ur: "کمپیوٹر کے بنیادی حصے بتانا اور عام پروگرام استعمال کرنا۔" } });
+        // Classes 6 and 7 (Middle) add Computer as a tenth book
+        if (n === 6 || n === 7) bks.push({ n: bks.length + 1, sub: "computer", icon: "💻", periods: 2, title: { en: "Computer", ur: "کمپیوٹر" }, purpose: { en: "Computer basics, hardware, software and everyday use.", ur: "کمپیوٹر کی بنیادی معلومات، ہارڈ ویئر، سافٹ ویئر اور روزمرہ استعمال۔" }, goal: { en: "Understand how computers work and use them safely and confidently.", ur: "کمپیوٹر کے کام کرنے کا طریقہ سمجھنا اور اسے محفوظ طریقے سے اعتماد کے ساتھ استعمال کرنا۔" }, topics: [], target: { en: "Explain basic computer parts and use common programs.", ur: "کمپیوٹر کے بنیادی حصے بتانا اور عام پروگرام استعمال کرنا۔" } });
         D[ck] = { c2: true, title: gradeTitle(n), books: bks };
       }
       return D[ck];
