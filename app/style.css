@@ -1175,7 +1175,8 @@ body:has(#entry.docked) .topbar{display:none}
 #entry.docked .lp-menu::-webkit-scrollbar{display:none}
 #entry.docked .lp-menu button{flex:none;white-space:nowrap}
 @media (max-width:1250px){#entry.docked .lp-brand b{display:none}}
-@media (max-width:1400px){#entry.docked .lp-bar-in{flex-wrap:wrap}#entry.docked .lp-menu{flex:1 1 100%;order:3;margin:0 -10px}}
+@media (max-width:640px){#entry.docked .lp-bar-in{flex-wrap:wrap}#entry.docked .lp-menu{flex:1 1 100%;order:3}}
+@media (min-width:900px) and (max-width:1400px){#entry .lp-bar-in{flex-wrap:wrap}#entry .lp-menu{flex:1 1 100%;order:3;margin:0 -10px}}
 #entry.signed .entry-lang{display:none}
 /* Today's Play: one tidy row (dice, text, Play pill) that lines up with the tiles below */
 .kgmix{flex-direction:row;align-items:center;justify-content:flex-start;gap:16px;max-width:none;width:100%;margin:12px 0 16px;padding:14px 20px;border-radius:26px;text-align:start;overflow:hidden;position:relative;animation:none}
