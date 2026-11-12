@@ -32,12 +32,14 @@ service cloud.firestore {
     match /students/{uid} {
       allow read: if signedIn() && (request.auth.uid == uid || isOwner());
       allow create, update: if signedIn() && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['name', 'cls', 'city', 'phone', 'email', 'updated'])
+        && request.resource.data.keys().hasOnly(['name', 'cls', 'city', 'phone', 'email', 'updated', 'sboard'])
         && request.resource.data.get('email', '') in ['', request.auth.token.email];
       allow delete: if isOwner();
     }
 
-    // learning content: any signed-in user can read, only staff can change
+    // learning content: any signed-in user can read, only staff can change.
+    // KNOWN LIMIT: 'hidden' lessons and unpublished resources are hidden only by the site code. To enforce it here the site
+    // must first query with where('hidden' != true) (rules are not filters); do not tighten read rules before that change.
     match /chapters/{id} { allow read: if signedIn(); allow create: if isStaff(); allow update, delete: if isOwner() || isTeacher(); }
     match /meta/{id}     { allow read: if signedIn(); allow write: if isStaff(); }
     match /clips/{id}    { allow read: if signedIn(); allow write: if isStaff(); }

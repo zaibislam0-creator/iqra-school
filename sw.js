@@ -1,6 +1,6 @@
 /* IQRA service worker: keeps pictures, audio and the PDF reader available on weak connections.
    The page itself is always fetched from the network first, so updates appear immediately. */
-const CACHE = 'iqra-static-v66';
+const CACHE = 'iqra-static-v67';
 const APP = 'iqra-app-v1';
 const STATIC = /^\/(img|audio|lib|notes|books)\//;
 const APPFILE = /^\/app\/[^/]+\.(js|css)$/; /* versioned with ?v= in index.html, so a new release always has a new address */
@@ -22,8 +22,11 @@ self.addEventListener('fetch', e => {
 
   if (req.mode === 'navigate') {
     e.respondWith(fetch(req).then(res => {
-      const copy = res.clone();
-      caches.open(CACHE).then(c => c.put('/index.html', copy));
+      /* keep only the real home page as the offline fallback: never a 404/500, privacy page or other address */
+      if (res.ok && res.status === 200 && (url.pathname === '/' || url.pathname === '/index.html')) {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put('/index.html', copy));
+      }
       return res;
     }).catch(() => caches.match('/index.html')));
     return;

@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
+Disallow: /books/
 Sitemap: https://iqradigitalschool.com/sitemap.xml

@@ -582,7 +582,7 @@
     });
     h += "</div>";
     if (!any) h += '<p class="card">' + esc(t("noexam")) + "</p>";
-    return h + '<p class="note">' + esc(t("pastp")) + "</p>";
+    return h + (isStaff() ? '<p class="note">' + esc(t("pastp")) + "</p>" : "");
   }
 
   function coverageView() {
@@ -922,7 +922,7 @@
   }
   function withReader(cb) {
     if (window.IQReader) return cb();
-    var sc = document.createElement("script"); sc.src = "lib/reader.js"; sc.onload = cb; sc.onerror = function () { window.open(sc.dataset.fallback || "#", "_blank"); }; document.head.appendChild(sc);
+    var sc = document.createElement("script"); sc.src = "lib/reader.js?v=20261112a"; sc.onload = cb; sc.onerror = function () { window.open(sc.dataset.fallback || "#", "_blank"); }; document.head.appendChild(sc);
   }
   function bookRtl(u) { return /urdu|islamiat|gk|ethics|tajweedi|qaida/i.test(u); }
   function bookToc(u) {
@@ -1332,7 +1332,7 @@
         if (sc[x.id] && sc[x.id].t) { sSum += sc[x.id].best / sc[x.id].t; sN++; }
       });
       Dn += dn;
-      info[b.sub] = { dn: dn, t: notes.length, files: notes.length + resFor(b.sub, gnum(state.grade)).length + (c2 ? resMerge(b.sub).reduce(function (a, e) { return a + resFor(e, gnum(state.grade)).length; }, 0) : 0) };
+      info[b.sub] = { dn: dn, t: notes.length, files: notes.length + resFor(b.sub, gnum(state.grade), "book").length + (c2 ? resMerge(b.sub).reduce(function (a, e) { return a + resFor(e, gnum(state.grade), "book").length; }, 0) : 0) };
     });
     var live = C.books.filter(function (b) { return info[b.sub].files; });
     var fb = cont ? cont.b : (live[0] || C.books[0]), fi = info[fb.sub], plan = c1Plan(fb, cont), cur = plan.cur, wk = c1WeekHTML(), avg = sN ? Math.round(sSum / sN * 100) : null;
@@ -3897,7 +3897,7 @@
       var boards = Array.isArray(window.IQRA_BOARDS) ? window.IQRA_BOARDS : [], allBooks = (Array.isArray(window.IQRA_BOOKS) ? window.IQRA_BOOKS : []).filter(function (x) { return ext(x.url) && (!clsSel || Number(x.cls) === clsSel) && typeOk(x); }), books = (Array.isArray(window.IQRA_BOOKS) ? window.IQRA_BOOKS : []).filter(function (x) { return ext(x.url) && typeOk(x) && (!x.board || x.board === "general"); }), sylBooks = allBooks.filter(function (x) { return x.board && x.board !== "general" && (boardSel === "all" || x.board === boardSel); });
       var sec = function (id, title, lead, body) { return '<section class="lp-sec" id="' + id + '"><div class="lp-sec-h"><h2>' + esc(title) + "</h2><p>" + esc(lead) + '</p></div><div class="lp-sec-b">' + body + "</div></section>"; };
       var linkCard = function (x, label, withBadge) { return '<a class="lp-card' + (x.cover ? " has-cover" : "") + '" href="' + esc(ext(x.url)) + '" target="_blank" rel="noopener noreferrer">' + (x.cover && /^\/img\/[\w.\-]+$/.test(x.cover) ? '<img class="lp-cover" src="' + esc(x.cover) + '" alt="' + esc(lt(x.title)) + '" width="210" height="280" loading="lazy" decoding="async">' : "") + '<i>' + esc((x.cls ? tx("Class ", "جماعت ") + x.cls : "") + (x.subject ? (x.cls ? " · " : "") + lt(x.subject) : "")) + "</i><b>" + esc(lt(x.title)) + "</b>" + (withBadge ? badge(x) : "") + "<em>" + esc(label) + "</em></a>"; };
-      var soon = function (title) { return '<div class="lp-card lp-soon"><b>' + esc(title) + "</b><span>" + esc(tx("Sign in to study the full lessons meanwhile.", "تب تک مکمل اسباق کے لیے لاگ اِن کر کے پڑھیں۔")) + "</span></div>"; };
+      var soon = function (title) { return '<div class="lp-card lp-soon"><b>' + esc(title) + "</b><span>" + esc(signed ? tx("Coming soon.", "جلد آ رہا ہے۔") : tx("Sign in to study the full lessons meanwhile.", "تب تک مکمل اسباق کے لیے لاگ اِن کر کے پڑھیں۔")) + "</span></div>"; };
       function isPaid(x) { return !!(x && x.paid); }
       function typeOk(x) { return typeSel === "all" || (typeSel === "paid") === isPaid(x); }
       function badge(x) { var p = isPaid(x); return '<small class="lp-badge' + (p ? " paid" : "") + '">' + esc(p ? tx("Paid", "قیمت والی") : tx("Free", "مفت")) + "</small>"; }
