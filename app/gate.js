@@ -57,7 +57,7 @@ function profileView(u,d){
   if(!sel){er.textContent=T('Please choose a class.','براہِ کرم جماعت چنیں۔');return}
   const b=$('#ps');b.disabled=true;b.textContent=T('Saving…','محفوظ ہو رہا ہے…');
   try{const now=Date.now();await F.setDoc(F.doc(fs,'students',u.uid),{name:n,cls:sel,city:$('#pt').value.trim(),phone:$('#pp').value.trim(),email:u.email||'',updated:now},{merge:true});window.__iqProfile={name:n,cls:sel,updated:now};G.classList.remove('ob-on');begin(u)}catch(e){b.disabled=false;b.textContent=T('Start learning','پڑھائی شروع کریں');er.textContent=friendly(e)||T('Could not save. Please try again.','محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔')}}}
-function col(n){const c=F.collection(fs,n);return{onSnapshot:(a,b)=>F.onSnapshot(c,a,b),where:(f,o,v)=>({get:()=>F.getDocs(F.query(c,F.where(f,o,v)))}),doc:id=>{const r=F.doc(fs,n,id);return{set:x=>F.setDoc(r,x),update:x=>F.updateDoc(r,x),delete:()=>F.deleteDoc(r),get:()=>F.getDoc(r)}}}}
+function col(n){const c=F.collection(fs,n);/* the student site asks only for visible lessons and published resources; staff (admin.html) see everything */const sq=window.IQRA_STAFF_PAGE?c:n==='chapters'?F.query(c,F.where('lesson.hidden','==',false)):n==='resources'?F.query(c,F.where('published','==',true)):c;return{onSnapshot:(a,b)=>F.onSnapshot(sq,a,b),where:(f,o,v)=>({get:()=>F.getDocs(F.query(c,F.where(f,o,v)))}),doc:id=>{const r=F.doc(fs,n,id);return{set:x=>F.setDoc(r,x),update:x=>F.updateDoc(r,x),delete:()=>F.deleteDoc(r),get:()=>F.getDoc(r)}}}}
 const db={collection:col};
 const staff=()=>role==='admin';
 const user={isOwner:async()=>staff(),canEdit:async()=>staff(),can:async()=>(role==='admin'||role==='teacher')?true:null,id:async()=>uid};

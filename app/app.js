@@ -2348,7 +2348,7 @@
   function rebuildBookInD(b) { D.lessons = D.lessons.filter(function (x) { return b.lessons.indexOf(x) < 0; }); b.lessons.forEach(function (l) { D.lessons.push(l); }); }
   function persistBook(b, only) {
     saveBooks(); save();
-    if (cloudOK()) (only || b.lessons).forEach(function (l) { cloudCol("chapters").doc(l.id).set({ lesson: l, bookId: b.id, bookName: b.name, subject: b.subject, grade: String(b.grade), updated: Date.now() }).catch(cloudFail); });
+    if (cloudOK()) (only || b.lessons).forEach(function (l) { cloudCol("chapters").doc(l.id).set({ lesson: (l.hidden ? l : Object.assign({}, l, { hidden: false })), bookId: b.id, bookName: b.name, subject: b.subject, grade: String(b.grade), updated: Date.now() }).catch(cloudFail); });
   }
   function chRename(id, v) { var f = findLesson(id); v = String(v || "").trim(); if (!f || !v) return; f.l.title = { en: v, ur: v }; if (f.l.meta) f.l.meta.chapter = v; persistBook(f.b, [f.l]); }
   function chToggleHide(id) { var f = findLesson(id); if (!f) return; f.l.hidden = !f.l.hidden; persistBook(f.b, [f.l]); }
@@ -2916,7 +2916,7 @@
   function serial(list, fn) { return list.reduce(function (p, x) { return p.then(function () { return fn(x); }); }, Promise.resolve()); }
   function cloudPushBook(b) {
     if (!cloudOK() || !b) return Promise.resolve();
-    return serial(b.lessons, function (l) { return cloudCol("chapters").doc(l.id).set({ lesson: l, bookId: b.id, bookName: b.name, subject: b.subject, grade: String(b.grade), updated: Date.now() }); }).catch(cloudFail);
+    return serial(b.lessons, function (l) { return cloudCol("chapters").doc(l.id).set({ lesson: (l.hidden ? l : Object.assign({}, l, { hidden: false })), bookId: b.id, bookName: b.name, subject: b.subject, grade: String(b.grade), updated: Date.now() }); }).catch(cloudFail);
   }
   function cloudDelBook(id) {
     if (!cloudOK()) return;

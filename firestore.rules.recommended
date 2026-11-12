@@ -17,7 +17,13 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/roles/$(request.auth.uid))
         && roleDoc().data.role == 'teacher';
     }
-    function isStaff() { return isOwner() || isTeacher(); }
+    // a role document with role 'admin' (given by the owner) is staff too, as in the site and in the files worker
+    function isAdminRole() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/roles/$(request.auth.uid))
+        && roleDoc().data.role == 'admin';
+    }
+    function isStaff() { return isOwner() || isTeacher() || isAdminRole(); }
     // a teacher may change only what they wrote themselves; the owner may change anything
     function mine() { return isTeacher() && resource.data.get('author', '') == request.auth.uid; }
 
@@ -37,14 +43,14 @@ service cloud.firestore {
       allow delete: if isOwner();
     }
 
-    // learning content: any signed-in user can read, only staff can change.
-    // KNOWN LIMIT: 'hidden' lessons and unpublished resources are hidden only by the site code. To enforce it here the site
-    // must first query with where('hidden' != true) (rules are not filters); do not tighten read rules before that change.
-    match /chapters/{id} { allow read: if signedIn(); allow create: if isStaff(); allow update, delete: if isOwner() || isTeacher(); }
+    // learning content. Students may read only lessons with lesson.hidden == false and resources with published == true;
+    // staff read everything. The student site already asks for exactly that (app/gate.js), and every chapter in the database
+    // has lesson.hidden set, so publish these rules only AFTER the site version 20261112b is live.
+    match /chapters/{id} { allow read: if isStaff() || (signedIn() && resource.data.lesson.hidden == false); allow create: if isStaff(); allow update, delete: if isOwner() || isTeacher(); }
     match /meta/{id}     { allow read: if signedIn(); allow write: if isStaff(); }
     match /clips/{id}    { allow read: if signedIn(); allow write: if isStaff(); }
     match /lectures/{id}  { allow read: if signedIn(); allow create: if isStaff(); allow update, delete: if isOwner() || mine(); }
-    match /resources/{id} { allow read: if signedIn(); allow create: if isStaff(); allow update, delete: if isOwner() || mine(); }
+    match /resources/{id} { allow read: if isStaff() || (signedIn() && resource.data.published == true); allow create: if isStaff(); allow update, delete: if isOwner() || mine(); }
 
     // translation service (written only by Cloud Functions, which bypass these rules)
     match /translations/{id}     { allow read: if signedIn(); allow write: if false; }
