@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+match /databases/{database}/documents {
+function signedIn() { return request.auth != null; }
+function role() {
+return exists(/databases/$(database)/documents/roles/$(request.auth.uid))
+? get(/databases/$(database)/documents/roles/$(request.auth.uid)).data.role : 'student';
+}
+function owner() { return signedIn() && request.auth.token.email == 'zaibislam0@gmail.com' && request.auth.token.email_verified == true; }
+function admin() { return owner() || role() == 'admin'; }
+function teacher() { return admin() || role() == 'teacher'; }
+
+match /students/{uid} { allow read, write: if signedIn() && (request.auth.uid == uid || admin()); }
+match /roles/{uid} { allow read: if signedIn() && (request.auth.uid == uid || admin()); allow write: if admin(); }
+// CHANGED: students read only visible lessons (lesson.hidden == false); staff read everything
+match /chapters/{id} { allow read: if teacher() || (signedIn() && resource.data.lesson.hidden == false); allow write: if admin(); }
+match /clips/{id} { allow read: if signedIn(); allow write: if admin(); }
+match /meta/{id} { allow read: if signedIn(); allow write: if admin(); }
+match /lectures/{id} { allow read: if signedIn(); allow write: if teacher(); }
+// CHANGED: students read only published resources; staff read everything
+match /resources/{id} { allow read: if teacher() || (signedIn() && resource.data.published == true); allow write: if teacher(); }
+}
+}
