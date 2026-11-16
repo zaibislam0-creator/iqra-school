@@ -34,7 +34,7 @@ const viaRedirect=async()=>{try{await Au.signInWithRedirect(auth,new Au.GoogleAu
 const viaPopup=async()=>{try{await Au.signInWithPopup(auth,new Au.GoogleAuthProvider());return ''}catch(e){const c=(e&&e.code)||'';if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/web-storage-unsupported')return viaRedirect();return friendly(e)}};
 window.__iqSignIn=async()=>{if(gisOK){const r=await gisToken();if(r!=='x')return r}return viaPopup()};
 gisInit().catch(()=>{});
-window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try{const x={updated:Date.now()};if(p&&p.name)x.name=String(p.name).slice(0,80);if(p&&p.cls)x.cls=String(p.cls);if(p&&p.sboard)x.sboard=String(p.sboard);await F.setDoc(F.doc(fs,'students',u.uid),x,{merge:true});return true}catch(e){return false}};
+window.__iqSaveProfile=async p=>{const u=auth.currentUser;if(!u)return false;try{const x={updated:Date.now()};if(p&&p.name)x.name=String(p.name).slice(0,80);if(p&&p.cls)x.cls=String(p.cls);if(p&&p.sboard)x.sboard=String(p.sboard);await F.setDoc(F.doc(fs,'students',u.uid),x,{merge:true});try{const k='iq-prof-'+u.uid,c=JSON.parse(localStorage.getItem(k))||{};localStorage.setItem(k,JSON.stringify(Object.assign(c,x)))}catch(e){}return true}catch(e){return false}};
 function profileView(u,d){
  leaveSplash();if(window.__iqEntry&&window.__iqEntry.busy)window.__iqEntry.busy(false);
  const cl=[['KG','کے جی'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6'],['7','7'],['8','8'],['9','9'],['10','10']];
@@ -56,7 +56,7 @@ function profileView(u,d){
   if(!n){er.textContent=T('Please enter the student’s name.','براہِ کرم طالب علم کا نام لکھیں۔');$('#pn').focus();return}
   if(!sel){er.textContent=T('Please choose a class.','براہِ کرم جماعت چنیں۔');return}
   const b=$('#ps');b.disabled=true;b.textContent=T('Saving…','محفوظ ہو رہا ہے…');
-  try{const now=Date.now();await F.setDoc(F.doc(fs,'students',u.uid),{name:n,cls:sel,city:$('#pt').value.trim(),phone:$('#pp').value.trim(),email:u.email||'',updated:now},{merge:true});window.__iqProfile={name:n,cls:sel,updated:now};G.classList.remove('ob-on');begin(u)}catch(e){b.disabled=false;b.textContent=T('Start learning','پڑھائی شروع کریں');er.textContent=friendly(e)||T('Could not save. Please try again.','محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔')}}}
+  try{const now=Date.now();await F.setDoc(F.doc(fs,'students',u.uid),{name:n,cls:sel,city:$('#pt').value.trim(),phone:$('#pp').value.trim(),email:u.email||'',updated:now},{merge:true});window.__iqProfile={name:n,cls:sel,updated:now};try{localStorage.setItem('iq-prof-'+u.uid,JSON.stringify({name:n,cls:sel,updated:now}))}catch(e){}G.classList.remove('ob-on');begin(u)}catch(e){b.disabled=false;b.textContent=T('Start learning','پڑھائی شروع کریں');er.textContent=friendly(e)||T('Could not save. Please try again.','محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔')}}}
 function col(n){const c=F.collection(fs,n);/* the student site asks only for visible lessons and published resources; staff (admin.html) see everything */const sq=window.IQRA_STAFF_PAGE?c:n==='chapters'?F.query(c,F.where('lesson.hidden','==',false)):n==='resources'?F.query(c,F.where('published','==',true)):c;return{onSnapshot:(a,b)=>F.onSnapshot(sq,a,b),where:(f,o,v)=>({get:()=>F.getDocs(F.query(c,F.where(f,o,v)))}),doc:id=>{const r=F.doc(fs,n,id);return{set:x=>F.setDoc(r,x),update:x=>F.updateDoc(r,x),delete:()=>F.deleteDoc(r),get:()=>F.getDoc(r)}}}}
 const db={collection:col};
 const staff=()=>role==='admin';
@@ -80,9 +80,13 @@ let pendMsg='';
 Au.onAuthStateChanged(auth,async u=>{if(!u){try{localStorage.removeItem('iq-session')}catch(e){}leaveSplash();if(window.IQRA_STAFF_PAGE){location.replace('/');return}if(started)return location.reload();return loginView(pendMsg)}
  if(window.__iqEntry&&window.__iqEntry.active&&window.__iqEntry.busy)window.__iqEntry.busy(true);
  uid=u.uid;role=(u.email===OWNER&&u.emailVerified)?'admin':'student';
- try{const r=await F.getDoc(F.doc(fs,'roles',u.uid));if(r.exists()&&['admin','teacher'].includes(r.data().role))role=role==='admin'?'admin':r.data().role}catch(e){}
+ if(window.IQRA_STAFF_PAGE){try{const r=await F.getDoc(F.doc(fs,'roles',u.uid));if(r.exists()&&['admin','teacher'].includes(r.data().role))role=role==='admin'?'admin':r.data().role}catch(e){}}
  if(!window.IQRA_STAFF_PAGE)role='student'; /* the student site never grants staff powers; staff use admin.html */
  if(window.IQRA_STAFF_PAGE&&role==='student'){location.replace('/');return} /* anyone who is not staff is sent away without seeing anything */
- let d=null;try{const s=await F.getDoc(F.doc(fs,'students',u.uid));d=s.exists()?s.data():null}catch(e){}
+ const PK='iq-prof-'+u.uid;let d=null;
+ /* returning student on a slow connection: open at once from the saved profile, refresh it quietly in the background */
+ if(!window.IQRA_STAFF_PAGE){try{const c=JSON.parse(localStorage.getItem(PK));if(c&&c.name){window.__iqProfile=c;begin(u);F.getDoc(F.doc(fs,'students',u.uid)).then(s=>{if(s.exists()&&s.data().name){window.__iqProfile=s.data();try{localStorage.setItem(PK,JSON.stringify(s.data()))}catch(e){}}}).catch(()=>{});return}}catch(e){}}
+ try{const s=await F.getDoc(F.doc(fs,'students',u.uid));d=s.exists()?s.data():null}catch(e){}
+ if(d&&d.name&&!window.IQRA_STAFF_PAGE){try{localStorage.setItem(PK,JSON.stringify(d))}catch(e){}}
  if(window.IQRA_STAFF_PAGE||(d&&d.name)){window.__iqProfile=d||{};begin(u)}else profileView(u,d)});
 }catch(e){leaveSplash();if(SP()){G.style.display='none';window.__iqEntry.ready(T('Sign-in could not load. Please check your internet and refresh the page.','لاگ اِن لوڈ نہیں ہو سکا۔ براہِ کرم انٹرنیٹ دیکھیں اور صفحہ دوبارہ کھولیں۔'))}else show('<h1>IQRA</h1><p class="er">Could not load sign-in: '+esc(e.message||e)+'</p>')}

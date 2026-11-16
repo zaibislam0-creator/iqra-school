@@ -1,6 +1,6 @@
 /* IQRA service worker: keeps pictures, audio and the PDF reader available on weak connections.
    The page itself is always fetched from the network first, so updates appear immediately. */
-const CACHE = 'iqra-static-v67';
+const CACHE = 'iqra-static-v68';
 const APP = 'iqra-app-v1';
 const STATIC = /^\/(img|audio|lib|notes|books)\//;
 const APPFILE = /^\/app\/[^/]+\.(js|css)$/; /* versioned with ?v= in index.html, so a new release always has a new address */
@@ -21,14 +21,19 @@ self.addEventListener('fetch', e => {
   if (url.pathname === '/admin' || url.pathname.startsWith('/admin.')) return; /* staff page is never cached */
 
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(res => {
+    /* weak signal: wait at most 3.5 s for the network, then open the saved copy so the child is never left staring at a blank page */
+    const home = url.pathname === '/' || url.pathname === '/index.html';
+    const slow = home ? new Promise(r => setTimeout(r, 3500, null)) : new Promise(() => {});
+    const net = fetch(req).then(res => {
       /* keep only the real home page as the offline fallback: never a 404/500, privacy page or other address */
       if (res.ok && res.status === 200 && (url.pathname === '/' || url.pathname === '/index.html')) {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put('/index.html', copy));
       }
       return res;
-    }).catch(() => caches.match('/index.html')));
+    });
+    net.catch(() => {});
+    e.respondWith(Promise.race([net, slow.then(() => caches.match('/index.html').then(h => h || net))]).catch(() => caches.match('/index.html')));
     return;
   }
 
