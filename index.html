@@ -5,10 +5,10 @@
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js"><link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600&family=Amiri:wght@400;700&display=swap" media="print" onload="this.media='all'">
+<script>/* web fonts (Nastaliq and others) are skipped in Low Internet Mode: the phone's own fonts are used */try{if(localStorage.getItem("iq-low")!=="1"&&!(navigator.connection&&navigator.connection.saveData)){var f=document.createElement("link");f.rel="stylesheet";f.href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600&family=Amiri:wght@400;700&display=swap";document.head.appendChild(f)}}catch(e){}</script>
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Nastaliq+Urdu:wght@400;600&family=Amiri:wght@400;700&display=swap"></noscript>
-<script>try{if(localStorage.getItem("iq-session")==="1")document.documentElement.classList.add("iq-resume")}catch(e){}</script>
-<link rel="stylesheet" href="app/style.css?v=20261112d" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="app/style.css?v=20261112d"></noscript>
+<script>try{if(localStorage.getItem("iq-session")==="1")document.documentElement.classList.add("iq-resume");if(localStorage.getItem("iq-low")==="1")document.documentElement.classList.add("iq-low")}catch(e){}</script>
+<link rel="stylesheet" href="app/style.css?v=20261117b" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="app/style.css?v=20261117b"></noscript>
 </head><body>
 <div id="iqboot" aria-hidden="true"><b>IQRA</b><i></i></div>
 <div id="iqsplash" aria-hidden="true"><img src="/icon-192.png" width="96" height="96" alt=""><i class="sp-ring"></i></div>
@@ -20,10 +20,8 @@
 <script defer src="app/data.js?v=20261106fa1"></script>
 <script defer src="app/small.js?v=20261106fa1"></script>
 <script defer src="app/free.js?v=20261106fa1"></script>
-<script defer src="app/c1-english.js?v=20261106fa1"></script><script defer src="app/c1-math.js?v=20261106fa1"></script><script defer src="app/c1-urdu.js?v=20261106fa1"></script><script defer src="app/c1-gk.js?v=20261106fa1"></script><script defer src="app/c1-islamiat.js?v=20261106fa1"></script>
-<script defer src="app/c1-games.js?v=20261106fa1"></script>
-<script defer src="app/app.js?v=20261112e"></script>
-<script type="module" src="app/gate.js?v=20261112b"></script>
+<script defer src="app/app.js?v=20261117b"></script>
+<script type="module" src="app/gate.js?v=20261117b"></script>
 
 
 <script>if('serviceWorker' in navigator&&location.protocol==='https:')addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){})})</script>
